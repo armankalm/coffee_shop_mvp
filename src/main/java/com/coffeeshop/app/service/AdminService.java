@@ -46,9 +46,7 @@ public class AdminService {
     public List<OrderDto> getAllOrders(OrderStatus status, Long shopId) {
         List<Order> orders;
         if (status != null && shopId != null) {
-            orders = orderRepository.findByStatus(status).stream()
-                    .filter(o -> o.getShop().getId().equals(shopId))
-                    .collect(Collectors.toList());
+            orders = orderRepository.findByStatusAndShopId(status, shopId);
         } else if (status != null) {
             orders = orderRepository.findByStatus(status);
         } else if (shopId != null) {

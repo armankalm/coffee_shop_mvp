@@ -39,6 +39,8 @@ public class OtpService {
 
     @Transactional
     public void generateAndSend(String email) {
+        otpCodeRepository.deleteByEmailAndUsedTrue(email);
+
         String code = generateCode();
 
         OtpCode otpCode = new OtpCode();

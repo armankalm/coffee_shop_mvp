@@ -19,6 +19,8 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 
+import org.mockito.ArgumentCaptor;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -77,6 +79,7 @@ class OrderServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(OrderStatus.NEW);
         verify(orderRepository).save(any(Order.class));
+        verify(eventPublisher).publishEvent(any(com.coffeeshop.app.service.print.NewOrderEvent.class));
     }
 
     @Test
@@ -148,16 +151,19 @@ class OrderServiceTest {
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(toppingRepository.findAllById(Set.of(1L))).thenReturn(List.of(topping));
 
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         Order savedOrder = Order.builder()
                 .id(1L).user(user).shop(shop)
                 .status(OrderStatus.NEW)
                 .total(BigDecimal.valueOf(1200)) // (500 + 100) * 2
                 .build();
-        when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
+        when(orderRepository.save(orderCaptor.capture())).thenReturn(savedOrder);
 
         OrderDto result = orderService.createOrder("test@example.com", request);
 
         assertThat(result.getTotal()).isEqualByComparingTo(BigDecimal.valueOf(1200));
+        assertThat(orderCaptor.getValue().getTotal()).isEqualByComparingTo(BigDecimal.valueOf(1200));
+        verify(eventPublisher).publishEvent(any(com.coffeeshop.app.service.print.NewOrderEvent.class));
     }
 
     @Test

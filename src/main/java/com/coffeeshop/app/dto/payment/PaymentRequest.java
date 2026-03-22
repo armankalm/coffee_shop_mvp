@@ -1,10 +1,10 @@
 package com.coffeeshop.app.dto.payment;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public class PaymentRequest {
 
-    @NotNull(message = "provider is required")
+    @NotBlank(message = "provider is required")
     private String provider;
 
     public String getProvider() { return provider; }

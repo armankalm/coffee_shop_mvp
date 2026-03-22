@@ -31,14 +31,14 @@ public class PaymentController {
     }
 
     @PostMapping("/api/payments/webhook/kaspi")
-    public ResponseEntity<PaymentTransactionDto> kaspiWebhook(@RequestBody WebhookPayload payload) {
+    public ResponseEntity<PaymentTransactionDto> kaspiWebhook(@Valid @RequestBody WebhookPayload payload) {
         PaymentTransactionDto tx = paymentService.handleWebhook(
                 PaymentProvider.KASPI, payload.getTransactionId(), payload.getStatus());
         return ResponseEntity.ok(tx);
     }
 
     @PostMapping("/api/payments/webhook/stripe")
-    public ResponseEntity<PaymentTransactionDto> stripeWebhook(@RequestBody WebhookPayload payload) {
+    public ResponseEntity<PaymentTransactionDto> stripeWebhook(@Valid @RequestBody WebhookPayload payload) {
         PaymentTransactionDto tx = paymentService.handleWebhook(
                 PaymentProvider.STRIPE, payload.getTransactionId(), payload.getStatus());
         return ResponseEntity.ok(tx);

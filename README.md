@@ -149,6 +149,15 @@ OpenAPI JSON: http://localhost:8080/v3/api-docs
 | `MAIL_PASSWORD` | SMTP пароль | `...` |
 | `SERVER_PORT` | Порт сервера | `8080` |
 | `SPRING_PROFILES_ACTIVE` | Профиль (`dev` или `prod`) | `dev` |
+| `PRINTER_HOST` | IP/хост термопринтера | `localhost` |
+| `PRINTER_PORT` | TCP-порт принтера | `9100` |
+| `PRINTER_ENABLED` | Включить принтер (`true`/`false`) | `false` |
+| `PRINTER_TIMEOUT_MS` | Таймаут подключения к принтеру (мс) | `5000` |
+| `AUTO_PRINT_ENABLED` | Автопечать при новом заказе | `false` |
+| `KASPI_API_KEY` | API-ключ Kaspi Pay | `...` |
+| `KASPI_MERCHANT_ID` | Merchant ID Kaspi Pay | `...` |
+| `STRIPE_SECRET_KEY` | Секретный ключ Stripe | `sk_test_...` |
+| `STRIPE_WEBHOOK_SECRET` | Секрет вебхука Stripe | `whsec_...` |
 
 Полный список — в файле `.env.production.example`.
 

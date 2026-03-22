@@ -4,9 +4,10 @@ import com.coffeeshop.app.domain.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.event.TransactionPhase;
 
 /**
  * Listens for NewOrderEvent and automatically prints a receipt if auto-print is enabled.
@@ -26,7 +27,7 @@ public class OrderPrintListener {
     }
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onNewOrder(NewOrderEvent event) {
         if (!autoPrintEnabled) {
             return;

@@ -88,11 +88,18 @@ class AdminServiceTest {
 
     @Test
     void getAllOrders_filterByStatusAndShopId_returnsMatchingOrders() {
-        when(orderRepository.findByStatus(OrderStatus.NEW)).thenReturn(List.of(order));
+        CoffeeShop otherShop = CoffeeShop.builder().id(2L).name("Other Shop").city("Astana")
+                .address("456 Ave").status(ShopStatus.OPEN).build();
+        Order orderFromOtherShop = Order.builder().id(2L).user(user).shop(otherShop)
+                .status(OrderStatus.NEW).total(BigDecimal.valueOf(700)).build();
+        when(orderRepository.findByStatusAndShopId(OrderStatus.NEW, 1L)).thenReturn(List.of(order));
 
         List<OrderDto> result = adminService.getAllOrders(OrderStatus.NEW, 1L);
 
         assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(1L);
+        verify(orderRepository).findByStatusAndShopId(OrderStatus.NEW, 1L);
+        verify(orderRepository, never()).findByStatus(any());
     }
 
     @Test
@@ -240,6 +247,22 @@ class AdminServiceTest {
         ToppingDto result = adminService.createTopping(request);
 
         assertThat(result.getName()).isEqualTo("Soy Milk");
+    }
+
+    @Test
+    void updateTopping_validRequest_returnsDto() {
+        CreateToppingRequest request = new CreateToppingRequest();
+        request.setName("Almond Milk");
+        request.setType(ToppingType.MILK);
+        request.setPrice(BigDecimal.valueOf(120));
+
+        when(toppingRepository.findById(1L)).thenReturn(Optional.of(topping));
+        when(toppingRepository.save(any(Topping.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ToppingDto result = adminService.updateTopping(1L, request);
+
+        assertThat(result.getName()).isEqualTo("Almond Milk");
+        assertThat(result.getPrice()).isEqualByComparingTo(BigDecimal.valueOf(120));
     }
 
     @Test

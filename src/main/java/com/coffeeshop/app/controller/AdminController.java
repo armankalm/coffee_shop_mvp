@@ -39,7 +39,6 @@ public class AdminController {
     }
 
     @PatchMapping("/orders/{id}/status")
-    @PreAuthorize("hasAnyRole('BARISTA', 'MANAGER', 'ADMIN')")
     public ResponseEntity<OrderDto> updateOrderStatus(
             @PathVariable("id") Long id,
             @Valid @RequestBody UpdateOrderStatusRequest request) {

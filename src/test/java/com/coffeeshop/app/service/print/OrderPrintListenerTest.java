@@ -66,5 +66,7 @@ class OrderPrintListenerTest {
 
         // Should not propagate exception
         listener.onNewOrder(event);
+
+        verify(printService).printReceipt(order);
     }
 }
