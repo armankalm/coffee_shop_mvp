@@ -24,6 +24,9 @@ public class OtpCode {
     @Column(nullable = false)
     private boolean used;
 
+    @Column(name = "failed_attempts", nullable = false)
+    private int failedAttempts;
+
     public OtpCode() {}
 
     public Long getId() { return id; }
@@ -39,4 +42,7 @@ public class OtpCode {
 
     public boolean isUsed() { return used; }
     public void setUsed(boolean used) { this.used = used; }
+
+    public int getFailedAttempts() { return failedAttempts; }
+    public void setFailedAttempts(int failedAttempts) { this.failedAttempts = failedAttempts; }
 }

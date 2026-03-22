@@ -44,7 +44,7 @@ server:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:very-long-secret-key-for-development-only-change-in-production}
+    secret: ${JWT_SECRET:dmVyeS1sb25nLXNlY3JldC1rZXktZm9yLWRldmVsb3BtZW50LW9ubHktY2hhbmdlLWluLXByb2R1Y3Rpb24=}
     access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}
     refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
   otp:

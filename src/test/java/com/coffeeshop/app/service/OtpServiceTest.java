@@ -120,7 +120,8 @@ class OtpServiceTest {
         boolean result = otpService.verifyCode("user@example.com", "999999");
 
         assertThat(result).isFalse();
-        verify(otpCodeRepository, never()).save(any());
+        assertThat(otpCode.getFailedAttempts()).isEqualTo(1);
+        verify(otpCodeRepository).save(otpCode);
     }
 
     @Test

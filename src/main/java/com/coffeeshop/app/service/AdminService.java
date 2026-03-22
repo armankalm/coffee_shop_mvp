@@ -144,6 +144,9 @@ public class AdminService {
         Set<Topping> incompatible = new HashSet<>();
         if (request.getIncompatibleWithIds() != null && !request.getIncompatibleWithIds().isEmpty()) {
             incompatible = new HashSet<>(toppingRepository.findAllById(request.getIncompatibleWithIds()));
+            if (incompatible.size() != request.getIncompatibleWithIds().size()) {
+                throw new IllegalArgumentException("One or more incompatible topping IDs not found");
+            }
         }
         Topping topping = Topping.builder()
                 .name(request.getName())
@@ -163,6 +166,9 @@ public class AdminService {
         Set<Topping> incompatible = new HashSet<>();
         if (request.getIncompatibleWithIds() != null && !request.getIncompatibleWithIds().isEmpty()) {
             incompatible = new HashSet<>(toppingRepository.findAllById(request.getIncompatibleWithIds()));
+            if (incompatible.size() != request.getIncompatibleWithIds().size()) {
+                throw new IllegalArgumentException("One or more incompatible topping IDs not found");
+            }
         }
         topping.setIncompatibleWith(incompatible);
         return ToppingDto.from(toppingRepository.save(topping));
@@ -182,7 +188,6 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
     public void printOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));

@@ -37,7 +37,7 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         JwtProperties props = new JwtProperties();
-        props.setSecret("test-secret-key-for-testing-only-minimum-256-bits-long-padding");
+        props.setSecret("dGVzdC1zZWNyZXQta2V5LWZvci10ZXN0aW5nLW9ubHktbWluaW11bS0yNTYtYml0cy1sb25nLXBhZGRpbmc=");
         props.setAccessTokenExpiration(900000L);
         props.setRefreshTokenExpiration(604800000L);
         tokenProvider = new JwtTokenProvider(props);

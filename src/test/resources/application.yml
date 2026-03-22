@@ -21,7 +21,7 @@ spring:
 
 app:
   jwt:
-    secret: test-secret-key-for-testing-only-minimum-256-bits-long-padding
+    secret: dGVzdC1zZWNyZXQta2V5LWZvci10ZXN0aW5nLW9ubHktbWluaW11bS0yNTYtYml0cy1sb25nLXBhZGRpbmc=
     access-token-expiration: 900000
     refresh-token-expiration: 604800000
   otp:

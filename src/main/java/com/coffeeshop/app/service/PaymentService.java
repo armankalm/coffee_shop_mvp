@@ -70,6 +70,10 @@ public class PaymentService {
         PaymentTransaction tx = transactionRepository.findByExternalId(externalId)
                 .orElseThrow(() -> new NoSuchElementException("Transaction not found: " + externalId));
 
+        if (tx.getProvider() != provider) {
+            throw new IllegalArgumentException("Provider mismatch for transaction: " + externalId);
+        }
+
         PaymentProviderService providerService = providers.get(provider);
         if (providerService == null) {
             throw new IllegalArgumentException("Unsupported payment provider: " + provider);

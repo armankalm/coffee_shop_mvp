@@ -20,6 +20,7 @@ import java.util.Optional;
 public class OtpService {
 
     private static final Logger log = LoggerFactory.getLogger(OtpService.class);
+    private static final int MAX_OTP_ATTEMPTS = 5;
 
     private final OtpCodeRepository otpCodeRepository;
     private final JavaMailSender mailSender;
@@ -68,6 +69,13 @@ public class OtpService {
 
         OtpCode otp = otpOpt.get();
         if (!passwordEncoder.matches(code, otp.getCode())) {
+            int attempts = otp.getFailedAttempts() + 1;
+            otp.setFailedAttempts(attempts);
+            if (attempts >= MAX_OTP_ATTEMPTS) {
+                otp.setUsed(true);
+                log.debug("OTP invalidated after {} failed attempts for: {}", attempts, email);
+            }
+            otpCodeRepository.save(otp);
             log.debug("OTP code mismatch for: {}", email);
             return false;
         }
