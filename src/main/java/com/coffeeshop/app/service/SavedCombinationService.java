@@ -48,7 +48,6 @@ public class SavedCombinationService {
                 .orElseThrow(() -> new NoSuchElementException("Product not found: " + request.getProductId()));
 
         Set<Long> toppingIds = request.getToppingIds() != null ? request.getToppingIds() : new HashSet<>();
-        toppingService.validateCompatibility(toppingIds);
 
         Set<Topping> toppings = new HashSet<>();
         if (!toppingIds.isEmpty()) {
@@ -56,6 +55,7 @@ public class SavedCombinationService {
             if (toppings.size() != toppingIds.size()) {
                 throw new IllegalArgumentException("One or more toppings not found");
             }
+            toppingService.validateCompatibility(toppingIds);
             Set<Long> allowedIds = product.getAvailableToppings().stream()
                     .map(Topping::getId)
                     .collect(Collectors.toSet());

@@ -45,11 +45,13 @@ class OtpServiceTest {
     @Test
     void generateAndSend_savesHashedOtpCodeAndSendsEmail() {
         ArgumentCaptor<OtpCode> otpCaptor = ArgumentCaptor.forClass(OtpCode.class);
+        when(otpCodeRepository.findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(
+                eq("user@example.com"), any(Instant.class))).thenReturn(Optional.empty());
         doNothing().when(mailSender).send(any(SimpleMailMessage.class));
 
         otpService.generateAndSend("user@example.com");
 
-        verify(otpCodeRepository).deleteByEmail("user@example.com");
+        verify(otpCodeRepository).deleteExpiredOrInvalidByEmail(eq("user@example.com"), any(Instant.class), anyInt());
         verify(otpCodeRepository).save(otpCaptor.capture());
         verify(mailSender).send(any(SimpleMailMessage.class));
 
@@ -62,19 +64,48 @@ class OtpServiceTest {
     }
 
     @Test
-    void generateAndSend_cleansUpAllCodesBeforeGenerating() {
+    void generateAndSend_activeOtpExists_skipsGeneration() {
+        OtpCode activeOtp = new OtpCode();
+        activeOtp.setEmail("user@example.com");
+        activeOtp.setCode("$2a$10$hash");
+        activeOtp.setUsed(false);
+        activeOtp.setExpiresAt(Instant.now().plusSeconds(300));
+        activeOtp.setFailedAttempts(0);
+
+        when(otpCodeRepository.findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(
+                eq("user@example.com"), any(Instant.class))).thenReturn(Optional.of(activeOtp));
+
+        otpService.generateAndSend("user@example.com");
+
+        // No new OTP should be saved and no email sent
+        verify(otpCodeRepository, never()).save(any(OtpCode.class));
+        verify(mailSender, never()).send(any(SimpleMailMessage.class));
+    }
+
+    @Test
+    void generateAndSend_exhaustedOtpExists_generatesNew() {
+        OtpCode exhaustedOtp = new OtpCode();
+        exhaustedOtp.setEmail("user@example.com");
+        exhaustedOtp.setCode("$2a$10$hash");
+        exhaustedOtp.setUsed(false);
+        exhaustedOtp.setExpiresAt(Instant.now().plusSeconds(300));
+        exhaustedOtp.setFailedAttempts(5); // MAX_OTP_ATTEMPTS reached
+
+        when(otpCodeRepository.findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(
+                eq("user@example.com"), any(Instant.class))).thenReturn(Optional.of(exhaustedOtp));
         doNothing().when(mailSender).send(any(SimpleMailMessage.class));
 
         otpService.generateAndSend("user@example.com");
 
-        // deleteByEmail must be called before save
-        var inOrder = inOrder(otpCodeRepository);
-        inOrder.verify(otpCodeRepository).deleteByEmail("user@example.com");
-        inOrder.verify(otpCodeRepository).save(any(OtpCode.class));
+        verify(otpCodeRepository).deleteExpiredOrInvalidByEmail(eq("user@example.com"), any(Instant.class), anyInt());
+        verify(otpCodeRepository).save(any(OtpCode.class));
+        verify(mailSender).send(any(SimpleMailMessage.class));
     }
 
     @Test
     void generateAndSend_mailFailure_throwsRuntimeException() {
+        when(otpCodeRepository.findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(
+                eq("user@example.com"), any(Instant.class))).thenReturn(Optional.empty());
         doThrow(new RuntimeException("SMTP error")).when(mailSender).send(any(SimpleMailMessage.class));
 
         assertThatThrownBy(() -> otpService.generateAndSend("user@example.com"))

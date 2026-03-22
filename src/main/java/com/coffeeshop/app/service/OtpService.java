@@ -42,14 +42,27 @@ public class OtpService {
 
     @Transactional
     public void generateAndSend(String email) {
-        otpCodeRepository.deleteByEmail(email);
+        Instant now = Instant.now();
+
+        // If a valid, non-exhausted OTP already exists, reject the re-request.
+        // This prevents brute-force bypass (re-requesting resets failedAttempts)
+        // and avoids deleting a valid OTP before confirming the new one was delivered.
+        Optional<OtpCode> existing = otpCodeRepository
+                .findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(email, now);
+        if (existing.isPresent() && existing.get().getFailedAttempts() < MAX_OTP_ATTEMPTS) {
+            log.debug("Active OTP already exists for: {}, ignoring re-request", email);
+            return;
+        }
+
+        // Only delete OTPs that are already expired, used, or exhausted
+        otpCodeRepository.deleteExpiredOrInvalidByEmail(email, now, MAX_OTP_ATTEMPTS);
 
         String code = generateCode();
 
         OtpCode otpCode = new OtpCode();
         otpCode.setEmail(email);
         otpCode.setCode(passwordEncoder.encode(code));
-        otpCode.setExpiresAt(Instant.now().plus(expirationMinutes, ChronoUnit.MINUTES));
+        otpCode.setExpiresAt(now.plus(expirationMinutes, ChronoUnit.MINUTES));
         otpCode.setUsed(false);
         otpCodeRepository.save(otpCode);
 
