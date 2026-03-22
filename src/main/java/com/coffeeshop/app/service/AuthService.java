@@ -59,7 +59,7 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthResponse refresh(String refreshToken) {
-        if (!tokenProvider.validateToken(refreshToken)) {
+        if (!tokenProvider.validateToken(refreshToken) || !tokenProvider.isRefreshToken(refreshToken)) {
             throw new IllegalArgumentException("Invalid or expired refresh token");
         }
 

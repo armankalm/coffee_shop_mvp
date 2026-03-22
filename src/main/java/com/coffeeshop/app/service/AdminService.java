@@ -11,8 +11,10 @@ import com.coffeeshop.app.service.print.PrintService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,6 +22,14 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class AdminService {
+
+    private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_TRANSITIONS = Map.of(
+            OrderStatus.NEW,         EnumSet.of(OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED),
+            OrderStatus.IN_PROGRESS, EnumSet.of(OrderStatus.READY, OrderStatus.CANCELLED),
+            OrderStatus.READY,       EnumSet.of(OrderStatus.COMPLETED, OrderStatus.CANCELLED),
+            OrderStatus.COMPLETED,   EnumSet.noneOf(OrderStatus.class),
+            OrderStatus.CANCELLED,   EnumSet.noneOf(OrderStatus.class)
+    );
 
     private final OrderRepository orderRepository;
     private final CoffeeShopRepository coffeeShopRepository;
@@ -67,6 +77,11 @@ public class AdminService {
     public OrderDto updateOrderStatus(Long orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
+        Set<OrderStatus> allowed = ALLOWED_TRANSITIONS.get(order.getStatus());
+        if (!allowed.contains(newStatus)) {
+            throw new IllegalStateException(
+                    "Cannot transition order from " + order.getStatus() + " to " + newStatus);
+        }
         order.setStatus(newStatus);
         return OrderDto.from(orderRepository.save(order));
     }

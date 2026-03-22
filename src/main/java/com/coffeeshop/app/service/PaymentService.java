@@ -75,6 +75,10 @@ public class PaymentService {
             throw new IllegalArgumentException("Unsupported payment provider: " + provider);
         }
 
+        if (tx.getStatus() != PaymentStatus.PENDING) {
+            return PaymentTransactionDto.from(tx);
+        }
+
         boolean success = providerService.isSuccessStatus(providerStatus);
         tx.setStatus(success ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
 

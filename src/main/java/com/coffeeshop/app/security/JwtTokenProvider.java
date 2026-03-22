@@ -28,23 +28,28 @@ public class JwtTokenProvider {
     }
 
     public String generateAccessToken(String email, String role) {
-        return buildToken(email, role, jwtProperties.getAccessTokenExpiration());
+        return buildToken(email, role, "ACCESS", jwtProperties.getAccessTokenExpiration());
     }
 
     public String generateRefreshToken(String email, String role) {
-        return buildToken(email, role, jwtProperties.getRefreshTokenExpiration());
+        return buildToken(email, role, "REFRESH", jwtProperties.getRefreshTokenExpiration());
     }
 
-    private String buildToken(String email, String role, long expirationMs) {
+    private String buildToken(String email, String role, String type, long expirationMs) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMs);
         return Jwts.builder()
                 .subject(email)
                 .claim("role", role)
+                .claim("type", type)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(signingKey())
                 .compact();
+    }
+
+    public boolean isRefreshToken(String token) {
+        return "REFRESH".equals(parseClaims(token).get("type", String.class));
     }
 
     public String getEmailFromToken(String token) {
