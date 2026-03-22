@@ -62,20 +62,20 @@
 
 ## Task 5: Заказы и кастомизация
 
-- [ ] Создать DTO: CreateOrderRequest (userId, shopId, items, toppings)
-- [ ] Создать сервис: OrderService (создание, расчёт цены)
-- [ ] Создать endpoint: POST /api/orders
-- [ ] Создать endpoint: GET /api/orders (список заказов пользователя)
-- [ ] Создать endpoint: GET /api/orders/{id}
-- [ ] Реализовать логику расчёта цены с топингами
-- [ ] Создать endpoint: POST /api/orders/{id}/cancel (отмена заказа)
-- [ ] Создать SavedCombinationService (сохранение комбинаций)
-- [ ] Создать endpoint: POST /api/saved-combinations
-- [ ] Создать endpoint: GET /api/saved-combinations
-- [ ] Создать endpoint: DELETE /api/saved-combinations/{id}
-- [ ] Создать endpoint: POST /api/favorites (добавить в избранное)
-- [ ] Создать endpoint: GET /api/favorites
-- [ ] Создать тесты для заказов
+- [x] Создать DTO: CreateOrderRequest (userId, shopId, items, toppings)
+- [x] Создать сервис: OrderService (создание, расчёт цены)
+- [x] Создать endpoint: POST /api/orders
+- [x] Создать endpoint: GET /api/orders (список заказов пользователя)
+- [x] Создать endpoint: GET /api/orders/{id}
+- [x] Реализовать логику расчёта цены с топингами
+- [x] Создать endpoint: POST /api/orders/{id}/cancel (отмена заказа)
+- [x] Создать SavedCombinationService (сохранение комбинаций)
+- [x] Создать endpoint: POST /api/saved-combinations
+- [x] Создать endpoint: GET /api/saved-combinations
+- [x] Создать endpoint: DELETE /api/saved-combinations/{id}
+- [x] Создать endpoint: POST /api/favorites (добавить в избранное)
+- [x] Создать endpoint: GET /api/favorites
+- [x] Создать тесты для заказов
 
 ## Task 6: Админ-панель и роли
 
