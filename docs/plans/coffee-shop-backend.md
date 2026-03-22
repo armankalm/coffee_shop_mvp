@@ -37,14 +37,14 @@
 
 ## Task 3: Аутентификация и авторизация
 
-- [ ] Реализовать OTP сервис (генерация кода, отправка email)
-- [ ] Создать endpoint: POST /api/auth/request-code
-- [ ] Создать endpoint: POST /api/auth/verify-code
-- [ ] Реализовать JWT фильтр и Token Provider
-- [ ] Создать endpoint: POST /api/auth/refresh
-- [ ] Настроить Spring Security с ролями
-- [ ] Реализовать аннотации @PreAuthorize для методов
-- [ ] Создать тесты для auth endpoints
+- [x] Реализовать OTP сервис (генерация кода, отправка email)
+- [x] Создать endpoint: POST /api/auth/request-code
+- [x] Создать endpoint: POST /api/auth/verify-code
+- [x] Реализовать JWT фильтр и Token Provider
+- [x] Создать endpoint: POST /api/auth/refresh
+- [x] Настроить Spring Security с ролями
+- [x] Реализовать аннотации @PreAuthorize для методов
+- [x] Создать тесты для auth endpoints
 
 ## Task 4: Кофейни и меню
 
