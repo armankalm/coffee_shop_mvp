@@ -79,16 +79,16 @@
 
 ## Task 6: Админ-панель и роли
 
-- [ ] Создать endpoint: GET /api/admin/orders (все заказы с фильтрами)
-- [ ] Создать endpoint: GET /api/admin/orders/{id}
-- [ ] Создать endpoint: PATCH /api/admin/orders/{id}/status (смена статуса)
-- [ ] Реализовать статусы: NEW, IN_PROGRESS, READY, COMPLETED, CANCELLED
-- [ ] Создать endpoint: POST /api/admin/shops (CRUD для кофеен)
-- [ ] Создать endpoint: POST /api/admin/products (CRUD для товаров)
-- [ ] Создать endpoint: POST /api/admin/toppings (CRUD для топингов)
-- [ ] Реализовать проверку ролей (BARISTA, MANAGER, ADMIN)
-- [ ] Создать endpoint: GET /api/admin/users (список пользователей)
-- [ ] Создать тесты для админ endpoints
+- [x] Создать endpoint: GET /api/admin/orders (все заказы с фильтрами)
+- [x] Создать endpoint: GET /api/admin/orders/{id}
+- [x] Создать endpoint: PATCH /api/admin/orders/{id}/status (смена статуса)
+- [x] Реализовать статусы: NEW, IN_PROGRESS, READY, COMPLETED, CANCELLED
+- [x] Создать endpoint: POST /api/admin/shops (CRUD для кофеен)
+- [x] Создать endpoint: POST /api/admin/products (CRUD для товаров)
+- [x] Создать endpoint: POST /api/admin/toppings (CRUD для топингов)
+- [x] Реализовать проверку ролей (BARISTA, MANAGER, ADMIN)
+- [x] Создать endpoint: GET /api/admin/users (список пользователей)
+- [x] Создать тесты для админ endpoints
 
 ## Task 7: Оплата (Kaspi + Stripe)
 
