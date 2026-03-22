@@ -51,6 +51,15 @@ app:
     expiration-minutes: ${OTP_EXPIRATION_MINUTES:5}
     length: 6
 
+print:
+  printer:
+    host: ${PRINTER_HOST:localhost}
+    port: ${PRINTER_PORT:9100}
+    enabled: ${PRINTER_ENABLED:false}
+    timeout-ms: ${PRINTER_TIMEOUT_MS:5000}
+  auto-print:
+    enabled: ${AUTO_PRINT_ENABLED:false}
+
 logging:
   level:
     com.coffeeshop: DEBUG
@@ -109,6 +118,15 @@ app:
   otp:
     expiration-minutes: ${OTP_EXPIRATION_MINUTES:5}
     length: 6
+
+print:
+  printer:
+    host: ${PRINTER_HOST:localhost}
+    port: ${PRINTER_PORT:9100}
+    enabled: ${PRINTER_ENABLED:false}
+    timeout-ms: ${PRINTER_TIMEOUT_MS:5000}
+  auto-print:
+    enabled: ${AUTO_PRINT_ENABLED:false}
 
 logging:
   level:

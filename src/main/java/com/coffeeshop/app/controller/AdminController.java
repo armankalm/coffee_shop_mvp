@@ -114,4 +114,11 @@ public class AdminController {
     public ResponseEntity<List<UserDto>> getAllUsers() {
         return ResponseEntity.ok(adminService.getAllUsers());
     }
+
+    @PostMapping("/orders/{id}/print")
+    @PreAuthorize("hasAnyRole('BARISTA', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<Void> printOrder(@PathVariable("id") Long id) {
+        adminService.printOrder(id);
+        return ResponseEntity.ok().build();
+    }
 }

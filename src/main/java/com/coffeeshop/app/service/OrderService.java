@@ -5,6 +5,8 @@ import com.coffeeshop.app.dto.order.CreateOrderRequest;
 import com.coffeeshop.app.dto.order.OrderDto;
 import com.coffeeshop.app.dto.order.OrderItemRequest;
 import com.coffeeshop.app.repository.*;
+import com.coffeeshop.app.service.print.NewOrderEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,19 +27,22 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final ToppingRepository toppingRepository;
     private final ToppingService toppingService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public OrderService(OrderRepository orderRepository,
                         UserRepository userRepository,
                         CoffeeShopRepository coffeeShopRepository,
                         ProductRepository productRepository,
                         ToppingRepository toppingRepository,
-                        ToppingService toppingService) {
+                        ToppingService toppingService,
+                        ApplicationEventPublisher eventPublisher) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.coffeeShopRepository = coffeeShopRepository;
         this.productRepository = productRepository;
         this.toppingRepository = toppingRepository;
         this.toppingService = toppingService;
+        this.eventPublisher = eventPublisher;
     }
 
     public OrderDto createOrder(String userEmail, CreateOrderRequest request) {
@@ -99,6 +104,7 @@ public class OrderService {
 
         order.setTotal(total);
         Order saved = orderRepository.save(order);
+        eventPublisher.publishEvent(new NewOrderEvent(this, saved));
         return OrderDto.from(saved);
     }
 

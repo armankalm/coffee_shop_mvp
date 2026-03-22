@@ -7,6 +7,7 @@ import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.repository.*;
+import com.coffeeshop.app.service.print.PrintService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,17 +26,20 @@ public class AdminService {
     private final ProductRepository productRepository;
     private final ToppingRepository toppingRepository;
     private final UserRepository userRepository;
+    private final PrintService printService;
 
     public AdminService(OrderRepository orderRepository,
                         CoffeeShopRepository coffeeShopRepository,
                         ProductRepository productRepository,
                         ToppingRepository toppingRepository,
-                        UserRepository userRepository) {
+                        UserRepository userRepository,
+                        PrintService printService) {
         this.orderRepository = orderRepository;
         this.coffeeShopRepository = coffeeShopRepository;
         this.productRepository = productRepository;
         this.toppingRepository = toppingRepository;
         this.userRepository = userRepository;
+        this.printService = printService;
     }
 
     @Transactional(readOnly = true)
@@ -163,5 +167,12 @@ public class AdminService {
         return userRepository.findAll().stream()
                 .map(UserDto::from)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public void printOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
+        printService.printReceipt(order);
     }
 }

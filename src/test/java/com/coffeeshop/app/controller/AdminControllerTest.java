@@ -320,4 +320,37 @@ class AdminControllerTest {
         mockMvc.perform(get("/api/admin/users"))
                 .andExpect(status().isForbidden());
     }
+
+    // ---- Print ----
+
+    @Test
+    @WithMockUser(username = "barista@test.com", roles = "BARISTA")
+    void printOrder_asBarista_returns200() throws Exception {
+        doNothing().when(adminService).printOrder(1L);
+
+        mockMvc.perform(post("/api/admin/orders/1/print"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "admin@test.com", roles = "ADMIN")
+    void printOrder_asAdmin_returns200() throws Exception {
+        doNothing().when(adminService).printOrder(1L);
+
+        mockMvc.perform(post("/api/admin/orders/1/print"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "user@test.com", roles = "USER")
+    void printOrder_asUser_returns403() throws Exception {
+        mockMvc.perform(post("/api/admin/orders/1/print"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void printOrder_unauthenticated_returns401() throws Exception {
+        mockMvc.perform(post("/api/admin/orders/1/print"))
+                .andExpect(status().isUnauthorized());
+    }
 }

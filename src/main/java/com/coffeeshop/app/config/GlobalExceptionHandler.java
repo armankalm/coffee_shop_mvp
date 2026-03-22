@@ -1,5 +1,6 @@
 package com.coffeeshop.app.config;
 
+import com.coffeeshop.app.service.print.PrintException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
         log.error("Internal error: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(PrintException.class)
+    public ResponseEntity<Map<String, String>> handlePrintException(PrintException ex) {
+        log.error("Print error: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(Map.of("error", ex.getMessage()));
     }
 

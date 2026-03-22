@@ -7,6 +7,7 @@ import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.repository.*;
+import com.coffeeshop.app.service.print.PrintService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +33,7 @@ class AdminServiceTest {
     @Mock private ProductRepository productRepository;
     @Mock private ToppingRepository toppingRepository;
     @Mock private UserRepository userRepository;
+    @Mock private PrintService printService;
 
     @InjectMocks
     private AdminService adminService;
@@ -256,5 +258,24 @@ class AdminServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getEmail()).isEqualTo("user@test.com");
+    }
+
+    @Test
+    void printOrder_existingOrder_callsPrintService() {
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        doNothing().when(printService).printReceipt(order);
+
+        adminService.printOrder(1L);
+
+        verify(printService).printReceipt(order);
+    }
+
+    @Test
+    void printOrder_notFound_throwsNoSuchElement() {
+        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> adminService.printOrder(99L))
+                .isInstanceOf(NoSuchElementException.class)
+                .hasMessageContaining("99");
     }
 }
