@@ -158,6 +158,10 @@ public class OrderService {
             throw new IllegalStateException("Cannot cancel order in status: " + order.getStatus());
         }
 
+        if (user.getRole() == Role.USER && order.getStatus() == OrderStatus.IN_PROGRESS) {
+            throw new IllegalStateException("Cannot cancel an order that is already in progress");
+        }
+
         order.setStatus(OrderStatus.CANCELLED);
         return OrderDto.from(orderRepository.save(order));
     }

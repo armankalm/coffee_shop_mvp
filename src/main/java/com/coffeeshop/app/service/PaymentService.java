@@ -6,6 +6,7 @@ import com.coffeeshop.app.dto.payment.PaymentTransactionDto;
 import com.coffeeshop.app.repository.OrderRepository;
 import com.coffeeshop.app.repository.PaymentTransactionRepository;
 import com.coffeeshop.app.service.payment.PaymentProviderService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,7 +69,11 @@ public class PaymentService {
                 .externalId(externalId)
                 .build();
 
-        return PaymentTransactionDto.from(transactionRepository.save(tx));
+        try {
+            return PaymentTransactionDto.from(transactionRepository.save(tx));
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("A pending payment already exists for order: " + orderId);
+        }
     }
 
     public void verifyWebhook(PaymentProvider provider, String rawPayload, String signatureHeader) {

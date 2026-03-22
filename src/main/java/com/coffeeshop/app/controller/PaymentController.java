@@ -31,7 +31,12 @@ public class PaymentController {
             Authentication authentication,
             @PathVariable("id") Long orderId,
             @Valid @RequestBody PaymentRequest request) {
-        PaymentProvider provider = PaymentProvider.valueOf(request.getProvider().toUpperCase());
+        PaymentProvider provider;
+        try {
+            provider = PaymentProvider.valueOf(request.getProvider().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Unsupported payment provider: " + request.getProvider());
+        }
         PaymentTransactionDto tx = paymentService.initiatePayment(
                 authentication.getName(), orderId, provider);
         return ResponseEntity.ok(tx);
