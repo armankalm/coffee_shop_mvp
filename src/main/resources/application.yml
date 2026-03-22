@@ -60,6 +60,14 @@ print:
   auto-print:
     enabled: ${AUTO_PRINT_ENABLED:false}
 
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: alpha
+    tagsSorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
 logging:
   level:
     com.coffeeshop: DEBUG
