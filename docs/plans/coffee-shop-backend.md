@@ -23,17 +23,17 @@
 
 ## Task 2: База данных — Модели и сущности
 
-- [ ] Создать Entity: User (id, email, role, createdAt)
-- [ ] Создать Entity: CoffeeShop (id, name, city, address, status)
-- [ ] Создать Entity: Product (id, name, category, basePrice, available)
-- [ ] Создать Entity: Topping (id, name, type, price, incompatibleWith)
-- [ ] Создать Entity: ToppingType (MILK, SYRUP, TOPPING, EXTRAS)
-- [ ] Создать Entity: Order (id, userId, shopId, status, total, createdAt)
-- [ ] Создать Entity: OrderItem (id, orderId, productId, toppings, quantity, price)
-- [ ] Создать Entity: SavedCombination (id, userId, productId, toppings, name)
-- [ ] Создать Entity: FavoriteItem (id, userId, savedCombinationId)
-- [ ] Настроить связи между таблицами (@OneToMany, @ManyToMany)
-- [ ] Создать миграции Liquibase/Flyway
+- [x] Создать Entity: User (id, email, role, createdAt)
+- [x] Создать Entity: CoffeeShop (id, name, city, address, status)
+- [x] Создать Entity: Product (id, name, category, basePrice, available)
+- [x] Создать Entity: Topping (id, name, type, price, incompatibleWith)
+- [x] Создать Entity: ToppingType (MILK, SYRUP, TOPPING, EXTRAS)
+- [x] Создать Entity: Order (id, userId, shopId, status, total, createdAt)
+- [x] Создать Entity: OrderItem (id, orderId, productId, toppings, quantity, price)
+- [x] Создать Entity: SavedCombination (id, userId, productId, toppings, name)
+- [x] Создать Entity: FavoriteItem (id, userId, savedCombinationId)
+- [x] Настроить связи между таблицами (@OneToMany, @ManyToMany)
+- [x] Создать миграции Liquibase/Flyway
 
 ## Task 3: Аутентификация и авторизация
 
