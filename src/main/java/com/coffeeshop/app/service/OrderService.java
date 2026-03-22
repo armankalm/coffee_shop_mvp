@@ -104,7 +104,7 @@ public class OrderService {
 
         order.setTotal(total);
         Order saved = orderRepository.save(order);
-        eventPublisher.publishEvent(new NewOrderEvent(this, saved));
+        eventPublisher.publishEvent(new NewOrderEvent(this, saved.getId()));
         return OrderDto.from(saved);
     }
 

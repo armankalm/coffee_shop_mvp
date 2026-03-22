@@ -92,6 +92,8 @@ class AuthServiceTest {
 
     @Test
     void refresh_validToken_returnsNewTokens() {
+        User user = User.builder().email("user@example.com").role(Role.USER).build();
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         String refreshToken = tokenProvider.generateRefreshToken("user@example.com", "USER");
 
         AuthResponse response = authService.refresh(refreshToken);

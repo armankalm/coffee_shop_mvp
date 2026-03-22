@@ -1,18 +1,17 @@
 package com.coffeeshop.app.service.print;
 
-import com.coffeeshop.app.domain.Order;
 import org.springframework.context.ApplicationEvent;
 
 public class NewOrderEvent extends ApplicationEvent {
 
-    private final Order order;
+    private final Long orderId;
 
-    public NewOrderEvent(Object source, Order order) {
+    public NewOrderEvent(Object source, Long orderId) {
         super(source);
-        this.order = order;
+        this.orderId = orderId;
     }
 
-    public Order getOrder() {
-        return order;
+    public Long getOrderId() {
+        return orderId;
     }
 }

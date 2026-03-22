@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
@@ -42,32 +43,33 @@ class OtpServiceTest {
     }
 
     @Test
-    void generateAndSend_savesOtpCodeAndSendsEmail() {
+    void generateAndSend_savesHashedOtpCodeAndSendsEmail() {
         ArgumentCaptor<OtpCode> otpCaptor = ArgumentCaptor.forClass(OtpCode.class);
         doNothing().when(mailSender).send(any(SimpleMailMessage.class));
 
         otpService.generateAndSend("user@example.com");
 
-        verify(otpCodeRepository).deleteByEmailAndUsedTrue("user@example.com");
+        verify(otpCodeRepository).deleteByEmail("user@example.com");
         verify(otpCodeRepository).save(otpCaptor.capture());
         verify(mailSender).send(any(SimpleMailMessage.class));
 
         OtpCode saved = otpCaptor.getValue();
         assertThat(saved.getEmail()).isEqualTo("user@example.com");
-        assertThat(saved.getCode()).hasSize(6);
+        // Code is stored as BCrypt hash, not plaintext
+        assertThat(saved.getCode()).startsWith("$2a$");
         assertThat(saved.isUsed()).isFalse();
         assertThat(saved.getExpiresAt()).isAfter(Instant.now());
     }
 
     @Test
-    void generateAndSend_cleansUpUsedCodesBeforeGenerating() {
+    void generateAndSend_cleansUpAllCodesBeforeGenerating() {
         doNothing().when(mailSender).send(any(SimpleMailMessage.class));
 
         otpService.generateAndSend("user@example.com");
 
-        // deleteByEmailAndUsedTrue must be called before save
+        // deleteByEmail must be called before save
         var inOrder = inOrder(otpCodeRepository);
-        inOrder.verify(otpCodeRepository).deleteByEmailAndUsedTrue("user@example.com");
+        inOrder.verify(otpCodeRepository).deleteByEmail("user@example.com");
         inOrder.verify(otpCodeRepository).save(any(OtpCode.class));
     }
 
@@ -82,9 +84,11 @@ class OtpServiceTest {
 
     @Test
     void verifyCode_validCode_returnsTrue() {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String plainCode = "123456";
         OtpCode otpCode = new OtpCode();
         otpCode.setEmail("user@example.com");
-        otpCode.setCode("123456");
+        otpCode.setCode(encoder.encode(plainCode));
         otpCode.setUsed(false);
         otpCode.setExpiresAt(Instant.now().plusSeconds(300));
 
@@ -93,7 +97,7 @@ class OtpServiceTest {
                 .thenReturn(Optional.of(otpCode));
         when(otpCodeRepository.save(any(OtpCode.class))).thenReturn(otpCode);
 
-        boolean result = otpService.verifyCode("user@example.com", "123456");
+        boolean result = otpService.verifyCode("user@example.com", plainCode);
 
         assertThat(result).isTrue();
         assertThat(otpCode.isUsed()).isTrue();
@@ -102,9 +106,10 @@ class OtpServiceTest {
 
     @Test
     void verifyCode_wrongCode_returnsFalse() {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         OtpCode otpCode = new OtpCode();
         otpCode.setEmail("user@example.com");
-        otpCode.setCode("123456");
+        otpCode.setCode(encoder.encode("123456"));
         otpCode.setUsed(false);
         otpCode.setExpiresAt(Instant.now().plusSeconds(300));
 

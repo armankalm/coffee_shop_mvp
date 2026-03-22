@@ -57,14 +57,17 @@ public class AuthService {
         return new AuthResponse(accessToken, refreshToken, email, role);
     }
 
+    @Transactional(readOnly = true)
     public AuthResponse refresh(String refreshToken) {
         if (!tokenProvider.validateToken(refreshToken)) {
             throw new IllegalArgumentException("Invalid or expired refresh token");
         }
 
         String email = tokenProvider.getEmailFromToken(refreshToken);
-        String role = tokenProvider.getRoleFromToken(refreshToken);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
 
+        String role = user.getRole().name();
         String newAccessToken = tokenProvider.generateAccessToken(email, role);
         String newRefreshToken = tokenProvider.generateRefreshToken(email, role);
         return new AuthResponse(newAccessToken, newRefreshToken, email, role);

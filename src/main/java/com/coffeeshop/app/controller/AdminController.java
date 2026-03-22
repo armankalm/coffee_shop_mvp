@@ -28,8 +28,8 @@ public class AdminController {
 
     @GetMapping("/orders")
     public ResponseEntity<List<OrderDto>> getAllOrders(
-            @RequestParam(required = false) OrderStatus status,
-            @RequestParam(required = false) Long shopId) {
+            @RequestParam(name = "status", required = false) OrderStatus status,
+            @RequestParam(name = "shopId", required = false) Long shopId) {
         return ResponseEntity.ok(adminService.getAllOrders(status, shopId));
     }
 

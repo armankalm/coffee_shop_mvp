@@ -13,5 +13,5 @@ public interface OtpCodeRepository extends JpaRepository<OtpCode, Long> {
     Optional<OtpCode> findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(
             String email, Instant now);
 
-    void deleteByEmailAndUsedTrue(String email);
+    void deleteByEmail(String email);
 }

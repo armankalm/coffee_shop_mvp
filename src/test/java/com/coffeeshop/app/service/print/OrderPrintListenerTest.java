@@ -1,6 +1,7 @@
 package com.coffeeshop.app.service.print;
 
 import com.coffeeshop.app.domain.*;
+import com.coffeeshop.app.repository.OrderRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,6 +12,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -19,6 +21,9 @@ class OrderPrintListenerTest {
 
     @Mock
     private PrintService printService;
+
+    @Mock
+    private OrderRepository orderRepository;
 
     @InjectMocks
     private OrderPrintListener listener;
@@ -39,7 +44,8 @@ class OrderPrintListenerTest {
     void onNewOrder_autoPrintEnabled_callsPrint() {
         ReflectionTestUtils.setField(listener, "autoPrintEnabled", true);
         Order order = buildOrder();
-        NewOrderEvent event = new NewOrderEvent(this, order);
+        NewOrderEvent event = new NewOrderEvent(this, order.getId());
+        when(orderRepository.findById(order.getId())).thenReturn(Optional.of(order));
 
         listener.onNewOrder(event);
 
@@ -50,7 +56,7 @@ class OrderPrintListenerTest {
     void onNewOrder_autoPrintDisabled_doesNotPrint() {
         ReflectionTestUtils.setField(listener, "autoPrintEnabled", false);
         Order order = buildOrder();
-        NewOrderEvent event = new NewOrderEvent(this, order);
+        NewOrderEvent event = new NewOrderEvent(this, order.getId());
 
         listener.onNewOrder(event);
 
@@ -61,7 +67,8 @@ class OrderPrintListenerTest {
     void onNewOrder_printFails_doesNotThrow() {
         ReflectionTestUtils.setField(listener, "autoPrintEnabled", true);
         Order order = buildOrder();
-        NewOrderEvent event = new NewOrderEvent(this, order);
+        NewOrderEvent event = new NewOrderEvent(this, order.getId());
+        when(orderRepository.findById(order.getId())).thenReturn(Optional.of(order));
         doThrow(new PrintException("Printer offline")).when(printService).printReceipt(order);
 
         // Should not propagate exception

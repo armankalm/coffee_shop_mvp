@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class OtpService {
 
     private final OtpCodeRepository otpCodeRepository;
     private final JavaMailSender mailSender;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Value("${app.otp.expiration-minutes:5}")
     private int expirationMinutes;
@@ -39,13 +41,13 @@ public class OtpService {
 
     @Transactional
     public void generateAndSend(String email) {
-        otpCodeRepository.deleteByEmailAndUsedTrue(email);
+        otpCodeRepository.deleteByEmail(email);
 
         String code = generateCode();
 
         OtpCode otpCode = new OtpCode();
         otpCode.setEmail(email);
-        otpCode.setCode(code);
+        otpCode.setCode(passwordEncoder.encode(code));
         otpCode.setExpiresAt(Instant.now().plus(expirationMinutes, ChronoUnit.MINUTES));
         otpCode.setUsed(false);
         otpCodeRepository.save(otpCode);
@@ -65,7 +67,7 @@ public class OtpService {
         }
 
         OtpCode otp = otpOpt.get();
-        if (!otp.getCode().equals(code)) {
+        if (!passwordEncoder.matches(code, otp.getCode())) {
             log.debug("OTP code mismatch for: {}", email);
             return false;
         }

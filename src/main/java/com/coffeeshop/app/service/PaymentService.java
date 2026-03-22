@@ -43,6 +43,11 @@ public class PaymentService {
             throw new IllegalStateException("Cannot pay for order in status: " + order.getStatus());
         }
 
+        transactionRepository.findByOrderIdAndStatus(orderId, PaymentStatus.PENDING)
+                .ifPresent(existing -> {
+                    throw new IllegalStateException("A pending payment already exists for order: " + orderId);
+                });
+
         PaymentProviderService providerService = providers.get(provider);
         if (providerService == null) {
             throw new IllegalArgumentException("Unsupported payment provider: " + provider);
