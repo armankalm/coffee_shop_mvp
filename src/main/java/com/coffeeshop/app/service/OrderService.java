@@ -1,5 +1,6 @@
 package com.coffeeshop.app.service;
 
+import com.coffeeshop.app.config.AccessDeniedException;
 import com.coffeeshop.app.domain.*;
 import com.coffeeshop.app.dto.order.CreateOrderRequest;
 import com.coffeeshop.app.dto.order.OrderDto;
@@ -136,7 +137,7 @@ public class OrderService {
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
         if (user.getRole() == Role.USER && !order.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("Access denied to order: " + orderId);
+            throw new AccessDeniedException("Access denied to order: " + orderId);
         }
 
         return OrderDto.from(order);
@@ -150,7 +151,7 @@ public class OrderService {
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
         if (user.getRole() == Role.USER && !order.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("Access denied to order: " + orderId);
+            throw new AccessDeniedException("Access denied to order: " + orderId);
         }
 
         if (order.getStatus() == OrderStatus.COMPLETED || order.getStatus() == OrderStatus.CANCELLED) {

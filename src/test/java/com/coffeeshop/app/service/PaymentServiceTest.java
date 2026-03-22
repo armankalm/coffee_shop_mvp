@@ -1,5 +1,6 @@
 package com.coffeeshop.app.service;
 
+import com.coffeeshop.app.config.AccessDeniedException;
 import com.coffeeshop.app.domain.*;
 import com.coffeeshop.app.dto.payment.PaymentTransactionDto;
 import com.coffeeshop.app.repository.OrderRepository;
@@ -98,11 +99,11 @@ class PaymentServiceTest {
     }
 
     @Test
-    void initiatePayment_wrongUser_throwsIllegalArgument() {
+    void initiatePayment_wrongUser_throwsAccessDenied() {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         assertThatThrownBy(() -> paymentService.initiatePayment("other@test.com", 1L, PaymentProvider.KASPI))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(AccessDeniedException.class)
                 .hasMessageContaining("Access denied");
     }
 

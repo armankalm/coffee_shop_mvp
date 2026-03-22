@@ -1,5 +1,6 @@
 package com.coffeeshop.app.service;
 
+import com.coffeeshop.app.config.AccessDeniedException;
 import com.coffeeshop.app.domain.*;
 import com.coffeeshop.app.dto.order.CreateOrderRequest;
 import com.coffeeshop.app.dto.order.OrderDto;
@@ -208,7 +209,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void getOrderById_otherUsersOrder_throwsIllegalArgument() {
+    void getOrderById_otherUsersOrder_throwsAccessDenied() {
         User otherUser = User.builder().id(2L).email("other@example.com").role(Role.USER).build();
         Order order = Order.builder().id(1L).user(otherUser).shop(shop)
                 .status(OrderStatus.NEW).total(BigDecimal.valueOf(500)).build();
@@ -217,7 +218,7 @@ class OrderServiceTest {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
 
         assertThatThrownBy(() -> orderService.getOrderById("test@example.com", 1L))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(AccessDeniedException.class)
                 .hasMessageContaining("Access denied");
     }
 

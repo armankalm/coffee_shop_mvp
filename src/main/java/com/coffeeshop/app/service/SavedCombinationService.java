@@ -1,5 +1,6 @@
 package com.coffeeshop.app.service;
 
+import com.coffeeshop.app.config.AccessDeniedException;
 import com.coffeeshop.app.domain.*;
 import com.coffeeshop.app.dto.order.FavoriteItemDto;
 import com.coffeeshop.app.dto.order.SavedCombinationDto;
@@ -93,7 +94,7 @@ public class SavedCombinationService {
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
         if (!combination.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("Access denied to saved combination: " + combinationId);
+            throw new AccessDeniedException("Access denied to saved combination: " + combinationId);
         }
 
         savedCombinationRepository.delete(combination);
@@ -139,7 +140,7 @@ public class SavedCombinationService {
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
         if (!favorite.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("Access denied to favorite: " + favoriteItemId);
+            throw new AccessDeniedException("Access denied to favorite: " + favoriteItemId);
         }
 
         favoriteItemRepository.delete(favorite);

@@ -1,5 +1,6 @@
 package com.coffeeshop.app.service;
 
+import com.coffeeshop.app.config.AccessDeniedException;
 import com.coffeeshop.app.domain.*;
 import com.coffeeshop.app.dto.payment.PaymentTransactionDto;
 import com.coffeeshop.app.repository.OrderRepository;
@@ -36,7 +37,7 @@ public class PaymentService {
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
 
         if (!order.getUser().getEmail().equals(userEmail)) {
-            throw new IllegalArgumentException("Access denied to order: " + orderId);
+            throw new AccessDeniedException("Access denied to order: " + orderId);
         }
 
         if (order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.COMPLETED) {
@@ -46,6 +47,10 @@ public class PaymentService {
         transactionRepository.findByOrderIdAndStatus(orderId, PaymentStatus.PENDING)
                 .ifPresent(existing -> {
                     throw new IllegalStateException("A pending payment already exists for order: " + orderId);
+                });
+        transactionRepository.findByOrderIdAndStatus(orderId, PaymentStatus.SUCCESS)
+                .ifPresent(existing -> {
+                    throw new IllegalStateException("Order has already been paid: " + orderId);
                 });
 
         PaymentProviderService providerService = providers.get(provider);

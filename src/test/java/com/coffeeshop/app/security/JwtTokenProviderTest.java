@@ -12,7 +12,7 @@ class JwtTokenProviderTest {
     @BeforeEach
     void setUp() {
         JwtProperties props = new JwtProperties();
-        props.setSecret("dGVzdC1zZWNyZXQta2V5LWZvci10ZXN0aW5nLW9ubHktbWluaW11bS0yNTYtYml0cy1sb25nLXBhZGRpbmc=");
+        props.setSecret("test-secret-key-for-testing-only-minimum-256-bits-long-padding");
         props.setAccessTokenExpiration(900000L);
         props.setRefreshTokenExpiration(604800000L);
         tokenProvider = new JwtTokenProvider(props);
@@ -51,7 +51,7 @@ class JwtTokenProviderTest {
     @Test
     void expiredToken_returnsFalse() {
         JwtProperties shortProps = new JwtProperties();
-        shortProps.setSecret("dGVzdC1zZWNyZXQta2V5LWZvci10ZXN0aW5nLW9ubHktbWluaW11bS0yNTYtYml0cy1sb25nLXBhZGRpbmc=");
+        shortProps.setSecret("test-secret-key-for-testing-only-minimum-256-bits-long-padding");
         shortProps.setAccessTokenExpiration(-1000L); // already expired
         shortProps.setRefreshTokenExpiration(604800000L);
         JwtTokenProvider shortProvider = new JwtTokenProvider(shortProps);

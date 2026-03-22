@@ -1,5 +1,6 @@
 package com.coffeeshop.app.service;
 
+import com.coffeeshop.app.config.AccessDeniedException;
 import com.coffeeshop.app.domain.*;
 import com.coffeeshop.app.dto.order.*;
 import com.coffeeshop.app.repository.*;
@@ -99,13 +100,13 @@ class SavedCombinationServiceTest {
     }
 
     @Test
-    void delete_otherUsersCombination_throwsIllegalArgument() {
+    void delete_otherUsersCombination_throwsAccessDenied() {
         User otherUser = User.builder().id(2L).email("other@example.com").role(Role.USER).build();
         when(savedCombinationRepository.findById(1L)).thenReturn(Optional.of(combination));
         when(userRepository.findByEmail("other@example.com")).thenReturn(Optional.of(otherUser));
 
         assertThatThrownBy(() -> savedCombinationService.delete("other@example.com", 1L))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(AccessDeniedException.class)
                 .hasMessageContaining("Access denied");
     }
 
