@@ -13,13 +13,13 @@
 
 ## Task 1: Настройка проекта и инфраструктуры
 
-- [ ] Инициализировать Spring Boot проект (Spring Initializr)
-- [ ] Настроить build систему (Maven/Gradle)
-- [ ] Добавить зависимости: Spring Web, Spring Data JPA, Spring Security, JWT, PostgreSQL driver
-- [ ] Настроить application.yml (dev/prod профили)
-- [ ] Настроить Docker Compose для PostgreSQL
-- [ ] Создать .env.example с переменными окружения
-- [ ] Настроить логирование (SLF4J + Logback)
+- [x] Инициализировать Spring Boot проект (Spring Initializr)
+- [x] Настроить build систему (Maven/Gradle)
+- [x] Добавить зависимости: Spring Web, Spring Data JPA, Spring Security, JWT, PostgreSQL driver
+- [x] Настроить application.yml (dev/prod профили)
+- [x] Настроить Docker Compose для PostgreSQL
+- [x] Создать .env.example с переменными окружения
+- [x] Настроить логирование (SLF4J + Logback)
 
 ## Task 2: База данных — Модели и сущности
 

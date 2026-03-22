@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: coffeeshop-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-coffeeshop_dev}
+      POSTGRES_USER: ${DB_USERNAME:-coffeeshop}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-coffeeshop}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-coffeeshop} -d ${DB_NAME:-coffeeshop_dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
