@@ -30,7 +30,7 @@ public class ReceiptFormatter {
         // Order info
         sb.append(String.format("%-20s%s%n", "Order #" + order.getId(),
                 DATE_FMT.format(order.getCreatedAt())));
-        sb.append(String.format("Customer: %s%n", order.getUser().getEmail()));
+        sb.append(String.format("Customer: %s%n", maskEmail(order.getUser().getEmail())));
         appendLine(sb);
 
         // Items
@@ -80,6 +80,12 @@ public class ReceiptFormatter {
 
     private void appendDivider(StringBuilder sb) {
         sb.append("-".repeat(LINE_WIDTH)).append("\n");
+    }
+
+    private String maskEmail(String email) {
+        int at = email.indexOf('@');
+        if (at <= 1) return "***" + (at >= 0 ? email.substring(at) : "");
+        return email.charAt(0) + "***" + email.substring(at);
     }
 
     private String truncate(String text, int maxLen) {

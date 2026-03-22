@@ -104,7 +104,7 @@ class PrintServiceTest {
     void receiptFormatter_containsCustomerEmail() {
         Order order = buildOrder();
         String receipt = receiptFormatter.format(order);
-        assertThat(receipt).contains("customer@test.com");
+        assertThat(receipt).contains("c***@test.com");
     }
 
     @Test

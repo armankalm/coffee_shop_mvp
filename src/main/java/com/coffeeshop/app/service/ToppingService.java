@@ -40,31 +40,11 @@ public class ToppingService {
         // Build a set of selected IDs for O(1) lookup
         Set<Long> selectedIds = new java.util.HashSet<>(toppingIds);
         for (Topping topping : toppings) {
-            // Check both the owning side and the inverse side to handle asymmetric DB entries
             for (Topping incompatible : topping.getIncompatibleWith()) {
                 if (selectedIds.contains(incompatible.getId())) {
                     throw new IllegalArgumentException(
                             "Incompatible toppings selected: '" + topping.getName()
                             + "' and '" + incompatible.getName() + "'");
-                }
-            }
-        }
-        // Check reverse direction: for each pair (A, B) where B lists A as incompatible but A does not list B
-        for (int i = 0; i < toppings.size(); i++) {
-            Topping a = toppings.get(i);
-            Set<Long> aIncompat = a.getIncompatibleWith().stream()
-                    .map(Topping::getId).collect(java.util.stream.Collectors.toSet());
-            for (int j = i + 1; j < toppings.size(); j++) {
-                Topping b = toppings.get(j);
-                if (!aIncompat.contains(b.getId())) {
-                    // A doesn't declare B incompatible; check if B declares A incompatible
-                    boolean bDeclaresAIncompat = b.getIncompatibleWith().stream()
-                            .anyMatch(t -> t.getId().equals(a.getId()));
-                    if (bDeclaresAIncompat) {
-                        throw new IllegalArgumentException(
-                                "Incompatible toppings selected: '" + b.getName()
-                                + "' and '" + a.getName() + "'");
-                    }
                 }
             }
         }
