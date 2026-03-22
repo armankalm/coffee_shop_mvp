@@ -81,6 +81,15 @@ public class OrderService {
                 if (toppings.size() != toppingIds.size()) {
                     throw new IllegalArgumentException("One or more toppings not found");
                 }
+                Set<Long> allowedIds = product.getAvailableToppings().stream()
+                        .map(Topping::getId)
+                        .collect(Collectors.toSet());
+                for (Topping t : toppings) {
+                    if (!allowedIds.contains(t.getId())) {
+                        throw new IllegalArgumentException(
+                                "Topping '" + t.getName() + "' is not available for product '" + product.getName() + "'");
+                    }
+                }
             }
 
             BigDecimal toppingPrice = toppings.stream()

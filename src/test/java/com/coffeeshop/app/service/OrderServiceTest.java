@@ -136,6 +136,9 @@ class OrderServiceTest {
     void createOrder_calculatesCorrectTotal() {
         Topping topping = Topping.builder().id(1L).name("Extra Shot")
                 .type(ToppingType.EXTRAS).price(BigDecimal.valueOf(100)).build();
+        product = Product.builder().id(1L).name("Latte").category(ProductCategory.COFFEE)
+                .basePrice(BigDecimal.valueOf(500)).available(true)
+                .availableToppings(Set.of(topping)).build();
 
         OrderItemRequest itemRequest = new OrderItemRequest();
         itemRequest.setProductId(1L);

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 public class CreateProductRequest {
 
@@ -21,6 +22,8 @@ public class CreateProductRequest {
 
     private boolean available = true;
 
+    private Set<Long> availableToppingIds;
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -32,4 +35,7 @@ public class CreateProductRequest {
 
     public boolean isAvailable() { return available; }
     public void setAvailable(boolean available) { this.available = available; }
+
+    public Set<Long> getAvailableToppingIds() { return availableToppingIds; }
+    public void setAvailableToppingIds(Set<Long> availableToppingIds) { this.availableToppingIds = availableToppingIds; }
 }

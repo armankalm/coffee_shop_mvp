@@ -54,4 +54,12 @@ public class SavedCombinationController {
             Authentication authentication) {
         return ResponseEntity.ok(savedCombinationService.getUserFavorites(authentication.getName()));
     }
+
+    @DeleteMapping("/api/favorites/{id}")
+    public ResponseEntity<Void> removeFavorite(
+            Authentication authentication,
+            @PathVariable("id") Long id) {
+        savedCombinationService.removeFavorite(authentication.getName(), id);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -3,15 +3,26 @@ package com.coffeeshop.app.service.payment;
 import com.coffeeshop.app.domain.PaymentProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.UUID;
 
 @Service
 public class StripePaymentService implements PaymentProviderService {
 
     private static final Logger log = LoggerFactory.getLogger(StripePaymentService.class);
+    private static final String HMAC_ALGORITHM = "HmacSHA256";
+
+    @Value("${app.payment.stripe.webhook-secret:}")
+    private String webhookSecret;
 
     @Override
     public PaymentProvider getProvider() {
@@ -31,5 +42,53 @@ public class StripePaymentService implements PaymentProviderService {
     public boolean isSuccessStatus(String providerStatus) {
         return "succeeded".equalsIgnoreCase(providerStatus)
                 || "SUCCESS".equalsIgnoreCase(providerStatus);
+    }
+
+    @Override
+    public void verifyWebhookSignature(String rawPayload, String signatureHeader) {
+        if (webhookSecret == null || webhookSecret.isBlank()) {
+            throw new IllegalArgumentException("Stripe webhook secret is not configured");
+        }
+        if (signatureHeader == null || signatureHeader.isBlank()) {
+            throw new IllegalArgumentException("Missing Stripe-Signature header");
+        }
+        // Stripe signature format: "t=<timestamp>,v1=<hmac>"
+        String timestamp = null;
+        String expectedSig = null;
+        for (String part : signatureHeader.split(",")) {
+            if (part.startsWith("t=")) {
+                timestamp = part.substring(2);
+            } else if (part.startsWith("v1=")) {
+                expectedSig = part.substring(3);
+            }
+        }
+        if (timestamp == null || expectedSig == null) {
+            throw new IllegalArgumentException("Invalid Stripe-Signature header format");
+        }
+        String signedPayload = timestamp + "." + rawPayload;
+        String computed = hmacSha256(signedPayload, webhookSecret);
+        if (!constantTimeEquals(computed, expectedSig)) {
+            throw new IllegalArgumentException("Stripe webhook signature verification failed");
+        }
+    }
+
+    private String hmacSha256(String data, String secret) {
+        try {
+            Mac mac = Mac.getInstance(HMAC_ALGORITHM);
+            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
+            byte[] hash = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new IllegalStateException("Failed to compute HMAC-SHA256", e);
+        }
+    }
+
+    private boolean constantTimeEquals(String a, String b) {
+        if (a.length() != b.length()) return false;
+        int result = 0;
+        for (int i = 0; i < a.length(); i++) {
+            result |= a.charAt(i) ^ b.charAt(i);
+        }
+        return result == 0;
     }
 }

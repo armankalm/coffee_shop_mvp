@@ -44,12 +44,18 @@ server:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:dmVyeS1sb25nLXNlY3JldC1rZXktZm9yLWRldmVsb3BtZW50LW9ubHktY2hhbmdlLWluLXByb2R1Y3Rpb24=}
+    # WARNING: Default is for local dev only. Always set JWT_SECRET in any deployed environment.
+    secret: ${JWT_SECRET:dev-only-insecure-secret-do-NOT-use-in-any-deployed-environment}
     access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}
     refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
   otp:
     expiration-minutes: ${OTP_EXPIRATION_MINUTES:5}
     length: 6
+  payment:
+    stripe:
+      webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    kaspi:
+      api-key: ${KASPI_API_KEY:}
 
 print:
   printer:
@@ -126,6 +132,11 @@ app:
   otp:
     expiration-minutes: ${OTP_EXPIRATION_MINUTES:5}
     length: 6
+  payment:
+    stripe:
+      webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+    kaspi:
+      api-key: ${KASPI_API_KEY}
 
 print:
   printer:

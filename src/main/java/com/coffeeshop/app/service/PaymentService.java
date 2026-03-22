@@ -66,6 +66,14 @@ public class PaymentService {
         return PaymentTransactionDto.from(transactionRepository.save(tx));
     }
 
+    public void verifyWebhook(PaymentProvider provider, String rawPayload, String signatureHeader) {
+        PaymentProviderService providerService = providers.get(provider);
+        if (providerService == null) {
+            throw new IllegalArgumentException("Unsupported payment provider: " + provider);
+        }
+        providerService.verifyWebhookSignature(rawPayload, signatureHeader);
+    }
+
     public PaymentTransactionDto handleWebhook(PaymentProvider provider, String externalId, String providerStatus) {
         PaymentTransaction tx = transactionRepository.findByExternalId(externalId)
                 .orElseThrow(() -> new NoSuchElementException("Transaction not found: " + externalId));

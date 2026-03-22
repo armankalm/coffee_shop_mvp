@@ -55,6 +55,15 @@ public class SavedCombinationService {
             if (toppings.size() != toppingIds.size()) {
                 throw new IllegalArgumentException("One or more toppings not found");
             }
+            Set<Long> allowedIds = product.getAvailableToppings().stream()
+                    .map(Topping::getId)
+                    .collect(Collectors.toSet());
+            for (Topping t : toppings) {
+                if (!allowedIds.contains(t.getId())) {
+                    throw new IllegalArgumentException(
+                            "Topping '" + t.getName() + "' is not available for product '" + product.getName() + "'");
+                }
+            }
         }
 
         SavedCombination combination = SavedCombination.builder()
@@ -120,5 +129,19 @@ public class SavedCombinationService {
         return favoriteItemRepository.findByUserId(user.getId()).stream()
                 .map(FavoriteItemDto::from)
                 .collect(Collectors.toList());
+    }
+
+    public void removeFavorite(String userEmail, Long favoriteItemId) {
+        FavoriteItem favorite = favoriteItemRepository.findById(favoriteItemId)
+                .orElseThrow(() -> new NoSuchElementException("Favorite not found: " + favoriteItemId));
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
+
+        if (!favorite.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("Access denied to favorite: " + favoriteItemId);
+        }
+
+        favoriteItemRepository.delete(favorite);
     }
 }

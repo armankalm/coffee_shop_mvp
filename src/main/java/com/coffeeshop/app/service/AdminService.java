@@ -114,11 +114,13 @@ public class AdminService {
     }
 
     public ProductDto createProduct(CreateProductRequest request) {
+        Set<Topping> availableToppings = resolveToppings(request.getAvailableToppingIds());
         Product product = Product.builder()
                 .name(request.getName())
                 .category(request.getCategory())
                 .basePrice(request.getBasePrice())
                 .available(request.isAvailable())
+                .availableToppings(availableToppings)
                 .build();
         return ProductDto.from(productRepository.save(product));
     }
@@ -130,7 +132,19 @@ public class AdminService {
         product.setCategory(request.getCategory());
         product.setBasePrice(request.getBasePrice());
         product.setAvailable(request.isAvailable());
+        product.setAvailableToppings(resolveToppings(request.getAvailableToppingIds()));
         return ProductDto.from(productRepository.save(product));
+    }
+
+    private Set<Topping> resolveToppings(Set<Long> toppingIds) {
+        if (toppingIds == null || toppingIds.isEmpty()) {
+            return new HashSet<>();
+        }
+        Set<Topping> toppings = new HashSet<>(toppingRepository.findAllById(toppingIds));
+        if (toppings.size() != toppingIds.size()) {
+            throw new IllegalArgumentException("One or more topping IDs not found");
+        }
+        return toppings;
     }
 
     public void deleteProduct(Long productId) {
