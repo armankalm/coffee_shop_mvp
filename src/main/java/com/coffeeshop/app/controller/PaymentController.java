@@ -50,6 +50,12 @@ public class PaymentController {
         String rawPayload = new String(rawBody, StandardCharsets.UTF_8);
         paymentService.verifyWebhook(PaymentProvider.KASPI, rawPayload, signature);
         WebhookPayload payload = objectMapper.readValue(rawBody, WebhookPayload.class);
+        if (payload.getTransactionId() == null || payload.getTransactionId().isBlank()) {
+            throw new IllegalArgumentException("transactionId is required");
+        }
+        if (payload.getStatus() == null || payload.getStatus().isBlank()) {
+            throw new IllegalArgumentException("status is required");
+        }
         PaymentTransactionDto tx = paymentService.handleWebhook(
                 PaymentProvider.KASPI, payload.getTransactionId(), payload.getStatus());
         return ResponseEntity.ok(tx);
@@ -63,6 +69,12 @@ public class PaymentController {
         String rawPayload = new String(rawBody, StandardCharsets.UTF_8);
         paymentService.verifyWebhook(PaymentProvider.STRIPE, rawPayload, signature);
         WebhookPayload payload = objectMapper.readValue(rawBody, WebhookPayload.class);
+        if (payload.getTransactionId() == null || payload.getTransactionId().isBlank()) {
+            throw new IllegalArgumentException("transactionId is required");
+        }
+        if (payload.getStatus() == null || payload.getStatus().isBlank()) {
+            throw new IllegalArgumentException("status is required");
+        }
         PaymentTransactionDto tx = paymentService.handleWebhook(
                 PaymentProvider.STRIPE, payload.getTransactionId(), payload.getStatus());
         return ResponseEntity.ok(tx);

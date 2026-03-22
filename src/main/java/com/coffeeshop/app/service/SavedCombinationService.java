@@ -108,7 +108,7 @@ public class SavedCombinationService {
                 .orElseThrow(() -> new NoSuchElementException("Saved combination not found: " + savedCombinationId));
 
         if (!combination.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("Access denied to saved combination: " + savedCombinationId);
+            throw new AccessDeniedException("Access denied to saved combination: " + savedCombinationId);
         }
 
         if (favoriteItemRepository.existsByUserIdAndSavedCombinationId(user.getId(), savedCombinationId)) {
