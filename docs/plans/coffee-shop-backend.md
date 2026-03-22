@@ -48,17 +48,17 @@
 
 ## Task 4: Кофейни и меню
 
-- [ ] Создать Repository: CoffeeShopRepository
-- [ ] Создать endpoint: GET /api/shops (с группировкой по городу)
-- [ ] Создать endpoint: GET /api/shops/{id}
-- [ ] Создать endpoint: GET /api/shops/search?query=
-- [ ] Создать Repository: ProductRepository
-- [ ] Создать endpoint: GET /api/products (с фильтрацией по категории)
-- [ ] Создать endpoint: GET /api/products/{id} (с топингами)
-- [ ] Создать Repository: ToppingRepository
-- [ ] Создать endpoint: GET /api/toppings (с группировкой по типу)
-- [ ] Реализовать валидацию несовместимых топингов
-- [ ] Создать тесты
+- [x] Создать Repository: CoffeeShopRepository
+- [x] Создать endpoint: GET /api/shops (с группировкой по городу)
+- [x] Создать endpoint: GET /api/shops/{id}
+- [x] Создать endpoint: GET /api/shops/search?query=
+- [x] Создать Repository: ProductRepository
+- [x] Создать endpoint: GET /api/products (с фильтрацией по категории)
+- [x] Создать endpoint: GET /api/products/{id} (с топингами)
+- [x] Создать Repository: ToppingRepository
+- [x] Создать endpoint: GET /api/toppings (с группировкой по типу)
+- [x] Реализовать валидацию несовместимых топингов
+- [x] Создать тесты
 
 ## Task 5: Заказы и кастомизация
 
