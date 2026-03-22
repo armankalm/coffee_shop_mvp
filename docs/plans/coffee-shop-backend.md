@@ -92,15 +92,15 @@
 
 ## Task 7: Оплата (Kaspi + Stripe)
 
-- [ ] Создать PaymentProvider интерфейс
-- [ ] Реализовать KaspiPaymentService (API Kaspi)
-- [ ] Реализовать StripePaymentService
-- [ ] Создать endpoint: POST /api/orders/{id}/pay
-- [ ] Создать endpoint: POST /api/payments/webhook/kaspi
-- [ ] Создать endpoint: POST /api/payments/webhook/stripe
-- [ ] Реализовать статусы оплаты: PENDING, SUCCESS, FAILED
-- [ ] Сохранять транзакции в БД
-- [ ] Создать тесты для оплаты
+- [x] Создать PaymentProvider интерфейс
+- [x] Реализовать KaspiPaymentService (API Kaspi)
+- [x] Реализовать StripePaymentService
+- [x] Создать endpoint: POST /api/orders/{id}/pay
+- [x] Создать endpoint: POST /api/payments/webhook/kaspi
+- [x] Создать endpoint: POST /api/payments/webhook/stripe
+- [x] Реализовать статусы оплаты: PENDING, SUCCESS, FAILED
+- [x] Сохранять транзакции в БД
+- [x] Создать тесты для оплаты
 
 ## Task 8: Печать заказов
 
