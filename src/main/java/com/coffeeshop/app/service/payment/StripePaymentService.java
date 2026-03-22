@@ -11,7 +11,9 @@ import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.HexFormat;
 import java.util.UUID;
 
@@ -65,6 +67,15 @@ public class StripePaymentService implements PaymentProviderService {
         if (timestamp == null || expectedSig == null) {
             throw new IllegalArgumentException("Invalid Stripe-Signature header format");
         }
+        try {
+            long ts = Long.parseLong(timestamp);
+            long now = Instant.now().getEpochSecond();
+            if (Math.abs(now - ts) > 300) {
+                throw new IllegalArgumentException("Stripe webhook timestamp is too old or too far in the future");
+            }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid timestamp in Stripe-Signature header");
+        }
         String signedPayload = timestamp + "." + rawPayload;
         String computed = hmacSha256(signedPayload, webhookSecret);
         if (!constantTimeEquals(computed, expectedSig)) {
@@ -84,11 +95,8 @@ public class StripePaymentService implements PaymentProviderService {
     }
 
     private boolean constantTimeEquals(String a, String b) {
-        if (a.length() != b.length()) return false;
-        int result = 0;
-        for (int i = 0; i < a.length(); i++) {
-            result |= a.charAt(i) ^ b.charAt(i);
-        }
-        return result == 0;
+        return MessageDigest.isEqual(
+                a.getBytes(StandardCharsets.UTF_8),
+                b.getBytes(StandardCharsets.UTF_8));
     }
 }

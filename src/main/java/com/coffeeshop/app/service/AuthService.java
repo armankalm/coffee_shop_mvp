@@ -7,6 +7,7 @@ import com.coffeeshop.app.repository.UserRepository;
 import com.coffeeshop.app.security.JwtTokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,14 +30,19 @@ public class AuthService {
 
     @Transactional
     public void requestCode(String email) {
-        // Auto-register new users
+        // Auto-register new users; handle concurrent registration via the unique constraint
         if (!userRepository.existsByEmail(email)) {
-            User user = User.builder()
-                    .email(email)
-                    .role(Role.USER)
-                    .build();
-            userRepository.save(user);
-            log.info("Auto-registered new user: {}", email);
+            try {
+                User user = User.builder()
+                        .email(email)
+                        .role(Role.USER)
+                        .build();
+                userRepository.saveAndFlush(user);
+                log.info("Auto-registered new user: {}", email);
+            } catch (DataIntegrityViolationException e) {
+                // Another concurrent request already registered this user — that's fine
+                log.debug("Concurrent registration for {}, user already exists", email);
+            }
         }
         otpService.generateAndSend(email);
     }

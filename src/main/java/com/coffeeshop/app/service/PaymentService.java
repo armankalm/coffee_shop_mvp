@@ -94,7 +94,7 @@ public class PaymentService {
         boolean success = providerService.isSuccessStatus(providerStatus);
         tx.setStatus(success ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
 
-        if (success) {
+        if (success && tx.getOrder().getStatus() != OrderStatus.CANCELLED) {
             tx.getOrder().setStatus(OrderStatus.IN_PROGRESS);
             orderRepository.save(tx.getOrder());
         }

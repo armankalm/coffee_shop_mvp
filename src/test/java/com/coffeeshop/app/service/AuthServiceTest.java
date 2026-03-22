@@ -47,12 +47,12 @@ class AuthServiceTest {
     @Test
     void requestCode_newUser_registersAndSendsOtp() {
         when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userRepository.saveAndFlush(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
         doNothing().when(otpService).generateAndSend("new@example.com");
 
         authService.requestCode("new@example.com");
 
-        verify(userRepository).save(any(User.class));
+        verify(userRepository).saveAndFlush(any(User.class));
         verify(otpService).generateAndSend("new@example.com");
     }
 
@@ -63,7 +63,7 @@ class AuthServiceTest {
 
         authService.requestCode("existing@example.com");
 
-        verify(userRepository, never()).save(any());
+        verify(userRepository, never()).saveAndFlush(any());
         verify(otpService).generateAndSend("existing@example.com");
     }
 

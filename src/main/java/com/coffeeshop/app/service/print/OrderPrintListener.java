@@ -44,6 +44,8 @@ public class OrderPrintListener {
             printService.printReceipt(order);
         } catch (PrintException e) {
             log.error("Auto-print failed for order #{}: {}", orderId, e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error during auto-print for order #{}: {}", orderId, e.getMessage(), e);
         }
     }
 }
