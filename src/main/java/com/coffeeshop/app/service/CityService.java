@@ -31,6 +31,12 @@ public class CityService {
                 .collect(Collectors.toList());
     }
 
+    public List<CityDto> getAllCities() {
+        return cityRepository.findAll().stream()
+                .map(CityDto::from)
+                .collect(Collectors.toList());
+    }
+
     public List<CoffeeShopDto> getShopsByCity(Long cityId) {
         City city = cityRepository.findById(cityId)
                 .orElseThrow(() -> new NoSuchElementException("City not found: " + cityId));

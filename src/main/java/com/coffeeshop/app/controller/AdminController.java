@@ -127,7 +127,7 @@ public class AdminController {
     @GetMapping("/cities")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<List<CityDto>> getCities() {
-        return ResponseEntity.ok(cityService.getActiveCities());
+        return ResponseEntity.ok(cityService.getAllCities());
     }
 
     @PostMapping("/cities")

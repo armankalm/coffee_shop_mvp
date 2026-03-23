@@ -53,7 +53,7 @@ public class OrderService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
-        CoffeeShop shop = coffeeShopRepository.findById(request.getShopId())
+        CoffeeShop shop = coffeeShopRepository.findByIdWithDetails(request.getShopId())
                 .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + request.getShopId()));
 
         if ("CLOSED".equals(shop.getStatus().getCode())) {
@@ -72,7 +72,7 @@ public class OrderService {
 
         BigDecimal total = BigDecimal.ZERO;
         for (OrderItemRequest itemRequest : request.getItems()) {
-            Product product = productRepository.findById(itemRequest.getProductId())
+            Product product = productRepository.findByIdWithToppings(itemRequest.getProductId())
                     .orElseThrow(() -> new NoSuchElementException("Product not found: " + itemRequest.getProductId()));
 
             if (!product.isAvailable()) {

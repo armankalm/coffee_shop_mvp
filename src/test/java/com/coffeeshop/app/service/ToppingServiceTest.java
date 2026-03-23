@@ -63,7 +63,7 @@ class ToppingServiceTest {
     void validateCompatibility_noConflicts_passes() {
         Topping milk = buildTopping(1L, "Oat Milk", milkType);
         Topping syrup = buildTopping(2L, "Vanilla Syrup", syrupType);
-        when(toppingRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(milk, syrup));
+        when(toppingRepository.findAllByIdWithIncompatibilities(Set.of(1L, 2L))).thenReturn(List.of(milk, syrup));
 
         // Should not throw
         toppingService.validateCompatibility(Set.of(1L, 2L));
@@ -76,7 +76,7 @@ class ToppingServiceTest {
         // oatMilk is incompatible with coconutMilk
         oatMilk.getIncompatibleWith().add(coconutMilk);
 
-        when(toppingRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(oatMilk, coconutMilk));
+        when(toppingRepository.findAllByIdWithIncompatibilities(Set.of(1L, 2L))).thenReturn(List.of(oatMilk, coconutMilk));
 
         assertThatThrownBy(() -> toppingService.validateCompatibility(Set.of(1L, 2L)))
                 .isInstanceOf(IllegalArgumentException.class)

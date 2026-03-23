@@ -141,7 +141,7 @@ class EntityRelationshipTest {
         Order saved = orderRepository.save(order);
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getItems()).hasSize(1);
-        assertThat(orderRepository.findByUserId(user.getId())).hasSize(1);
+        assertThat(orderRepository.findByUserIdWithDetailsOrderByCreatedAtDesc(user.getId())).hasSize(1);
     }
 
     @Test

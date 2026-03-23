@@ -35,7 +35,7 @@ public class ToppingService {
         if (toppingIds == null || toppingIds.size() < 2) {
             return;
         }
-        List<Topping> toppings = toppingRepository.findAllById(toppingIds);
+        List<Topping> toppings = toppingRepository.findAllByIdWithIncompatibilities(toppingIds);
         // Build a set of selected IDs for O(1) lookup
         Set<Long> selectedIds = new java.util.HashSet<>(toppingIds);
         for (Topping topping : toppings) {

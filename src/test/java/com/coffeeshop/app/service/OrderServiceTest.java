@@ -87,8 +87,8 @@ class OrderServiceTest {
         request.setItems(List.of(itemRequest));
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(coffeeShopRepository.findById(1L)).thenReturn(Optional.of(shop));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
+        when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
         when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
 
         Order savedOrder = Order.builder()
@@ -113,7 +113,7 @@ class OrderServiceTest {
         request.setItems(List.of(new OrderItemRequest()));
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(coffeeShopRepository.findById(99L)).thenReturn(Optional.empty());
+        when(coffeeShopRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> orderService.createOrder("test@example.com", request))
                 .isInstanceOf(NoSuchElementException.class)
@@ -128,7 +128,7 @@ class OrderServiceTest {
         request.setItems(List.of(new OrderItemRequest()));
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(coffeeShopRepository.findById(1L)).thenReturn(Optional.of(shop));
+        when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
 
         assertThatThrownBy(() -> orderService.createOrder("test@example.com", request))
                 .isInstanceOf(IllegalStateException.class)
@@ -148,8 +148,8 @@ class OrderServiceTest {
         request.setItems(List.of(itemRequest));
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(coffeeShopRepository.findById(1L)).thenReturn(Optional.of(shop));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
+        when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
         when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
 
         assertThatThrownBy(() -> orderService.createOrder("test@example.com", request))
@@ -175,8 +175,8 @@ class OrderServiceTest {
         request.setItems(List.of(itemRequest));
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(coffeeShopRepository.findById(1L)).thenReturn(Optional.of(shop));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
+        when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
         when(toppingRepository.findAllById(Set.of(1L))).thenReturn(List.of(topping));
         when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
 

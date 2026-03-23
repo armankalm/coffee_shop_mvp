@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,4 +27,11 @@ public interface ToppingRepository extends JpaRepository<Topping, Long> {
            "JOIN FETCH t.type " +
            "WHERE t.id = :id")
     Optional<Topping> findByIdWithIncompatibilities(@Param("id") Long id);
+
+    @Query("SELECT DISTINCT t FROM Topping t " +
+           "LEFT JOIN FETCH t.incompatibleWith ic " +
+           "LEFT JOIN FETCH ic.type " +
+           "JOIN FETCH t.type " +
+           "WHERE t.id IN :ids")
+    List<Topping> findAllByIdWithIncompatibilities(@Param("ids") Collection<Long> ids);
 }
