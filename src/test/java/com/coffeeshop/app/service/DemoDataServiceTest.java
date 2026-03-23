@@ -30,6 +30,7 @@ class DemoDataServiceTest {
     @Mock private OrderRepository orderRepository;
     @Mock private SavedCombinationRepository savedCombinationRepository;
     @Mock private FavoriteItemRepository favoriteItemRepository;
+    @Mock private PaymentTransactionRepository paymentTransactionRepository;
     @Mock private RefShopStatusRepository refShopStatusRepository;
     @Mock private RefOrderStatusRepository refOrderStatusRepository;
     @Mock private RefProductCategoryRepository refProductCategoryRepository;
@@ -137,6 +138,7 @@ class DemoDataServiceTest {
         demoDataService.reset();
 
         verify(savedCombinationRepository).deleteAll();
+        verify(paymentTransactionRepository).deleteAll();
         verify(orderRepository).deleteAll();
         verify(userRepository).deleteAll();
         verify(coffeeShopRepository).deleteAll();

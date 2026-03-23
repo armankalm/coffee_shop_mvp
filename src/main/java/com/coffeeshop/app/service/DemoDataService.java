@@ -25,6 +25,7 @@ public class DemoDataService {
     private final OrderRepository orderRepository;
     private final SavedCombinationRepository savedCombinationRepository;
     private final FavoriteItemRepository favoriteItemRepository;
+    private final PaymentTransactionRepository paymentTransactionRepository;
     private final RefShopStatusRepository refShopStatusRepository;
     private final RefOrderStatusRepository refOrderStatusRepository;
     private final RefProductCategoryRepository refProductCategoryRepository;
@@ -39,6 +40,7 @@ public class DemoDataService {
                            OrderRepository orderRepository,
                            SavedCombinationRepository savedCombinationRepository,
                            FavoriteItemRepository favoriteItemRepository,
+                           PaymentTransactionRepository paymentTransactionRepository,
                            RefShopStatusRepository refShopStatusRepository,
                            RefOrderStatusRepository refOrderStatusRepository,
                            RefProductCategoryRepository refProductCategoryRepository,
@@ -52,6 +54,7 @@ public class DemoDataService {
         this.orderRepository = orderRepository;
         this.savedCombinationRepository = savedCombinationRepository;
         this.favoriteItemRepository = favoriteItemRepository;
+        this.paymentTransactionRepository = paymentTransactionRepository;
         this.refShopStatusRepository = refShopStatusRepository;
         this.refOrderStatusRepository = refOrderStatusRepository;
         this.refProductCategoryRepository = refProductCategoryRepository;
@@ -91,6 +94,7 @@ public class DemoDataService {
     private void clearAll() {
         favoriteItemRepository.deleteAll();
         savedCombinationRepository.deleteAll();
+        paymentTransactionRepository.deleteAll();
         orderRepository.deleteAll();
         userRepository.deleteAll();
         coffeeShopRepository.deleteAll();
