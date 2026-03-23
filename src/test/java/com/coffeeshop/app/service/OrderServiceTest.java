@@ -69,7 +69,8 @@ class OrderServiceTest {
         extrasType = RefToppingType.builder().id(4L).code("EXTRAS").nameRu("Добавки").nameEn("Extras").build();
 
         user = User.builder().id(1L).email("test@example.com").role(userRole).build();
-        shop = CoffeeShop.builder().id(1L).name("Test Shop").city("Almaty")
+        City almatyCity = City.builder().id(1L).name("Almaty").active(true).build();
+        shop = CoffeeShop.builder().id(1L).name("Test Shop").city(almatyCity)
                 .address("123 St").status(openStatus).build();
         product = Product.builder().id(1L).name("Latte").category(coffeeCategory)
                 .basePrice(BigDecimal.valueOf(500)).available(true).build();

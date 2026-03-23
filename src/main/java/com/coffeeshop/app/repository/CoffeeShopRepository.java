@@ -1,16 +1,23 @@
 package com.coffeeshop.app.repository;
 
+import com.coffeeshop.app.domain.City;
 import com.coffeeshop.app.domain.CoffeeShop;
 import com.coffeeshop.app.domain.RefShopStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
 public interface CoffeeShopRepository extends JpaRepository<CoffeeShop, Long> {
-    List<CoffeeShop> findByCity(String city);
+    List<CoffeeShop> findByCity(City city);
     List<CoffeeShop> findByStatus(RefShopStatus status);
-    List<CoffeeShop> findByNameContainingIgnoreCaseOrCityContainingIgnoreCaseOrAddressContainingIgnoreCase(
-            String name, String city, String address);
+
+    @Query("SELECT s FROM CoffeeShop s WHERE " +
+           "LOWER(s.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(s.city.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(s.address) LIKE LOWER(CONCAT('%', :query, '%'))")
+    List<CoffeeShop> searchByNameOrCityOrAddress(@Param("query") String query);
 }

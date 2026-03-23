@@ -1,5 +1,6 @@
 package com.coffeeshop.app.controller;
 
+import com.coffeeshop.app.domain.City;
 import com.coffeeshop.app.domain.CoffeeShop;
 import com.coffeeshop.app.domain.RefShopStatus;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
@@ -34,6 +35,10 @@ class CoffeeShopControllerTest {
     @MockBean
     private CoffeeShopService coffeeShopService;
 
+    private City almaty() {
+        return City.builder().id(1L).name("Almaty").region("Almaty").country("KZ").active(true).build();
+    }
+
     private RefShopStatus openStatus() {
         return RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
     }
@@ -42,7 +47,7 @@ class CoffeeShopControllerTest {
     @WithMockUser
     void getAll_returnsGroupedByCity() throws Exception {
         CoffeeShop shop = CoffeeShop.builder()
-                .id(1L).name("Test Cafe").city("Almaty").address("Addr").status(openStatus()).build();
+                .id(1L).name("Test Cafe").city(almaty()).address("Addr").status(openStatus()).build();
         CoffeeShopDto dto = CoffeeShopDto.from(shop);
         when(coffeeShopService.getAllGroupedByCity()).thenReturn(Map.of("Almaty", List.of(dto)));
 
@@ -56,7 +61,7 @@ class CoffeeShopControllerTest {
     @WithMockUser
     void getById_existingId_returnsShop() throws Exception {
         CoffeeShop shop = CoffeeShop.builder()
-                .id(1L).name("Test Cafe").city("Almaty").address("Addr").status(openStatus()).build();
+                .id(1L).name("Test Cafe").city(almaty()).address("Addr").status(openStatus()).build();
         CoffeeShopDto dto = CoffeeShopDto.from(shop);
         when(coffeeShopService.getById(1L)).thenReturn(dto);
 
@@ -80,7 +85,7 @@ class CoffeeShopControllerTest {
     @WithMockUser
     void search_returnsMatchingShops() throws Exception {
         CoffeeShop shop = CoffeeShop.builder()
-                .id(1L).name("Downtown Cafe").city("Almaty").address("Addr").status(openStatus()).build();
+                .id(1L).name("Downtown Cafe").city(almaty()).address("Addr").status(openStatus()).build();
         when(coffeeShopService.search("downtown")).thenReturn(List.of(CoffeeShopDto.from(shop)));
 
         mockMvc.perform(get("/api/shops/search").param("query", "downtown"))

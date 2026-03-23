@@ -34,7 +34,8 @@ class OrderPrintListenerTest {
         RefOrderStatus newStatus = RefOrderStatus.builder().id(1L).code("NEW").nameRu("Новый").nameEn("New").build();
 
         User user = User.builder().id(1L).email("test@test.com").role(userRole).build();
-        CoffeeShop shop = CoffeeShop.builder().id(1L).name("Shop").city("City")
+        City shopCity = City.builder().id(1L).name("City").active(true).build();
+        CoffeeShop shop = CoffeeShop.builder().id(1L).name("Shop").city(shopCity)
                 .address("Addr").status(openStatus).build();
         Order order = Order.builder()
                 .id(1L).user(user).shop(shop)

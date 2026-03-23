@@ -7,6 +7,7 @@ import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.repository.*;
+import com.coffeeshop.app.repository.CityRepository;
 import com.coffeeshop.app.service.print.PrintService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,7 @@ public class AdminService {
     private final RefShopStatusRepository refShopStatusRepository;
     private final RefProductCategoryRepository refProductCategoryRepository;
     private final RefToppingTypeRepository refToppingTypeRepository;
+    private final CityRepository cityRepository;
 
     public AdminService(OrderRepository orderRepository,
                         CoffeeShopRepository coffeeShopRepository,
@@ -51,7 +53,8 @@ public class AdminService {
                         RefOrderStatusRepository refOrderStatusRepository,
                         RefShopStatusRepository refShopStatusRepository,
                         RefProductCategoryRepository refProductCategoryRepository,
-                        RefToppingTypeRepository refToppingTypeRepository) {
+                        RefToppingTypeRepository refToppingTypeRepository,
+                        CityRepository cityRepository) {
         this.orderRepository = orderRepository;
         this.coffeeShopRepository = coffeeShopRepository;
         this.productRepository = productRepository;
@@ -62,6 +65,7 @@ public class AdminService {
         this.refShopStatusRepository = refShopStatusRepository;
         this.refProductCategoryRepository = refProductCategoryRepository;
         this.refToppingTypeRepository = refToppingTypeRepository;
+        this.cityRepository = cityRepository;
     }
 
     @Transactional(readOnly = true)
@@ -104,9 +108,10 @@ public class AdminService {
 
     public CoffeeShopDto createShop(CreateShopRequest request) {
         RefShopStatus status = resolveShopStatus(request.getStatusCode());
+        City city = resolveCity(request.getCityId());
         CoffeeShop shop = CoffeeShop.builder()
                 .name(request.getName())
-                .city(request.getCity())
+                .city(city)
                 .address(request.getAddress())
                 .status(status)
                 .build();
@@ -117,7 +122,7 @@ public class AdminService {
         CoffeeShop shop = coffeeShopRepository.findById(shopId)
                 .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + shopId));
         shop.setName(request.getName());
-        shop.setCity(request.getCity());
+        shop.setCity(resolveCity(request.getCityId()));
         shop.setAddress(request.getAddress());
         shop.setStatus(resolveShopStatus(request.getStatusCode()));
         return CoffeeShopDto.from(coffeeShopRepository.save(shop));
@@ -245,5 +250,10 @@ public class AdminService {
     private RefToppingType resolveToppingType(String code) {
         return refToppingTypeRepository.findByCode(code)
                 .orElseThrow(() -> new NoSuchElementException("Unknown topping type code: " + code));
+    }
+
+    private City resolveCity(Long cityId) {
+        return cityRepository.findById(cityId)
+                .orElseThrow(() -> new NoSuchElementException("City not found: " + cityId));
     }
 }

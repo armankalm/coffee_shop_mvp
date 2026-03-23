@@ -1,5 +1,6 @@
 package com.coffeeshop.app.service;
 
+import com.coffeeshop.app.domain.City;
 import com.coffeeshop.app.domain.CoffeeShop;
 import com.coffeeshop.app.domain.RefShopStatus;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
@@ -28,7 +29,11 @@ class CoffeeShopServiceTest {
     @InjectMocks
     private CoffeeShopService coffeeShopService;
 
-    private CoffeeShop buildShop(Long id, String name, String city) {
+    private City buildCity(Long id, String name) {
+        return City.builder().id(id).name(name).region("Region").country("KZ").active(true).build();
+    }
+
+    private CoffeeShop buildShop(Long id, String name, City city) {
         RefShopStatus openStatus = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
         return CoffeeShop.builder()
                 .id(id).name(name).city(city)
@@ -39,9 +44,11 @@ class CoffeeShopServiceTest {
 
     @Test
     void getAllGroupedByCity_groupsCorrectly() {
-        CoffeeShop shop1 = buildShop(1L, "Downtown Cafe", "Almaty");
-        CoffeeShop shop2 = buildShop(2L, "North Cafe", "Almaty");
-        CoffeeShop shop3 = buildShop(3L, "Capital Cafe", "Astana");
+        City almaty = buildCity(1L, "Almaty");
+        City astana = buildCity(2L, "Astana");
+        CoffeeShop shop1 = buildShop(1L, "Downtown Cafe", almaty);
+        CoffeeShop shop2 = buildShop(2L, "North Cafe", almaty);
+        CoffeeShop shop3 = buildShop(3L, "Capital Cafe", astana);
         when(coffeeShopRepository.findAll()).thenReturn(List.of(shop1, shop2, shop3));
 
         Map<String, List<CoffeeShopDto>> result = coffeeShopService.getAllGroupedByCity();
@@ -53,14 +60,15 @@ class CoffeeShopServiceTest {
 
     @Test
     void getById_existingId_returnsDto() {
-        CoffeeShop shop = buildShop(1L, "Test Cafe", "Almaty");
+        City almaty = buildCity(1L, "Almaty");
+        CoffeeShop shop = buildShop(1L, "Test Cafe", almaty);
         when(coffeeShopRepository.findById(1L)).thenReturn(Optional.of(shop));
 
         CoffeeShopDto result = coffeeShopService.getById(1L);
 
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getName()).isEqualTo("Test Cafe");
-        assertThat(result.getCity()).isEqualTo("Almaty");
+        assertThat(result.getCity().getName()).isEqualTo("Almaty");
     }
 
     @Test
@@ -74,10 +82,9 @@ class CoffeeShopServiceTest {
 
     @Test
     void search_returnsMatchingShops() {
-        CoffeeShop shop = buildShop(1L, "Downtown Cafe", "Almaty");
-        when(coffeeShopRepository
-                .findByNameContainingIgnoreCaseOrCityContainingIgnoreCaseOrAddressContainingIgnoreCase(
-                        "downtown", "downtown", "downtown"))
+        City almaty = buildCity(1L, "Almaty");
+        CoffeeShop shop = buildShop(1L, "Downtown Cafe", almaty);
+        when(coffeeShopRepository.searchByNameOrCityOrAddress("downtown"))
                 .thenReturn(List.of(shop));
 
         List<CoffeeShopDto> result = coffeeShopService.search("downtown");

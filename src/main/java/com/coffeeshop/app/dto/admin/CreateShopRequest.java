@@ -1,14 +1,15 @@
 package com.coffeeshop.app.dto.admin;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class CreateShopRequest {
 
     @NotBlank
     private String name;
 
-    @NotBlank
-    private String city;
+    @NotNull
+    private Long cityId;
 
     @NotBlank
     private String address;
@@ -19,8 +20,8 @@ public class CreateShopRequest {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
+    public Long getCityId() { return cityId; }
+    public void setCityId(Long cityId) { this.cityId = cityId; }
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }

@@ -4,8 +4,10 @@ import com.coffeeshop.app.dto.admin.*;
 import com.coffeeshop.app.dto.order.OrderDto;
 import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.dto.product.ToppingDto;
+import com.coffeeshop.app.dto.shop.CityDto;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.service.AdminService;
+import com.coffeeshop.app.service.CityService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +22,11 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final CityService cityService;
 
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService, CityService cityService) {
         this.adminService = adminService;
+        this.cityService = cityService;
     }
 
     @GetMapping("/orders")
@@ -118,5 +122,34 @@ public class AdminController {
     public ResponseEntity<Void> printOrder(@PathVariable("id") Long id) {
         adminService.printOrder(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/cities")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<List<CityDto>> getCities() {
+        return ResponseEntity.ok(cityService.getActiveCities());
+    }
+
+    @PostMapping("/cities")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<CityDto> createCity(@Valid @RequestBody CreateCityRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(cityService.createCity(request.getName(), request.getRegion(), request.getCountry()));
+    }
+
+    @PutMapping("/cities/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<CityDto> updateCity(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody CreateCityRequest request) {
+        return ResponseEntity.ok(cityService.updateCity(
+                id, request.getName(), request.getRegion(), request.getCountry(), request.isActive()));
+    }
+
+    @DeleteMapping("/cities/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<Void> deleteCity(@PathVariable("id") Long id) {
+        cityService.deleteCity(id);
+        return ResponseEntity.noContent().build();
     }
 }

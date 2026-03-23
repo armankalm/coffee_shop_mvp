@@ -46,8 +46,9 @@ class PrintServiceTest {
 
     private Order buildOrder() {
         User user = User.builder().id(1L).email("customer@test.com").role(userRole()).build();
+        City almatyCity = City.builder().id(1L).name("Almaty").active(true).build();
         CoffeeShop shop = CoffeeShop.builder().id(1L).name("Central Coffee")
-                .city("Almaty").address("10 Main St").status(openStatus()).build();
+                .city(almatyCity).address("10 Main St").status(openStatus()).build();
         Product product = Product.builder().id(1L).name("Latte").category(coffeeCategory())
                 .basePrice(BigDecimal.valueOf(500)).available(true).build();
         Topping topping = Topping.builder().id(1L).name("Oat Milk").type(milkType())
@@ -140,8 +141,9 @@ class PrintServiceTest {
         Order order = Order.builder()
                 .id(1L)
                 .user(User.builder().id(1L).email("test@test.com").role(userRole()).build())
-                .shop(CoffeeShop.builder().id(1L).name("Shop").city("City").address("Addr")
-                        .status(openStatus()).build())
+                .shop(CoffeeShop.builder().id(1L).name("Shop")
+                        .city(City.builder().id(1L).name("City").active(true).build())
+                        .address("Addr").status(openStatus()).build())
                 .status(newStatus())
                 .total(BigDecimal.ZERO)
                 .items(List.of())

@@ -24,7 +24,7 @@ public class CoffeeShopService {
     public Map<String, List<CoffeeShopDto>> getAllGroupedByCity() {
         return coffeeShopRepository.findAll().stream()
                 .map(CoffeeShopDto::from)
-                .collect(Collectors.groupingBy(CoffeeShopDto::getCity));
+                .collect(Collectors.groupingBy(dto -> dto.getCity().getName()));
     }
 
     public CoffeeShopDto getById(Long id) {
@@ -34,9 +34,7 @@ public class CoffeeShopService {
     }
 
     public List<CoffeeShopDto> search(String query) {
-        return coffeeShopRepository
-                .findByNameContainingIgnoreCaseOrCityContainingIgnoreCaseOrAddressContainingIgnoreCase(
-                        query, query, query)
+        return coffeeShopRepository.searchByNameOrCityOrAddress(query)
                 .stream()
                 .map(CoffeeShopDto::from)
                 .collect(Collectors.toList());

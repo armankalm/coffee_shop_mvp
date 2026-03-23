@@ -56,7 +56,8 @@ class OrderControllerTest {
 
     private OrderDto buildDto(Long id, RefOrderStatus status) {
         User user = User.builder().id(1L).email("user@test.com").role(userRole()).build();
-        CoffeeShop shop = CoffeeShop.builder().id(1L).name("Test Shop").city("Almaty")
+        City almatyCity = City.builder().id(1L).name("Almaty").active(true).build();
+        CoffeeShop shop = CoffeeShop.builder().id(1L).name("Test Shop").city(almatyCity)
                 .address("123 St").status(openStatus()).build();
         Order order = Order.builder()
                 .id(id).user(user).shop(shop)

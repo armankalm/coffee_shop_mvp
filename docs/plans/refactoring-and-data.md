@@ -32,18 +32,18 @@
 
 Заменить строковые поля на справочник городов.
 
-- [ ] Создать таблицу `cities` (id, name, region, country, active)
-- [ ] Создать таблицу `shop_cities` (shop_id, city_id) — если кофейня в нескольких городах
-- [ ] Создать Entity: City, ShopCity
-- [ ] Создать CityRepository с методами findByActiveTrue, findByNameContaining
-- [ ] Обновить CoffeeShop Entity: заменить String city на @ManyToOne City
-- [ ] Обновить CoffeeShopService: группировка через city.getId()
-- [ ] Обновить DTO: CityDto (id, name, region), ShopDto с city object
-- [ ] Создать endpoint: GET /api/cities (активные города)
-- [ ] Создать endpoint: GET /api/cities/{id}/shops (кофейни города)
-- [ ] Обновить AdminController: CRUD для городов (MANAGER+ только)
-- [ ] Написать миграцию Flyway (V5__create_cities.sql + migrate existing data)
-- [ ] Обновить тесты (CityRepository, CityService, CityController)
+- [x] Создать таблицу `cities` (id, name, region, country, active)
+- [x] Создать таблицу `shop_cities` (shop_id, city_id) — если кофейня в нескольких городах
+- [x] Создать Entity: City, ShopCity
+- [x] Создать CityRepository с методами findByActiveTrue, findByNameContaining
+- [x] Обновить CoffeeShop Entity: заменить String city на @ManyToOne City
+- [x] Обновить CoffeeShopService: группировка через city.getId()
+- [x] Обновить DTO: CityDto (id, name, region), ShopDto с city object
+- [x] Создать endpoint: GET /api/cities (активные города)
+- [x] Создать endpoint: GET /api/cities/{id}/shops (кофейни города)
+- [x] Обновить AdminController: CRUD для городов (MANAGER+ только)
+- [x] Написать миграцию Flyway (V5__create_cities.sql + migrate existing data)
+- [x] Обновить тесты (CityRepository, CityService, CityController)
 
 ## Task 3: Оптимизация запросов (@Query против N+1)
 

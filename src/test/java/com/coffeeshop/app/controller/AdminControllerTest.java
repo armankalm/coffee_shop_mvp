@@ -7,6 +7,7 @@ import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.service.AdminService;
+import com.coffeeshop.app.service.CityService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,13 @@ class AdminControllerTest {
     @MockBean
     private AdminService adminService;
 
+    @MockBean
+    private CityService cityService;
+
+    private City almaty() {
+        return City.builder().id(1L).name("Almaty").region("Almaty").country("KZ").active(true).build();
+    }
+
     private RefUserRole userRole() {
         return RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
     }
@@ -70,7 +78,7 @@ class AdminControllerTest {
 
     private OrderDto buildOrderDto(Long id, RefOrderStatus status) {
         User user = User.builder().id(1L).email("user@test.com").role(userRole()).build();
-        CoffeeShop shop = CoffeeShop.builder().id(1L).name("Test Shop").city("Almaty")
+        CoffeeShop shop = CoffeeShop.builder().id(1L).name("Test Shop").city(almaty())
                 .address("123 St").status(openStatus()).build();
         Order order = Order.builder().id(id).user(user).shop(shop)
                 .status(status).total(BigDecimal.valueOf(500)).build();
@@ -78,7 +86,7 @@ class AdminControllerTest {
     }
 
     private CoffeeShopDto buildShopDto(Long id, String name) {
-        CoffeeShop shop = CoffeeShop.builder().id(id).name(name).city("Almaty")
+        CoffeeShop shop = CoffeeShop.builder().id(id).name(name).city(almaty())
                 .address("123 St").status(openStatus()).build();
         return CoffeeShopDto.from(shop);
     }
@@ -194,7 +202,7 @@ class AdminControllerTest {
     void createShop_asManager_returnsCreatedShop() throws Exception {
         CreateShopRequest request = new CreateShopRequest();
         request.setName("New Shop");
-        request.setCity("Almaty");
+        request.setCityId(1L);
         request.setAddress("123 St");
         request.setStatusCode("OPEN");
 
@@ -212,7 +220,7 @@ class AdminControllerTest {
     void createShop_asBarista_returns403() throws Exception {
         CreateShopRequest request = new CreateShopRequest();
         request.setName("New Shop");
-        request.setCity("Almaty");
+        request.setCityId(1L);
         request.setAddress("123 St");
         request.setStatusCode("OPEN");
 
@@ -227,7 +235,7 @@ class AdminControllerTest {
     void updateShop_asManager_returnsUpdatedShop() throws Exception {
         CreateShopRequest request = new CreateShopRequest();
         request.setName("Updated Shop");
-        request.setCity("Almaty");
+        request.setCityId(1L);
         request.setAddress("456 Ave");
         request.setStatusCode("OPEN");
 

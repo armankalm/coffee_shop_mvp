@@ -52,7 +52,8 @@ class PaymentServiceTest {
         inProgressStatus = RefOrderStatus.builder().id(2L).code("IN_PROGRESS").nameRu("В работе").nameEn("In Progress").build();
 
         user = User.builder().id(1L).email("user@test.com").role(userRole).build();
-        shop = CoffeeShop.builder().id(1L).name("Test Shop").city("Almaty")
+        City almatyCity = City.builder().id(1L).name("Almaty").active(true).build();
+        shop = CoffeeShop.builder().id(1L).name("Test Shop").city(almatyCity)
                 .address("123 St").status(openStatus).build();
         order = Order.builder()
                 .id(1L).user(user).shop(shop)

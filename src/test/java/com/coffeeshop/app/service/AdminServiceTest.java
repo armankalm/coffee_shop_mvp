@@ -7,6 +7,7 @@ import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.repository.*;
+import com.coffeeshop.app.repository.CityRepository;
 import com.coffeeshop.app.service.print.PrintService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,7 @@ class AdminServiceTest {
     @Mock private RefShopStatusRepository refShopStatusRepository;
     @Mock private RefProductCategoryRepository refProductCategoryRepository;
     @Mock private RefToppingTypeRepository refToppingTypeRepository;
+    @Mock private CityRepository cityRepository;
 
     @InjectMocks
     private AdminService adminService;
@@ -65,7 +67,8 @@ class AdminServiceTest {
         milkType = RefToppingType.builder().id(1L).code("MILK").nameRu("Молоко").nameEn("Milk").build();
 
         user = User.builder().id(1L).email("user@test.com").role(userRole).build();
-        shop = CoffeeShop.builder().id(1L).name("Test Shop").city("Almaty")
+        City almatyCity = City.builder().id(1L).name("Almaty").active(true).build();
+        shop = CoffeeShop.builder().id(1L).name("Test Shop").city(almatyCity)
                 .address("123 St").status(openStatus).build();
         product = Product.builder().id(1L).name("Latte").category(coffeeCategory)
                 .basePrice(BigDecimal.valueOf(500)).available(true).build();
@@ -157,13 +160,15 @@ class AdminServiceTest {
 
     @Test
     void createShop_validRequest_returnsDto() {
+        City astanaCity = City.builder().id(2L).name("Astana").active(true).build();
         CreateShopRequest request = new CreateShopRequest();
         request.setName("New Shop");
-        request.setCity("Astana");
+        request.setCityId(2L);
         request.setAddress("456 Ave");
         request.setStatusCode("OPEN");
 
         when(refShopStatusRepository.findByCode("OPEN")).thenReturn(Optional.of(openStatus));
+        when(cityRepository.findById(2L)).thenReturn(Optional.of(astanaCity));
         when(coffeeShopRepository.save(any(CoffeeShop.class))).thenAnswer(inv -> {
             CoffeeShop s = inv.getArgument(0);
             return CoffeeShop.builder().id(2L).name(s.getName()).city(s.getCity())
@@ -173,7 +178,7 @@ class AdminServiceTest {
         CoffeeShopDto result = adminService.createShop(request);
 
         assertThat(result.getName()).isEqualTo("New Shop");
-        assertThat(result.getCity()).isEqualTo("Astana");
+        assertThat(result.getCity().getName()).isEqualTo("Astana");
     }
 
     @Test
@@ -182,7 +187,7 @@ class AdminServiceTest {
 
         CreateShopRequest request = new CreateShopRequest();
         request.setName("Updated");
-        request.setCity("City");
+        request.setCityId(1L);
         request.setAddress("Addr");
         request.setStatusCode("OPEN");
 

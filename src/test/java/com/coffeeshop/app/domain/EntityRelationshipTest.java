@@ -30,6 +30,8 @@ class EntityRelationshipTest {
     @Autowired
     private FavoriteItemRepository favoriteItemRepository;
     @Autowired
+    private CityRepository cityRepository;
+    @Autowired
     private RefUserRoleRepository refUserRoleRepository;
     @Autowired
     private RefShopStatusRepository refShopStatusRepository;
@@ -45,6 +47,8 @@ class EntityRelationshipTest {
     private RefOrderStatus newStatus;
     private RefProductCategory coffeeCategory;
     private RefToppingType milkType;
+    private City almatyCity;
+    private City defaultCity;
 
     @BeforeEach
     void setUp() {
@@ -58,6 +62,8 @@ class EntityRelationshipTest {
                 RefProductCategory.builder().code("COFFEE").nameRu("Кофе").nameEn("Coffee").build());
         milkType = refToppingTypeRepository.save(
                 RefToppingType.builder().code("MILK").nameRu("Молоко").nameEn("Milk").build());
+        almatyCity = cityRepository.save(City.builder().name("Almaty").active(true).build());
+        defaultCity = cityRepository.save(City.builder().name("City").active(true).build());
     }
 
     @Test
@@ -76,13 +82,13 @@ class EntityRelationshipTest {
     void saveAndFindCoffeeShop() {
         CoffeeShop shop = CoffeeShop.builder()
                 .name("Central Coffee")
-                .city("Almaty")
+                .city(almatyCity)
                 .address("Dostyk 1")
                 .status(openStatus)
                 .build();
         CoffeeShop saved = coffeeShopRepository.save(shop);
         assertThat(saved.getId()).isNotNull();
-        assertThat(coffeeShopRepository.findByCity("Almaty")).hasSize(1);
+        assertThat(coffeeShopRepository.findByCity(almatyCity)).hasSize(1);
     }
 
     @Test
@@ -112,7 +118,7 @@ class EntityRelationshipTest {
         User user = userRepository.save(User.builder()
                 .email("order@example.com").role(userRole).build());
         CoffeeShop shop = coffeeShopRepository.save(CoffeeShop.builder()
-                .name("Shop").city("City").address("Addr").status(openStatus).build());
+                .name("Shop").city(defaultCity).address("Addr").status(openStatus).build());
         Product product = productRepository.save(Product.builder()
                 .name("Espresso").category(coffeeCategory)
                 .basePrice(new BigDecimal("800.00")).available(true).build());
