@@ -13,9 +13,53 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByUserId(Long userId);
-    List<Order> findByStatus(RefOrderStatus status);
-    List<Order> findByStatusAndShopId(RefOrderStatus status, Long shopId);
-    List<Order> findByShopId(Long shopId);
+
+    @Query("SELECT DISTINCT o FROM Order o " +
+           "LEFT JOIN FETCH o.items i " +
+           "LEFT JOIN FETCH i.toppings " +
+           "JOIN FETCH o.user u " +
+           "JOIN FETCH u.role " +
+           "JOIN FETCH o.shop s " +
+           "JOIN FETCH s.city " +
+           "JOIN FETCH s.status " +
+           "JOIN FETCH o.status " +
+           "WHERE o.status = :status")
+    List<Order> findByStatusWithDetails(@Param("status") RefOrderStatus status);
+
+    @Query("SELECT DISTINCT o FROM Order o " +
+           "LEFT JOIN FETCH o.items i " +
+           "LEFT JOIN FETCH i.toppings " +
+           "JOIN FETCH o.user u " +
+           "JOIN FETCH u.role " +
+           "JOIN FETCH o.shop s " +
+           "JOIN FETCH s.city " +
+           "JOIN FETCH s.status " +
+           "JOIN FETCH o.status " +
+           "WHERE s.id = :shopId")
+    List<Order> findByShopIdWithDetails(@Param("shopId") Long shopId);
+
+    @Query("SELECT DISTINCT o FROM Order o " +
+           "LEFT JOIN FETCH o.items i " +
+           "LEFT JOIN FETCH i.toppings " +
+           "JOIN FETCH o.user u " +
+           "JOIN FETCH u.role " +
+           "JOIN FETCH o.shop s " +
+           "JOIN FETCH s.city " +
+           "JOIN FETCH s.status " +
+           "JOIN FETCH o.status " +
+           "WHERE o.status = :status AND s.id = :shopId")
+    List<Order> findByStatusAndShopIdWithDetails(@Param("status") RefOrderStatus status, @Param("shopId") Long shopId);
+
+    @Query("SELECT DISTINCT o FROM Order o " +
+           "LEFT JOIN FETCH o.items i " +
+           "LEFT JOIN FETCH i.toppings " +
+           "JOIN FETCH o.user u " +
+           "JOIN FETCH u.role " +
+           "JOIN FETCH o.shop s " +
+           "JOIN FETCH s.city " +
+           "JOIN FETCH s.status " +
+           "JOIN FETCH o.status")
+    List<Order> findAllWithDetails();
 
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.items i " +

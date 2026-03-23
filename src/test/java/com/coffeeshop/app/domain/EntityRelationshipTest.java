@@ -88,7 +88,7 @@ class EntityRelationshipTest {
                 .build();
         CoffeeShop saved = coffeeShopRepository.save(shop);
         assertThat(saved.getId()).isNotNull();
-        assertThat(coffeeShopRepository.findByCity(almatyCity)).hasSize(1);
+        assertThat(coffeeShopRepository.findByCityWithDetails(almatyCity)).hasSize(1);
     }
 
     @Test

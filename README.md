@@ -11,6 +11,9 @@
 - Сохранение любимых комбинаций напитков
 - Оплата через Kaspi и Stripe
 - Печать заказов на термопринтере (ESC/POS)
+- Справочники городов с группировкой кофеен
+- Справочники статусов, типов и категорий (управляемые через API)
+- Автоматическая загрузка демо-данных (профиль `demo`)
 - Админ-панель: управление заказами, меню, кофейнями, пользователями
 
 ## Стек
@@ -70,6 +73,29 @@ docker compose up postgres -d
 
 Swagger UI: http://localhost:8080/swagger-ui.html
 
+## Демо-данные
+
+Для быстрого старта с тестовыми данными используйте профиль `demo`. При первом запуске система автоматически создаёт 5 городов, 10 кофеен, 50 товаров, 30 топингов, 5 тестовых пользователей, 20 заказов и 10 сохранённых комбинаций.
+
+```bash
+SPRING_PROFILES_ACTIVE=demo ./mvnw spring-boot:run
+```
+
+Или с Docker Compose:
+
+```bash
+SPRING_PROFILES_ACTIVE=demo docker compose up -d
+```
+
+Пересоздать демо-данные без перезапуска (требует роль MANAGER или ADMIN):
+
+```
+POST /api/admin/demo/reset
+GET  /api/admin/demo/stats
+```
+
+> Эндпоинты `/api/admin/demo/*` доступны только при активном профиле `demo`.
+
 ## Тесты
 
 ```bash
@@ -89,6 +115,10 @@ OpenAPI JSON: http://localhost:8080/v3/api-docs
 - `POST /api/auth/request-code` — запрос OTP кода на email
 - `POST /api/auth/verify-code` — верификация OTP, получение JWT
 - `POST /api/auth/refresh` — обновление access токена
+
+### Города
+- `GET /api/cities` — список активных городов
+- `GET /api/cities/{id}/shops` — кофейни в городе
 
 ### Кофейни и меню
 - `GET /api/shops` — список кофеен (сгруппировано по городу)
@@ -117,7 +147,7 @@ OpenAPI JSON: http://localhost:8080/v3/api-docs
 - `POST /api/payments/webhook/stripe` — вебхук от Stripe
 
 ### Админ-панель
-- `GET /api/admin/orders` — все заказы с фильтрами
+- `GET /api/admin/orders` — все заказы с фильтрами (`?statusCode=`, `?shopId=`)
 - `PATCH /api/admin/orders/{id}/status` — изменить статус заказа
 - `POST /api/admin/orders/{id}/print` — распечатать заказ
 - `POST /api/admin/shops` — создать кофейню
@@ -130,6 +160,17 @@ OpenAPI JSON: http://localhost:8080/v3/api-docs
 - `PUT /api/admin/toppings/{id}` — обновить топинг
 - `DELETE /api/admin/toppings/{id}` — удалить топинг
 - `GET /api/admin/users` — список пользователей
+- `GET /api/admin/cities` — список городов
+- `POST /api/admin/cities` — создать город
+- `PUT /api/admin/cities/{id}` — обновить город
+- `DELETE /api/admin/cities/{id}` — удалить город
+
+### Справочники (ADMIN)
+- `GET/POST/PUT/DELETE /api/admin/reference/order-statuses` — статусы заказов
+- `GET/POST/PUT/DELETE /api/admin/reference/shop-statuses` — статусы кофеен
+- `GET/POST/PUT/DELETE /api/admin/reference/user-roles` — роли пользователей
+- `GET/POST/PUT/DELETE /api/admin/reference/topping-types` — типы топингов
+- `GET/POST/PUT/DELETE /api/admin/reference/product-categories` — категории товаров
 
 ## Переменные окружения
 
@@ -148,7 +189,7 @@ OpenAPI JSON: http://localhost:8080/v3/api-docs
 | `MAIL_USERNAME` | SMTP пользователь | `noreply@example.com` |
 | `MAIL_PASSWORD` | SMTP пароль | `...` |
 | `SERVER_PORT` | Порт сервера | `8080` |
-| `SPRING_PROFILES_ACTIVE` | Профиль (`dev` или `prod`) | `dev` |
+| `SPRING_PROFILES_ACTIVE` | Профиль (`dev`, `prod` или `demo`) | `dev` |
 | `PRINTER_HOST` | IP/хост термопринтера | `localhost` |
 | `PRINTER_PORT` | TCP-порт принтера | `9100` |
 | `PRINTER_ENABLED` | Включить принтер (`true`/`false`) | `false` |

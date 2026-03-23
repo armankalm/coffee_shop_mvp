@@ -80,7 +80,7 @@ class AdminServiceTest {
 
     @Test
     void getAllOrders_noFilters_returnsAll() {
-        when(orderRepository.findAll()).thenReturn(List.of(order));
+        when(orderRepository.findAllWithDetails()).thenReturn(List.of(order));
 
         List<OrderDto> result = adminService.getAllOrders(null, null);
 
@@ -91,7 +91,7 @@ class AdminServiceTest {
     @Test
     void getAllOrders_filterByStatus_returnsMatchingOrders() {
         when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
-        when(orderRepository.findByStatus(newStatus)).thenReturn(List.of(order));
+        when(orderRepository.findByStatusWithDetails(newStatus)).thenReturn(List.of(order));
 
         List<OrderDto> result = adminService.getAllOrders("NEW", null);
 
@@ -101,7 +101,7 @@ class AdminServiceTest {
 
     @Test
     void getAllOrders_filterByShopId_returnsMatchingOrders() {
-        when(orderRepository.findByShopId(1L)).thenReturn(List.of(order));
+        when(orderRepository.findByShopIdWithDetails(1L)).thenReturn(List.of(order));
 
         List<OrderDto> result = adminService.getAllOrders(null, 1L);
 
@@ -111,19 +111,19 @@ class AdminServiceTest {
     @Test
     void getAllOrders_filterByStatusAndShopId_returnsMatchingOrders() {
         when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
-        when(orderRepository.findByStatusAndShopId(newStatus, 1L)).thenReturn(List.of(order));
+        when(orderRepository.findByStatusAndShopIdWithDetails(newStatus, 1L)).thenReturn(List.of(order));
 
         List<OrderDto> result = adminService.getAllOrders("NEW", 1L);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);
-        verify(orderRepository).findByStatusAndShopId(newStatus, 1L);
-        verify(orderRepository, never()).findByStatus(any());
+        verify(orderRepository).findByStatusAndShopIdWithDetails(newStatus, 1L);
+        verify(orderRepository, never()).findByStatusWithDetails(any());
     }
 
     @Test
     void getOrderById_existingOrder_returnsDto() {
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
 
         OrderDto result = adminService.getOrderById(1L);
 
@@ -132,7 +132,7 @@ class AdminServiceTest {
 
     @Test
     void getOrderById_notFound_throwsNoSuchElement() {
-        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+        when(orderRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> adminService.getOrderById(99L))
                 .isInstanceOf(NoSuchElementException.class)
@@ -141,7 +141,7 @@ class AdminServiceTest {
 
     @Test
     void updateOrderStatus_validOrder_updatesStatus() {
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
         when(refOrderStatusRepository.findByCode("IN_PROGRESS")).thenReturn(Optional.of(inProgressStatus));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -152,7 +152,7 @@ class AdminServiceTest {
 
     @Test
     void updateOrderStatus_notFound_throwsNoSuchElement() {
-        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+        when(orderRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> adminService.updateOrderStatus(99L, "IN_PROGRESS"))
                 .isInstanceOf(NoSuchElementException.class);
@@ -310,7 +310,7 @@ class AdminServiceTest {
 
     @Test
     void printOrder_existingOrder_callsPrintService() {
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
         doNothing().when(printService).printReceipt(order);
 
         adminService.printOrder(1L);
@@ -320,7 +320,7 @@ class AdminServiceTest {
 
     @Test
     void printOrder_notFound_throwsNoSuchElement() {
-        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+        when(orderRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> adminService.printOrder(99L))
                 .isInstanceOf(NoSuchElementException.class)

@@ -56,7 +56,7 @@ class CityServiceTest {
         RefShopStatus status = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
         CoffeeShop shop = CoffeeShop.builder().id(1L).name("Cafe").city(almaty).address("Addr").status(status).build();
         when(cityRepository.findById(1L)).thenReturn(Optional.of(almaty));
-        when(coffeeShopRepository.findByCity(almaty)).thenReturn(List.of(shop));
+        when(coffeeShopRepository.findByCityWithDetails(almaty)).thenReturn(List.of(shop));
 
         List<CoffeeShopDto> result = cityService.getShopsByCity(1L);
 

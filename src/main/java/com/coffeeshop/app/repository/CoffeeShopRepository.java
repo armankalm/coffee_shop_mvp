@@ -13,11 +13,18 @@ import java.util.Optional;
 
 @Repository
 public interface CoffeeShopRepository extends JpaRepository<CoffeeShop, Long> {
-    List<CoffeeShop> findByCity(City city);
     List<CoffeeShop> findByStatus(RefShopStatus status);
 
-    @Query("SELECT s FROM CoffeeShop s WHERE " +
-           "LOWER(s.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+    @Query("SELECT DISTINCT s FROM CoffeeShop s " +
+           "JOIN FETCH s.city " +
+           "JOIN FETCH s.status " +
+           "WHERE s.city = :city")
+    List<CoffeeShop> findByCityWithDetails(@Param("city") City city);
+
+    @Query("SELECT DISTINCT s FROM CoffeeShop s " +
+           "JOIN FETCH s.city " +
+           "JOIN FETCH s.status " +
+           "WHERE LOWER(s.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(s.city.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(s.address) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<CoffeeShop> searchByNameOrCityOrAddress(@Param("query") String query);

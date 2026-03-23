@@ -50,7 +50,7 @@ class ToppingServiceTest {
         Topping milk = buildTopping(1L, "Oat Milk", milkType);
         Topping syrup = buildTopping(2L, "Vanilla Syrup", syrupType);
         Topping syrup2 = buildTopping(3L, "Caramel Syrup", syrupType);
-        when(toppingRepository.findAll()).thenReturn(List.of(milk, syrup, syrup2));
+        when(toppingRepository.findAllWithIncompatibilities()).thenReturn(List.of(milk, syrup, syrup2));
 
         Map<String, List<ToppingDto>> result = toppingService.getAllGroupedByType();
 

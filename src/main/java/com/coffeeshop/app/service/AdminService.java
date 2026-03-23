@@ -73,27 +73,27 @@ public class AdminService {
         List<Order> orders;
         if (statusCode != null && shopId != null) {
             RefOrderStatus status = resolveOrderStatus(statusCode);
-            orders = orderRepository.findByStatusAndShopId(status, shopId);
+            orders = orderRepository.findByStatusAndShopIdWithDetails(status, shopId);
         } else if (statusCode != null) {
             RefOrderStatus status = resolveOrderStatus(statusCode);
-            orders = orderRepository.findByStatus(status);
+            orders = orderRepository.findByStatusWithDetails(status);
         } else if (shopId != null) {
-            orders = orderRepository.findByShopId(shopId);
+            orders = orderRepository.findByShopIdWithDetails(shopId);
         } else {
-            orders = orderRepository.findAll();
+            orders = orderRepository.findAllWithDetails();
         }
         return orders.stream().map(OrderDto::from).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public OrderDto getOrderById(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
         return OrderDto.from(order);
     }
 
     public OrderDto updateOrderStatus(Long orderId, String newStatusCode) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
         String currentCode = order.getStatus().getCode();
         Set<String> allowed = ALLOWED_TRANSITIONS.getOrDefault(currentCode, Set.of());
@@ -227,7 +227,7 @@ public class AdminService {
     }
 
     public void printOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
         printService.printReceipt(order);
     }

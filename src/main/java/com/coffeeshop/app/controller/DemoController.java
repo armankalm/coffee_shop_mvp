@@ -1,12 +1,14 @@
 package com.coffeeshop.app.controller;
 
 import com.coffeeshop.app.service.DemoDataService;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Profile("demo")
 @RestController
 @RequestMapping("/api/admin/demo")
 @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")

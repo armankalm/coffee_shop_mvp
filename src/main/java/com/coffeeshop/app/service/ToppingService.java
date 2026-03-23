@@ -22,7 +22,7 @@ public class ToppingService {
     }
 
     public Map<String, List<ToppingDto>> getAllGroupedByType() {
-        return toppingRepository.findAll().stream()
+        return toppingRepository.findAllWithIncompatibilities().stream()
                 .map(ToppingDto::from)
                 .collect(Collectors.groupingBy(ToppingDto::getType));
     }

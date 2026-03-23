@@ -70,6 +70,7 @@ public class DemoDataService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Map<String, Long> stats() {
         Map<String, Long> stats = new LinkedHashMap<>();
         stats.put("cities", cityRepository.count());
