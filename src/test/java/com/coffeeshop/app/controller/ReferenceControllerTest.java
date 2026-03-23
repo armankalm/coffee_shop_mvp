@@ -136,7 +136,21 @@ class ReferenceControllerTest {
 
     @Test
     @WithMockUser(roles = "MANAGER")
-    void updateOrderStatus_validRequest_returnsOk() throws Exception {
+    void updateOrderStatus_asManager_returns403() throws Exception {
+        RefOrderStatusRequest request = new RefOrderStatusRequest();
+        request.setCode("NEW");
+        request.setNameRu("Новый updated");
+        request.setNameEn("New updated");
+
+        mockMvc.perform(put("/api/admin/reference/order-statuses/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateOrderStatus_asAdmin_returnsOk() throws Exception {
         RefOrderStatusRequest request = new RefOrderStatusRequest();
         request.setCode("NEW");
         request.setNameRu("Новый updated");
@@ -251,7 +265,22 @@ class ReferenceControllerTest {
 
     @Test
     @WithMockUser(roles = "MANAGER")
-    void createProductCategory_validRequest_returnsCreated() throws Exception {
+    void createProductCategory_asManager_returns403() throws Exception {
+        RefProductCategoryRequest request = new RefProductCategoryRequest();
+        request.setCode("COFFEE");
+        request.setNameRu("Кофе");
+        request.setNameEn("Coffee");
+        request.setIcon("coffee");
+
+        mockMvc.perform(post("/api/admin/reference/product-categories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void createProductCategory_asAdmin_returnsCreated() throws Exception {
         RefProductCategoryRequest request = new RefProductCategoryRequest();
         request.setCode("COFFEE");
         request.setNameRu("Кофе");

@@ -56,8 +56,8 @@ public class OrderService {
         CoffeeShop shop = coffeeShopRepository.findByIdWithDetails(request.getShopId())
                 .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + request.getShopId()));
 
-        if ("CLOSED".equals(shop.getStatus().getCode())) {
-            throw new IllegalStateException("Coffee shop is closed: " + shop.getName());
+        if (!"OPEN".equals(shop.getStatus().getCode())) {
+            throw new IllegalStateException("Coffee shop is not accepting orders: " + shop.getName());
         }
 
         RefOrderStatus newStatus = refOrderStatusRepository.findByCode("NEW")

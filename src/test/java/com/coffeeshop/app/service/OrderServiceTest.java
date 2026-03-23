@@ -132,7 +132,7 @@ class OrderServiceTest {
 
         assertThatThrownBy(() -> orderService.createOrder("test@example.com", request))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("closed");
+                .hasMessageContaining("not accepting orders");
     }
 
     @Test
