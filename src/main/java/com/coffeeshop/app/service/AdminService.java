@@ -149,7 +149,7 @@ public class AdminService {
     }
 
     public ProductDto updateProduct(Long productId, CreateProductRequest request) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByIdWithToppings(productId)
                 .orElseThrow(() -> new NoSuchElementException("Product not found: " + productId));
         product.setName(request.getName());
         product.setCategory(resolveProductCategory(request.getCategoryCode()));
@@ -163,7 +163,7 @@ public class AdminService {
         if (toppingIds == null || toppingIds.isEmpty()) {
             return new HashSet<>();
         }
-        Set<Topping> toppings = new HashSet<>(toppingRepository.findAllById(toppingIds));
+        Set<Topping> toppings = new HashSet<>(toppingRepository.findAllByIdWithIncompatibilities(toppingIds));
         if (toppings.size() != toppingIds.size()) {
             throw new IllegalArgumentException("One or more topping IDs not found");
         }

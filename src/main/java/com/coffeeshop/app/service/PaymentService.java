@@ -38,7 +38,7 @@ public class PaymentService {
     }
 
     public PaymentTransactionDto initiatePayment(String userEmail, Long orderId, PaymentProvider provider) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
 
         if (!order.getUser().getEmail().equals(userEmail)) {
@@ -109,11 +109,15 @@ public class PaymentService {
         boolean success = providerService.isSuccessStatus(providerStatus);
         tx.setStatus(success ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
 
-        if (success && "NEW".equals(tx.getOrder().getStatus().getCode())) {
+        Order order = orderRepository.findByIdWithDetails(tx.getOrder().getId())
+                .orElseThrow(() -> new NoSuchElementException("Order not found for transaction: " + externalId));
+        tx.setOrder(order);
+
+        if (success && "NEW".equals(order.getStatus().getCode())) {
             RefOrderStatus inProgressStatus = refOrderStatusRepository.findByCode("IN_PROGRESS")
                     .orElseThrow(() -> new NoSuchElementException("Order status IN_PROGRESS not found in reference table"));
-            tx.getOrder().setStatus(inProgressStatus);
-            orderRepository.save(tx.getOrder());
+            order.setStatus(inProgressStatus);
+            orderRepository.save(order);
         }
 
         return PaymentTransactionDto.from(transactionRepository.save(tx));

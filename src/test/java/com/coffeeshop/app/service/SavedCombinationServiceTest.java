@@ -57,7 +57,7 @@ class SavedCombinationServiceTest {
         request.setName("My Latte");
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
         when(savedCombinationRepository.save(any(SavedCombination.class))).thenReturn(combination);
 
         SavedCombinationDto result = savedCombinationService.save("test@example.com", request);
@@ -74,7 +74,7 @@ class SavedCombinationServiceTest {
         request.setName("Test");
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(productRepository.findById(99L)).thenReturn(Optional.empty());
+        when(productRepository.findByIdWithToppings(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> savedCombinationService.save("test@example.com", request))
                 .isInstanceOf(NoSuchElementException.class)

@@ -71,7 +71,7 @@ class PaymentServiceTest {
 
     @Test
     void initiatePayment_kaspi_createsPendingTransaction() {
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
         when(transactionRepository.save(any(PaymentTransaction.class)))
                 .thenAnswer(inv -> {
                     PaymentTransaction tx = inv.getArgument(0);
@@ -90,7 +90,7 @@ class PaymentServiceTest {
 
     @Test
     void initiatePayment_stripe_createsPendingTransaction() {
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
         when(transactionRepository.save(any(PaymentTransaction.class)))
                 .thenAnswer(inv -> {
                     PaymentTransaction tx = inv.getArgument(0);
@@ -107,7 +107,7 @@ class PaymentServiceTest {
 
     @Test
     void initiatePayment_orderNotFound_throwsNoSuchElement() {
-        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+        when(orderRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> paymentService.initiatePayment("user@test.com", 99L, PaymentProvider.KASPI))
                 .isInstanceOf(NoSuchElementException.class)
@@ -116,7 +116,7 @@ class PaymentServiceTest {
 
     @Test
     void initiatePayment_wrongUser_throwsAccessDenied() {
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
 
         assertThatThrownBy(() -> paymentService.initiatePayment("other@test.com", 1L, PaymentProvider.KASPI))
                 .isInstanceOf(AccessDeniedException.class)
@@ -126,7 +126,7 @@ class PaymentServiceTest {
     @Test
     void initiatePayment_cancelledOrder_throwsIllegalState() {
         order.setStatus(cancelledStatus);
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
 
         assertThatThrownBy(() -> paymentService.initiatePayment("user@test.com", 1L, PaymentProvider.KASPI))
                 .isInstanceOf(IllegalStateException.class);
@@ -140,6 +140,7 @@ class PaymentServiceTest {
                 .externalId("KASPI-abc").build();
 
         when(transactionRepository.findByExternalId("KASPI-abc")).thenReturn(Optional.of(tx));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
         when(refOrderStatusRepository.findByCode("IN_PROGRESS")).thenReturn(Optional.of(inProgressStatus));
         when(transactionRepository.save(any(PaymentTransaction.class))).thenAnswer(inv -> inv.getArgument(0));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -159,6 +160,7 @@ class PaymentServiceTest {
                 .externalId("pi_abc").build();
 
         when(transactionRepository.findByExternalId("pi_abc")).thenReturn(Optional.of(tx));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
         when(transactionRepository.save(any(PaymentTransaction.class))).thenAnswer(inv -> inv.getArgument(0));
 
         PaymentTransactionDto result = paymentService.handleWebhook(PaymentProvider.STRIPE, "pi_abc", "failed");

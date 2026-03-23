@@ -177,7 +177,7 @@ class OrderServiceTest {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
         when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
-        when(toppingRepository.findAllById(Set.of(1L))).thenReturn(List.of(topping));
+        when(toppingRepository.findAllByIdWithIncompatibilities(Set.of(1L))).thenReturn(List.of(topping));
         when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
 
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);

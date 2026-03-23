@@ -234,7 +234,7 @@ class AdminServiceTest {
 
     @Test
     void updateProduct_notFound_throwsNoSuchElement() {
-        when(productRepository.findById(99L)).thenReturn(Optional.empty());
+        when(productRepository.findByIdWithToppings(99L)).thenReturn(Optional.empty());
 
         CreateProductRequest request = new CreateProductRequest();
         request.setName("Updated");

@@ -44,7 +44,7 @@ public class SavedCombinationService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
-        Product product = productRepository.findById(request.getProductId())
+        Product product = productRepository.findByIdWithToppings(request.getProductId())
                 .orElseThrow(() -> new NoSuchElementException("Product not found: " + request.getProductId()));
 
         Set<Long> toppingIds = request.getToppingIds() != null ? request.getToppingIds() : new HashSet<>();
