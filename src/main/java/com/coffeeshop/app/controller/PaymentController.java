@@ -43,7 +43,7 @@ public class PaymentController {
     }
 
     @PostMapping("/api/payments/webhook/kaspi")
-    public ResponseEntity<PaymentTransactionDto> kaspiWebhook(
+    public ResponseEntity<Void> kaspiWebhook(
             HttpServletRequest httpRequest,
             @RequestBody byte[] rawBody) throws IOException {
         String signature = httpRequest.getHeader("X-Kaspi-Signature");
@@ -56,13 +56,12 @@ public class PaymentController {
         if (payload.getStatus() == null || payload.getStatus().isBlank()) {
             throw new IllegalArgumentException("status is required");
         }
-        PaymentTransactionDto tx = paymentService.handleWebhook(
-                PaymentProvider.KASPI, payload.getTransactionId(), payload.getStatus());
-        return ResponseEntity.ok(tx);
+        paymentService.handleWebhook(PaymentProvider.KASPI, payload.getTransactionId(), payload.getStatus());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/api/payments/webhook/stripe")
-    public ResponseEntity<PaymentTransactionDto> stripeWebhook(
+    public ResponseEntity<Void> stripeWebhook(
             HttpServletRequest httpRequest,
             @RequestBody byte[] rawBody) throws IOException {
         String signature = httpRequest.getHeader("Stripe-Signature");
@@ -75,8 +74,7 @@ public class PaymentController {
         if (payload.getStatus() == null || payload.getStatus().isBlank()) {
             throw new IllegalArgumentException("status is required");
         }
-        PaymentTransactionDto tx = paymentService.handleWebhook(
-                PaymentProvider.STRIPE, payload.getTransactionId(), payload.getStatus());
-        return ResponseEntity.ok(tx);
+        paymentService.handleWebhook(PaymentProvider.STRIPE, payload.getTransactionId(), payload.getStatus());
+        return ResponseEntity.ok().build();
     }
 }

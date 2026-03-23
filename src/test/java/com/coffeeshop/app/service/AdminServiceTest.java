@@ -183,7 +183,7 @@ class AdminServiceTest {
 
     @Test
     void updateShop_notFound_throwsNoSuchElement() {
-        when(coffeeShopRepository.findById(99L)).thenReturn(Optional.empty());
+        when(coffeeShopRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         CreateShopRequest request = new CreateShopRequest();
         request.setName("Updated");
@@ -280,7 +280,7 @@ class AdminServiceTest {
         request.setTypeCode("MILK");
         request.setPrice(BigDecimal.valueOf(120));
 
-        when(toppingRepository.findById(1L)).thenReturn(Optional.of(topping));
+        when(toppingRepository.findByIdWithIncompatibilities(1L)).thenReturn(Optional.of(topping));
         when(refToppingTypeRepository.findByCode("MILK")).thenReturn(Optional.of(milkType));
         when(toppingRepository.save(any(Topping.class))).thenAnswer(inv -> inv.getArgument(0));
 

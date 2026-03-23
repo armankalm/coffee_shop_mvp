@@ -51,7 +51,7 @@ public class SavedCombinationService {
 
         Set<Topping> toppings = new HashSet<>();
         if (!toppingIds.isEmpty()) {
-            toppings = new HashSet<>(toppingRepository.findAllById(toppingIds));
+            toppings = new HashSet<>(toppingRepository.findAllByIdWithIncompatibilities(toppingIds));
             if (toppings.size() != toppingIds.size()) {
                 throw new IllegalArgumentException("One or more toppings not found");
             }

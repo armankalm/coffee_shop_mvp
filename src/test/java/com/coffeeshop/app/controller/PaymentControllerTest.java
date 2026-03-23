@@ -95,10 +95,6 @@ class PaymentControllerTest {
 
     @Test
     void kaspiWebhook_validPayload_returns200() throws Exception {
-        PaymentTransactionDto txDto = buildTx(PaymentProvider.KASPI, PaymentStatus.SUCCESS);
-        when(paymentService.handleWebhook(eq(PaymentProvider.KASPI), eq("KASPI-001"), eq("SUCCESS")))
-                .thenReturn(txDto);
-
         WebhookPayload payload = new WebhookPayload();
         payload.setTransactionId("KASPI-001");
         payload.setStatus("SUCCESS");
@@ -106,16 +102,11 @@ class PaymentControllerTest {
         mockMvc.perform(post("/api/payments/webhook/kaspi")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(payload)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"));
+                .andExpect(status().isOk());
     }
 
     @Test
     void stripeWebhook_validPayload_returns200() throws Exception {
-        PaymentTransactionDto txDto = buildTx(PaymentProvider.STRIPE, PaymentStatus.SUCCESS);
-        when(paymentService.handleWebhook(eq(PaymentProvider.STRIPE), eq("pi_001"), eq("succeeded")))
-                .thenReturn(txDto);
-
         WebhookPayload payload = new WebhookPayload();
         payload.setTransactionId("pi_001");
         payload.setStatus("succeeded");
@@ -123,8 +114,7 @@ class PaymentControllerTest {
         mockMvc.perform(post("/api/payments/webhook/stripe")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(payload)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.provider").value("STRIPE"));
+                .andExpect(status().isOk());
     }
 
     @Test

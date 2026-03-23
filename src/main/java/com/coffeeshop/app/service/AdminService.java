@@ -119,7 +119,7 @@ public class AdminService {
     }
 
     public CoffeeShopDto updateShop(Long shopId, CreateShopRequest request) {
-        CoffeeShop shop = coffeeShopRepository.findById(shopId)
+        CoffeeShop shop = coffeeShopRepository.findByIdWithDetails(shopId)
                 .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + shopId));
         shop.setName(request.getName());
         shop.setCity(resolveCity(request.getCityId()));
@@ -196,7 +196,7 @@ public class AdminService {
     }
 
     public ToppingDto updateTopping(Long toppingId, CreateToppingRequest request) {
-        Topping topping = toppingRepository.findById(toppingId)
+        Topping topping = toppingRepository.findByIdWithIncompatibilities(toppingId)
                 .orElseThrow(() -> new NoSuchElementException("Topping not found: " + toppingId));
         topping.setName(request.getName());
         topping.setType(resolveToppingType(request.getTypeCode()));
