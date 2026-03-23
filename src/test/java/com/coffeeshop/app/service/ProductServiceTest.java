@@ -1,9 +1,11 @@
 package com.coffeeshop.app.service;
 
 import com.coffeeshop.app.domain.Product;
-import com.coffeeshop.app.domain.ProductCategory;
+import com.coffeeshop.app.domain.RefProductCategory;
 import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.repository.ProductRepository;
+import com.coffeeshop.app.repository.RefProductCategoryRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,6 +19,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,10 +28,22 @@ class ProductServiceTest {
     @Mock
     private ProductRepository productRepository;
 
+    @Mock
+    private RefProductCategoryRepository refProductCategoryRepository;
+
     @InjectMocks
     private ProductService productService;
 
-    private Product buildProduct(Long id, String name, ProductCategory category) {
+    private RefProductCategory coffeeCategory;
+    private RefProductCategory teaCategory;
+
+    @BeforeEach
+    void setUp() {
+        coffeeCategory = RefProductCategory.builder().id(1L).code("COFFEE").nameRu("Кофе").nameEn("Coffee").build();
+        teaCategory = RefProductCategory.builder().id(2L).code("TEA").nameRu("Чай").nameEn("Tea").build();
+    }
+
+    private Product buildProduct(Long id, String name, RefProductCategory category) {
         return Product.builder()
                 .id(id).name(name).category(category)
                 .basePrice(BigDecimal.valueOf(500))
@@ -38,8 +53,8 @@ class ProductServiceTest {
 
     @Test
     void getAll_noCategory_returnsAllAvailable() {
-        Product p1 = buildProduct(1L, "Latte", ProductCategory.COFFEE);
-        Product p2 = buildProduct(2L, "Green Tea", ProductCategory.TEA);
+        Product p1 = buildProduct(1L, "Latte", coffeeCategory);
+        Product p2 = buildProduct(2L, "Green Tea", teaCategory);
         when(productRepository.findByAvailableTrue()).thenReturn(List.of(p1, p2));
 
         List<ProductDto> result = productService.getAll(null);
@@ -51,19 +66,19 @@ class ProductServiceTest {
 
     @Test
     void getAll_withCategory_filtersCorrectly() {
-        Product p1 = buildProduct(1L, "Latte", ProductCategory.COFFEE);
-        when(productRepository.findByCategoryAndAvailableTrue(ProductCategory.COFFEE))
-                .thenReturn(List.of(p1));
+        Product p1 = buildProduct(1L, "Latte", coffeeCategory);
+        when(refProductCategoryRepository.findByCode("COFFEE")).thenReturn(Optional.of(coffeeCategory));
+        when(productRepository.findByCategoryAndAvailableTrue(coffeeCategory)).thenReturn(List.of(p1));
 
-        List<ProductDto> result = productService.getAll(ProductCategory.COFFEE);
+        List<ProductDto> result = productService.getAll("COFFEE");
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getCategory()).isEqualTo(ProductCategory.COFFEE);
+        assertThat(result.get(0).getCategory()).isEqualTo("COFFEE");
     }
 
     @Test
     void getById_existingId_returnsDto() {
-        Product product = buildProduct(1L, "Espresso", ProductCategory.COFFEE);
+        Product product = buildProduct(1L, "Espresso", coffeeCategory);
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
         ProductDto result = productService.getById(1L);

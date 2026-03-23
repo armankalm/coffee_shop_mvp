@@ -1,7 +1,7 @@
 package com.coffeeshop.app.service;
 
 import com.coffeeshop.app.domain.CoffeeShop;
-import com.coffeeshop.app.domain.ShopStatus;
+import com.coffeeshop.app.domain.RefShopStatus;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.repository.CoffeeShopRepository;
 import org.junit.jupiter.api.Test;
@@ -29,10 +29,11 @@ class CoffeeShopServiceTest {
     private CoffeeShopService coffeeShopService;
 
     private CoffeeShop buildShop(Long id, String name, String city) {
+        RefShopStatus openStatus = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
         return CoffeeShop.builder()
                 .id(id).name(name).city(city)
                 .address("123 Main St")
-                .status(ShopStatus.OPEN)
+                .status(openStatus)
                 .build();
     }
 

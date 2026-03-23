@@ -1,9 +1,10 @@
 package com.coffeeshop.app.service;
 
 import com.coffeeshop.app.domain.Product;
-import com.coffeeshop.app.domain.ProductCategory;
+import com.coffeeshop.app.domain.RefProductCategory;
 import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.repository.ProductRepository;
+import com.coffeeshop.app.repository.RefProductCategoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,14 +17,19 @@ import java.util.stream.Collectors;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final RefProductCategoryRepository refProductCategoryRepository;
 
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository,
+                          RefProductCategoryRepository refProductCategoryRepository) {
         this.productRepository = productRepository;
+        this.refProductCategoryRepository = refProductCategoryRepository;
     }
 
-    public List<ProductDto> getAll(ProductCategory category) {
+    public List<ProductDto> getAll(String categoryCode) {
         List<Product> products;
-        if (category != null) {
+        if (categoryCode != null) {
+            RefProductCategory category = refProductCategoryRepository.findByCode(categoryCode)
+                    .orElseThrow(() -> new NoSuchElementException("Unknown category code: " + categoryCode));
             products = productRepository.findByCategoryAndAvailableTrue(category);
         } else {
             products = productRepository.findByAvailableTrue();

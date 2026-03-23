@@ -1,7 +1,7 @@
 package com.coffeeshop.app.controller;
 
 import com.coffeeshop.app.domain.Product;
-import com.coffeeshop.app.domain.ProductCategory;
+import com.coffeeshop.app.domain.RefProductCategory;
 import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.service.ProductService;
 import org.junit.jupiter.api.Test;
@@ -34,9 +34,13 @@ class ProductControllerTest {
     @MockBean
     private ProductService productService;
 
-    private ProductDto buildDto(Long id, String name, ProductCategory category) {
+    private RefProductCategory coffeeCategory() {
+        return RefProductCategory.builder().id(1L).code("COFFEE").nameRu("Кофе").nameEn("Coffee").build();
+    }
+
+    private ProductDto buildDto(Long id, String name) {
         Product product = Product.builder()
-                .id(id).name(name).category(category)
+                .id(id).name(name).category(coffeeCategory())
                 .basePrice(BigDecimal.valueOf(500))
                 .available(true)
                 .build();
@@ -46,7 +50,7 @@ class ProductControllerTest {
     @Test
     @WithMockUser
     void getAll_noFilter_returnsAllProducts() throws Exception {
-        ProductDto dto = buildDto(1L, "Latte", ProductCategory.COFFEE);
+        ProductDto dto = buildDto(1L, "Latte");
         when(productService.getAll(null)).thenReturn(List.of(dto));
 
         mockMvc.perform(get("/api/products"))
@@ -57,8 +61,8 @@ class ProductControllerTest {
     @Test
     @WithMockUser
     void getAll_withCategoryFilter_filtersProducts() throws Exception {
-        ProductDto dto = buildDto(1L, "Espresso", ProductCategory.COFFEE);
-        when(productService.getAll(ProductCategory.COFFEE)).thenReturn(List.of(dto));
+        ProductDto dto = buildDto(1L, "Espresso");
+        when(productService.getAll("COFFEE")).thenReturn(List.of(dto));
 
         mockMvc.perform(get("/api/products").param("category", "COFFEE"))
                 .andExpect(status().isOk())
@@ -68,7 +72,7 @@ class ProductControllerTest {
     @Test
     @WithMockUser
     void getById_existingProduct_returnsProductWithToppings() throws Exception {
-        ProductDto dto = buildDto(1L, "Cappuccino", ProductCategory.COFFEE);
+        ProductDto dto = buildDto(1L, "Cappuccino");
         when(productService.getById(1L)).thenReturn(dto);
 
         mockMvc.perform(get("/api/products/1"))

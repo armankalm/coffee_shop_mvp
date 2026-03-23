@@ -23,9 +23,9 @@ public class Topping {
     @Column(nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ToppingType type;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "type_id", nullable = false)
+    private RefToppingType type;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;

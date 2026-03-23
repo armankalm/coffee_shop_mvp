@@ -1,7 +1,6 @@
 package com.coffeeshop.app.dto.product;
 
 import com.coffeeshop.app.domain.Topping;
-import com.coffeeshop.app.domain.ToppingType;
 
 import java.math.BigDecimal;
 import java.util.Set;
@@ -10,7 +9,8 @@ import java.util.stream.Collectors;
 public class ToppingDto {
     private Long id;
     private String name;
-    private ToppingType type;
+    private String type;
+    private String typeNameRu;
     private BigDecimal price;
     private Set<Long> incompatibleWithIds;
 
@@ -20,7 +20,8 @@ public class ToppingDto {
         ToppingDto dto = new ToppingDto();
         dto.id = topping.getId();
         dto.name = topping.getName();
-        dto.type = topping.getType();
+        dto.type = topping.getType().getCode();
+        dto.typeNameRu = topping.getType().getNameRu();
         dto.price = topping.getPrice();
         dto.incompatibleWithIds = topping.getIncompatibleWith().stream()
                 .map(Topping::getId)
@@ -30,7 +31,8 @@ public class ToppingDto {
 
     public Long getId() { return id; }
     public String getName() { return name; }
-    public ToppingType getType() { return type; }
+    public String getType() { return type; }
+    public String getTypeNameRu() { return typeNameRu; }
     public BigDecimal getPrice() { return price; }
     public Set<Long> getIncompatibleWithIds() { return incompatibleWithIds; }
 }

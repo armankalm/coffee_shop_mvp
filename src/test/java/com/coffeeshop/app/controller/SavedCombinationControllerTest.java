@@ -39,19 +39,27 @@ class SavedCombinationControllerTest {
     @MockBean
     private SavedCombinationService savedCombinationService;
 
+    private RefUserRole userRole() {
+        return RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
+    }
+
+    private RefProductCategory coffeeCategory() {
+        return RefProductCategory.builder().id(1L).code("COFFEE").nameRu("Кофе").nameEn("Coffee").build();
+    }
+
     private SavedCombinationDto buildCombinationDto() {
-        User user = User.builder().id(1L).email("user@test.com").role(Role.USER).build();
+        User user = User.builder().id(1L).email("user@test.com").role(userRole()).build();
         Product product = Product.builder().id(1L).name("Latte")
-                .category(ProductCategory.COFFEE).basePrice(BigDecimal.valueOf(500)).available(true).build();
+                .category(coffeeCategory()).basePrice(BigDecimal.valueOf(500)).available(true).build();
         SavedCombination sc = SavedCombination.builder()
                 .id(1L).user(user).product(product).name("My Latte").build();
         return SavedCombinationDto.from(sc);
     }
 
     private FavoriteItemDto buildFavoriteItemDto() {
-        User user = User.builder().id(1L).email("user@test.com").role(Role.USER).build();
+        User user = User.builder().id(1L).email("user@test.com").role(userRole()).build();
         Product product = Product.builder().id(1L).name("Latte")
-                .category(ProductCategory.COFFEE).basePrice(BigDecimal.valueOf(500)).available(true).build();
+                .category(coffeeCategory()).basePrice(BigDecimal.valueOf(500)).available(true).build();
         SavedCombination sc = SavedCombination.builder()
                 .id(1L).user(user).product(product).name("My Latte").build();
         FavoriteItem fi = FavoriteItem.builder().id(1L).user(user).savedCombination(sc).build();

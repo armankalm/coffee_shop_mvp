@@ -5,6 +5,7 @@ import com.coffeeshop.app.domain.*;
 import com.coffeeshop.app.dto.payment.PaymentTransactionDto;
 import com.coffeeshop.app.repository.OrderRepository;
 import com.coffeeshop.app.repository.PaymentTransactionRepository;
+import com.coffeeshop.app.repository.RefOrderStatusRepository;
 import com.coffeeshop.app.service.payment.KaspiPaymentService;
 import com.coffeeshop.app.service.payment.StripePaymentService;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,8 +29,15 @@ class PaymentServiceTest {
 
     @Mock private OrderRepository orderRepository;
     @Mock private PaymentTransactionRepository transactionRepository;
+    @Mock private RefOrderStatusRepository refOrderStatusRepository;
 
     private PaymentService paymentService;
+
+    private RefUserRole userRole;
+    private RefShopStatus openStatus;
+    private RefOrderStatus newStatus;
+    private RefOrderStatus cancelledStatus;
+    private RefOrderStatus inProgressStatus;
 
     private User user;
     private CoffeeShop shop;
@@ -37,19 +45,26 @@ class PaymentServiceTest {
 
     @BeforeEach
     void setUp() {
-        user = User.builder().id(1L).email("user@test.com").role(Role.USER).build();
+        userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
+        openStatus = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
+        newStatus = RefOrderStatus.builder().id(1L).code("NEW").nameRu("Новый").nameEn("New").build();
+        cancelledStatus = RefOrderStatus.builder().id(5L).code("CANCELLED").nameRu("Отменён").nameEn("Cancelled").build();
+        inProgressStatus = RefOrderStatus.builder().id(2L).code("IN_PROGRESS").nameRu("В работе").nameEn("In Progress").build();
+
+        user = User.builder().id(1L).email("user@test.com").role(userRole).build();
         shop = CoffeeShop.builder().id(1L).name("Test Shop").city("Almaty")
-                .address("123 St").status(ShopStatus.OPEN).build();
+                .address("123 St").status(openStatus).build();
         order = Order.builder()
                 .id(1L).user(user).shop(shop)
-                .status(OrderStatus.NEW)
+                .status(newStatus)
                 .total(BigDecimal.valueOf(500))
                 .build();
 
         paymentService = new PaymentService(
                 orderRepository,
                 transactionRepository,
-                List.of(new KaspiPaymentService(), new StripePaymentService())
+                List.of(new KaspiPaymentService(), new StripePaymentService()),
+                refOrderStatusRepository
         );
     }
 
@@ -109,7 +124,7 @@ class PaymentServiceTest {
 
     @Test
     void initiatePayment_cancelledOrder_throwsIllegalState() {
-        order.setStatus(OrderStatus.CANCELLED);
+        order.setStatus(cancelledStatus);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         assertThatThrownBy(() -> paymentService.initiatePayment("user@test.com", 1L, PaymentProvider.KASPI))
@@ -124,13 +139,14 @@ class PaymentServiceTest {
                 .externalId("KASPI-abc").build();
 
         when(transactionRepository.findByExternalId("KASPI-abc")).thenReturn(Optional.of(tx));
+        when(refOrderStatusRepository.findByCode("IN_PROGRESS")).thenReturn(Optional.of(inProgressStatus));
         when(transactionRepository.save(any(PaymentTransaction.class))).thenAnswer(inv -> inv.getArgument(0));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
         PaymentTransactionDto result = paymentService.handleWebhook(PaymentProvider.KASPI, "KASPI-abc", "SUCCESS");
 
         assertThat(result.getStatus()).isEqualTo(PaymentStatus.SUCCESS);
-        assertThat(order.getStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
+        assertThat(order.getStatus().getCode()).isEqualTo("IN_PROGRESS");
         verify(orderRepository).save(order);
     }
 

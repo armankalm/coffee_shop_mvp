@@ -1,9 +1,10 @@
 package com.coffeeshop.app.service;
 
+import com.coffeeshop.app.domain.RefToppingType;
 import com.coffeeshop.app.domain.Topping;
-import com.coffeeshop.app.domain.ToppingType;
 import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.repository.ToppingRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,7 +29,16 @@ class ToppingServiceTest {
     @InjectMocks
     private ToppingService toppingService;
 
-    private Topping buildTopping(Long id, String name, ToppingType type) {
+    private RefToppingType milkType;
+    private RefToppingType syrupType;
+
+    @BeforeEach
+    void setUp() {
+        milkType = RefToppingType.builder().id(1L).code("MILK").nameRu("Молоко").nameEn("Milk").build();
+        syrupType = RefToppingType.builder().id(2L).code("SYRUP").nameRu("Сиропы").nameEn("Syrup").build();
+    }
+
+    private Topping buildTopping(Long id, String name, RefToppingType type) {
         return Topping.builder()
                 .id(id).name(name).type(type)
                 .price(BigDecimal.valueOf(100))
@@ -37,22 +47,22 @@ class ToppingServiceTest {
 
     @Test
     void getAllGroupedByType_groupsCorrectly() {
-        Topping milk = buildTopping(1L, "Oat Milk", ToppingType.MILK);
-        Topping syrup = buildTopping(2L, "Vanilla Syrup", ToppingType.SYRUP);
-        Topping syrup2 = buildTopping(3L, "Caramel Syrup", ToppingType.SYRUP);
+        Topping milk = buildTopping(1L, "Oat Milk", milkType);
+        Topping syrup = buildTopping(2L, "Vanilla Syrup", syrupType);
+        Topping syrup2 = buildTopping(3L, "Caramel Syrup", syrupType);
         when(toppingRepository.findAll()).thenReturn(List.of(milk, syrup, syrup2));
 
-        Map<ToppingType, List<ToppingDto>> result = toppingService.getAllGroupedByType();
+        Map<String, List<ToppingDto>> result = toppingService.getAllGroupedByType();
 
-        assertThat(result).containsKeys(ToppingType.MILK, ToppingType.SYRUP);
-        assertThat(result.get(ToppingType.MILK)).hasSize(1);
-        assertThat(result.get(ToppingType.SYRUP)).hasSize(2);
+        assertThat(result).containsKeys("MILK", "SYRUP");
+        assertThat(result.get("MILK")).hasSize(1);
+        assertThat(result.get("SYRUP")).hasSize(2);
     }
 
     @Test
     void validateCompatibility_noConflicts_passes() {
-        Topping milk = buildTopping(1L, "Oat Milk", ToppingType.MILK);
-        Topping syrup = buildTopping(2L, "Vanilla Syrup", ToppingType.SYRUP);
+        Topping milk = buildTopping(1L, "Oat Milk", milkType);
+        Topping syrup = buildTopping(2L, "Vanilla Syrup", syrupType);
         when(toppingRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(milk, syrup));
 
         // Should not throw
@@ -61,8 +71,8 @@ class ToppingServiceTest {
 
     @Test
     void validateCompatibility_withConflict_throwsException() {
-        Topping oatMilk = buildTopping(1L, "Oat Milk", ToppingType.MILK);
-        Topping coconutMilk = buildTopping(2L, "Coconut Milk", ToppingType.MILK);
+        Topping oatMilk = buildTopping(1L, "Oat Milk", milkType);
+        Topping coconutMilk = buildTopping(2L, "Coconut Milk", milkType);
         // oatMilk is incompatible with coconutMilk
         oatMilk.getIncompatibleWith().add(coconutMilk);
 

@@ -1,6 +1,5 @@
 package com.coffeeshop.app.controller;
 
-import com.coffeeshop.app.domain.OrderStatus;
 import com.coffeeshop.app.dto.admin.*;
 import com.coffeeshop.app.dto.order.OrderDto;
 import com.coffeeshop.app.dto.product.ProductDto;
@@ -28,7 +27,7 @@ public class AdminController {
 
     @GetMapping("/orders")
     public ResponseEntity<List<OrderDto>> getAllOrders(
-            @RequestParam(name = "status", required = false) OrderStatus status,
+            @RequestParam(name = "status", required = false) String status,
             @RequestParam(name = "shopId", required = false) Long shopId) {
         return ResponseEntity.ok(adminService.getAllOrders(status, shopId));
     }
@@ -42,7 +41,7 @@ public class AdminController {
     public ResponseEntity<OrderDto> updateOrderStatus(
             @PathVariable("id") Long id,
             @Valid @RequestBody UpdateOrderStatusRequest request) {
-        return ResponseEntity.ok(adminService.updateOrderStatus(id, request.getStatus()));
+        return ResponseEntity.ok(adminService.updateOrderStatus(id, request.getStatusCode()));
     }
 
     @PostMapping("/shops")

@@ -1,7 +1,7 @@
 package com.coffeeshop.app.controller;
 
+import com.coffeeshop.app.domain.RefToppingType;
 import com.coffeeshop.app.domain.Topping;
-import com.coffeeshop.app.domain.ToppingType;
 import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.service.ToppingService;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,15 @@ class ToppingControllerTest {
     @MockBean
     private ToppingService toppingService;
 
-    private ToppingDto buildDto(Long id, String name, ToppingType type) {
+    private RefToppingType milkType() {
+        return RefToppingType.builder().id(1L).code("MILK").nameRu("Молоко").nameEn("Milk").build();
+    }
+
+    private RefToppingType syrupType() {
+        return RefToppingType.builder().id(2L).code("SYRUP").nameRu("Сиропы").nameEn("Syrup").build();
+    }
+
+    private ToppingDto buildDto(Long id, String name, RefToppingType type) {
         Topping topping = Topping.builder()
                 .id(id).name(name).type(type)
                 .price(BigDecimal.valueOf(100))
@@ -45,11 +53,11 @@ class ToppingControllerTest {
     @Test
     @WithMockUser
     void getAll_returnsGroupedByType() throws Exception {
-        ToppingDto milk = buildDto(1L, "Oat Milk", ToppingType.MILK);
-        ToppingDto syrup = buildDto(2L, "Vanilla Syrup", ToppingType.SYRUP);
+        ToppingDto milk = buildDto(1L, "Oat Milk", milkType());
+        ToppingDto syrup = buildDto(2L, "Vanilla Syrup", syrupType());
         when(toppingService.getAllGroupedByType()).thenReturn(
-                Map.of(ToppingType.MILK, List.of(milk),
-                       ToppingType.SYRUP, List.of(syrup)));
+                Map.of("MILK", List.of(milk),
+                       "SYRUP", List.of(syrup)));
 
         mockMvc.perform(get("/api/toppings"))
                 .andExpect(status().isOk())

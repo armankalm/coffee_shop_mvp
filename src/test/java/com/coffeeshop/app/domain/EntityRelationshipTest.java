@@ -1,6 +1,7 @@
 package com.coffeeshop.app.domain;
 
 import com.coffeeshop.app.repository.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -28,12 +29,42 @@ class EntityRelationshipTest {
     private SavedCombinationRepository savedCombinationRepository;
     @Autowired
     private FavoriteItemRepository favoriteItemRepository;
+    @Autowired
+    private RefUserRoleRepository refUserRoleRepository;
+    @Autowired
+    private RefShopStatusRepository refShopStatusRepository;
+    @Autowired
+    private RefOrderStatusRepository refOrderStatusRepository;
+    @Autowired
+    private RefProductCategoryRepository refProductCategoryRepository;
+    @Autowired
+    private RefToppingTypeRepository refToppingTypeRepository;
+
+    private RefUserRole userRole;
+    private RefShopStatus openStatus;
+    private RefOrderStatus newStatus;
+    private RefProductCategory coffeeCategory;
+    private RefToppingType milkType;
+
+    @BeforeEach
+    void setUp() {
+        userRole = refUserRoleRepository.save(
+                RefUserRole.builder().code("USER").nameRu("Пользователь").nameEn("User").build());
+        openStatus = refShopStatusRepository.save(
+                RefShopStatus.builder().code("OPEN").nameRu("Открыто").nameEn("Open").build());
+        newStatus = refOrderStatusRepository.save(
+                RefOrderStatus.builder().code("NEW").nameRu("Новый").nameEn("New").build());
+        coffeeCategory = refProductCategoryRepository.save(
+                RefProductCategory.builder().code("COFFEE").nameRu("Кофе").nameEn("Coffee").build());
+        milkType = refToppingTypeRepository.save(
+                RefToppingType.builder().code("MILK").nameRu("Молоко").nameEn("Milk").build());
+    }
 
     @Test
     void saveAndFindUser() {
         User user = User.builder()
                 .email("test@example.com")
-                .role(Role.USER)
+                .role(userRole)
                 .build();
         User saved = userRepository.save(user);
         assertThat(saved.getId()).isNotNull();
@@ -47,7 +78,7 @@ class EntityRelationshipTest {
                 .name("Central Coffee")
                 .city("Almaty")
                 .address("Dostyk 1")
-                .status(ShopStatus.OPEN)
+                .status(openStatus)
                 .build();
         CoffeeShop saved = coffeeShopRepository.save(shop);
         assertThat(saved.getId()).isNotNull();
@@ -58,14 +89,14 @@ class EntityRelationshipTest {
     void saveProductWithTopping() {
         Topping milk = Topping.builder()
                 .name("Oat Milk")
-                .type(ToppingType.MILK)
+                .type(milkType)
                 .price(new BigDecimal("150.00"))
                 .build();
         toppingRepository.save(milk);
 
         Product latte = Product.builder()
                 .name("Latte")
-                .category(ProductCategory.COFFEE)
+                .category(coffeeCategory)
                 .basePrice(new BigDecimal("1200.00"))
                 .available(true)
                 .build();
@@ -73,17 +104,17 @@ class EntityRelationshipTest {
         productRepository.save(latte);
 
         assertThat(productRepository.findByAvailableTrue()).hasSize(1);
-        assertThat(toppingRepository.findByType(ToppingType.MILK)).hasSize(1);
+        assertThat(toppingRepository.findByType(milkType)).hasSize(1);
     }
 
     @Test
     void saveOrderWithItems() {
         User user = userRepository.save(User.builder()
-                .email("order@example.com").role(Role.USER).build());
+                .email("order@example.com").role(userRole).build());
         CoffeeShop shop = coffeeShopRepository.save(CoffeeShop.builder()
-                .name("Shop").city("City").address("Addr").status(ShopStatus.OPEN).build());
+                .name("Shop").city("City").address("Addr").status(openStatus).build());
         Product product = productRepository.save(Product.builder()
-                .name("Espresso").category(ProductCategory.COFFEE)
+                .name("Espresso").category(coffeeCategory)
                 .basePrice(new BigDecimal("800.00")).available(true).build());
 
         OrderItem item = OrderItem.builder()
@@ -95,7 +126,7 @@ class EntityRelationshipTest {
         Order order = Order.builder()
                 .user(user)
                 .shop(shop)
-                .status(OrderStatus.NEW)
+                .status(newStatus)
                 .total(new BigDecimal("1600.00"))
                 .build();
         item.setOrder(order);
@@ -110,9 +141,9 @@ class EntityRelationshipTest {
     @Test
     void saveFavoriteItem() {
         User user = userRepository.save(User.builder()
-                .email("fav@example.com").role(Role.USER).build());
+                .email("fav@example.com").role(userRole).build());
         Product product = productRepository.save(Product.builder()
-                .name("Cappuccino").category(ProductCategory.COFFEE)
+                .name("Cappuccino").category(coffeeCategory)
                 .basePrice(new BigDecimal("1000.00")).available(true).build());
 
         SavedCombination combo = savedCombinationRepository.save(SavedCombination.builder()
@@ -130,9 +161,9 @@ class EntityRelationshipTest {
     @Test
     void toppingIncompatibility() {
         Topping cow = Topping.builder()
-                .name("Cow Milk").type(ToppingType.MILK).price(new BigDecimal("100.00")).build();
+                .name("Cow Milk").type(milkType).price(new BigDecimal("100.00")).build();
         Topping oat = Topping.builder()
-                .name("Oat Milk").type(ToppingType.MILK).price(new BigDecimal("150.00")).build();
+                .name("Oat Milk").type(milkType).price(new BigDecimal("150.00")).build();
         toppingRepository.save(oat);
         cow.getIncompatibleWith().add(oat);
         toppingRepository.save(cow);

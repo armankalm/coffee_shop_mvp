@@ -37,9 +37,20 @@ class OrderServiceTest {
     @Mock private ToppingRepository toppingRepository;
     @Mock private ToppingService toppingService;
     @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock private RefOrderStatusRepository refOrderStatusRepository;
 
     @InjectMocks
     private OrderService orderService;
+
+    private RefUserRole userRole;
+    private RefShopStatus openStatus;
+    private RefShopStatus closedStatus;
+    private RefOrderStatus newStatus;
+    private RefOrderStatus cancelledStatus;
+    private RefOrderStatus completedStatus;
+    private RefOrderStatus inProgressStatus;
+    private RefProductCategory coffeeCategory;
+    private RefToppingType extrasType;
 
     private User user;
     private CoffeeShop shop;
@@ -47,10 +58,20 @@ class OrderServiceTest {
 
     @BeforeEach
     void setUp() {
-        user = User.builder().id(1L).email("test@example.com").role(Role.USER).build();
+        userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
+        openStatus = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
+        closedStatus = RefShopStatus.builder().id(2L).code("CLOSED").nameRu("Закрыто").nameEn("Closed").build();
+        newStatus = RefOrderStatus.builder().id(1L).code("NEW").nameRu("Новый").nameEn("New").build();
+        cancelledStatus = RefOrderStatus.builder().id(5L).code("CANCELLED").nameRu("Отменён").nameEn("Cancelled").build();
+        completedStatus = RefOrderStatus.builder().id(4L).code("COMPLETED").nameRu("Завершён").nameEn("Completed").build();
+        inProgressStatus = RefOrderStatus.builder().id(2L).code("IN_PROGRESS").nameRu("В работе").nameEn("In Progress").build();
+        coffeeCategory = RefProductCategory.builder().id(1L).code("COFFEE").nameRu("Кофе").nameEn("Coffee").build();
+        extrasType = RefToppingType.builder().id(4L).code("EXTRAS").nameRu("Добавки").nameEn("Extras").build();
+
+        user = User.builder().id(1L).email("test@example.com").role(userRole).build();
         shop = CoffeeShop.builder().id(1L).name("Test Shop").city("Almaty")
-                .address("123 St").status(ShopStatus.OPEN).build();
-        product = Product.builder().id(1L).name("Latte").category(ProductCategory.COFFEE)
+                .address("123 St").status(openStatus).build();
+        product = Product.builder().id(1L).name("Latte").category(coffeeCategory)
                 .basePrice(BigDecimal.valueOf(500)).available(true).build();
     }
 
@@ -67,10 +88,11 @@ class OrderServiceTest {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findById(1L)).thenReturn(Optional.of(shop));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
 
         Order savedOrder = Order.builder()
                 .id(1L).user(user).shop(shop)
-                .status(OrderStatus.NEW)
+                .status(newStatus)
                 .total(BigDecimal.valueOf(1000))
                 .build();
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
@@ -78,7 +100,7 @@ class OrderServiceTest {
         OrderDto result = orderService.createOrder("test@example.com", request);
 
         assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(OrderStatus.NEW);
+        assertThat(result.getStatus()).isEqualTo("NEW");
         verify(orderRepository).save(any(Order.class));
         verify(eventPublisher).publishEvent(any(com.coffeeshop.app.service.print.NewOrderEvent.class));
     }
@@ -99,7 +121,7 @@ class OrderServiceTest {
 
     @Test
     void createOrder_closedShop_throwsIllegalState() {
-        shop.setStatus(ShopStatus.CLOSED);
+        shop.setStatus(closedStatus);
         CreateOrderRequest request = new CreateOrderRequest();
         request.setShopId(1L);
         request.setItems(List.of(new OrderItemRequest()));
@@ -127,6 +149,7 @@ class OrderServiceTest {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findById(1L)).thenReturn(Optional.of(shop));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
 
         assertThatThrownBy(() -> orderService.createOrder("test@example.com", request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -136,8 +159,8 @@ class OrderServiceTest {
     @Test
     void createOrder_calculatesCorrectTotal() {
         Topping topping = Topping.builder().id(1L).name("Extra Shot")
-                .type(ToppingType.EXTRAS).price(BigDecimal.valueOf(100)).build();
-        product = Product.builder().id(1L).name("Latte").category(ProductCategory.COFFEE)
+                .type(extrasType).price(BigDecimal.valueOf(100)).build();
+        product = Product.builder().id(1L).name("Latte").category(coffeeCategory)
                 .basePrice(BigDecimal.valueOf(500)).available(true)
                 .availableToppings(Set.of(topping)).build();
 
@@ -154,11 +177,12 @@ class OrderServiceTest {
         when(coffeeShopRepository.findById(1L)).thenReturn(Optional.of(shop));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(toppingRepository.findAllById(Set.of(1L))).thenReturn(List.of(topping));
+        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
 
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         Order savedOrder = Order.builder()
                 .id(1L).user(user).shop(shop)
-                .status(OrderStatus.NEW)
+                .status(newStatus)
                 .total(BigDecimal.valueOf(1200)) // (500 + 100) * 2
                 .build();
         when(orderRepository.save(orderCaptor.capture())).thenReturn(savedOrder);
@@ -174,7 +198,7 @@ class OrderServiceTest {
     void getUserOrders_returnsUserOrders() {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         Order order = Order.builder().id(1L).user(user).shop(shop)
-                .status(OrderStatus.NEW).total(BigDecimal.valueOf(500)).build();
+                .status(newStatus).total(BigDecimal.valueOf(500)).build();
         when(orderRepository.findByUserIdOrderByCreatedAtDesc(1L)).thenReturn(List.of(order));
 
         List<OrderDto> result = orderService.getUserOrders("test@example.com");
@@ -185,21 +209,22 @@ class OrderServiceTest {
     @Test
     void cancelOrder_newOrder_setsStatusCancelled() {
         Order order = Order.builder().id(1L).user(user).shop(shop)
-                .status(OrderStatus.NEW).total(BigDecimal.valueOf(500)).build();
+                .status(newStatus).total(BigDecimal.valueOf(500)).build();
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(refOrderStatusRepository.findByCode("CANCELLED")).thenReturn(Optional.of(cancelledStatus));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
         OrderDto result = orderService.cancelOrder("test@example.com", 1L);
 
-        assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+        assertThat(result.getStatus()).isEqualTo("CANCELLED");
     }
 
     @Test
     void cancelOrder_completedOrder_throwsIllegalState() {
         Order order = Order.builder().id(1L).user(user).shop(shop)
-                .status(OrderStatus.COMPLETED).total(BigDecimal.valueOf(500)).build();
+                .status(completedStatus).total(BigDecimal.valueOf(500)).build();
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
@@ -210,9 +235,9 @@ class OrderServiceTest {
 
     @Test
     void getOrderById_otherUsersOrder_throwsAccessDenied() {
-        User otherUser = User.builder().id(2L).email("other@example.com").role(Role.USER).build();
+        User otherUser = User.builder().id(2L).email("other@example.com").role(userRole).build();
         Order order = Order.builder().id(1L).user(otherUser).shop(shop)
-                .status(OrderStatus.NEW).total(BigDecimal.valueOf(500)).build();
+                .status(newStatus).total(BigDecimal.valueOf(500)).build();
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
@@ -224,9 +249,10 @@ class OrderServiceTest {
 
     @Test
     void getOrderById_adminCanSeeAnyOrder() {
-        User admin = User.builder().id(2L).email("admin@example.com").role(Role.ADMIN).build();
+        RefUserRole adminRole = RefUserRole.builder().id(4L).code("ADMIN").nameRu("Администратор").nameEn("Admin").build();
+        User admin = User.builder().id(2L).email("admin@example.com").role(adminRole).build();
         Order order = Order.builder().id(1L).user(user).shop(shop)
-                .status(OrderStatus.NEW).total(BigDecimal.valueOf(500)).build();
+                .status(newStatus).total(BigDecimal.valueOf(500)).build();
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(admin));

@@ -29,9 +29,9 @@ public class Order {
     @JoinColumn(name = "shop_id", nullable = false)
     private CoffeeShop shop;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private OrderStatus status;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "status_id", nullable = false)
+    private RefOrderStatus status;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal total;

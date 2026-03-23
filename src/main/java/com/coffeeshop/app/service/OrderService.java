@@ -29,6 +29,7 @@ public class OrderService {
     private final ToppingRepository toppingRepository;
     private final ToppingService toppingService;
     private final ApplicationEventPublisher eventPublisher;
+    private final RefOrderStatusRepository refOrderStatusRepository;
 
     public OrderService(OrderRepository orderRepository,
                         UserRepository userRepository,
@@ -36,7 +37,8 @@ public class OrderService {
                         ProductRepository productRepository,
                         ToppingRepository toppingRepository,
                         ToppingService toppingService,
-                        ApplicationEventPublisher eventPublisher) {
+                        ApplicationEventPublisher eventPublisher,
+                        RefOrderStatusRepository refOrderStatusRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.coffeeShopRepository = coffeeShopRepository;
@@ -44,6 +46,7 @@ public class OrderService {
         this.toppingRepository = toppingRepository;
         this.toppingService = toppingService;
         this.eventPublisher = eventPublisher;
+        this.refOrderStatusRepository = refOrderStatusRepository;
     }
 
     public OrderDto createOrder(String userEmail, CreateOrderRequest request) {
@@ -53,14 +56,17 @@ public class OrderService {
         CoffeeShop shop = coffeeShopRepository.findById(request.getShopId())
                 .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + request.getShopId()));
 
-        if (shop.getStatus() == ShopStatus.CLOSED) {
+        if ("CLOSED".equals(shop.getStatus().getCode())) {
             throw new IllegalStateException("Coffee shop is closed: " + shop.getName());
         }
+
+        RefOrderStatus newStatus = refOrderStatusRepository.findByCode("NEW")
+                .orElseThrow(() -> new NoSuchElementException("Order status NEW not found in reference table"));
 
         Order order = Order.builder()
                 .user(user)
                 .shop(shop)
-                .status(OrderStatus.NEW)
+                .status(newStatus)
                 .total(BigDecimal.ZERO)
                 .build();
 
@@ -136,7 +142,7 @@ public class OrderService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
-        if (user.getRole() == Role.USER && !order.getUser().getId().equals(user.getId())) {
+        if ("USER".equals(user.getRole().getCode()) && !order.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("Access denied to order: " + orderId);
         }
 
@@ -150,19 +156,22 @@ public class OrderService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
-        if (user.getRole() == Role.USER && !order.getUser().getId().equals(user.getId())) {
+        if ("USER".equals(user.getRole().getCode()) && !order.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("Access denied to order: " + orderId);
         }
 
-        if (order.getStatus() == OrderStatus.COMPLETED || order.getStatus() == OrderStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot cancel order in status: " + order.getStatus());
+        String statusCode = order.getStatus().getCode();
+        if ("COMPLETED".equals(statusCode) || "CANCELLED".equals(statusCode)) {
+            throw new IllegalStateException("Cannot cancel order in status: " + statusCode);
         }
 
-        if (user.getRole() == Role.USER && order.getStatus() == OrderStatus.IN_PROGRESS) {
+        if ("USER".equals(user.getRole().getCode()) && "IN_PROGRESS".equals(statusCode)) {
             throw new IllegalStateException("Cannot cancel an order that is already in progress");
         }
 
-        order.setStatus(OrderStatus.CANCELLED);
+        RefOrderStatus cancelledStatus = refOrderStatusRepository.findByCode("CANCELLED")
+                .orElseThrow(() -> new NoSuchElementException("Order status CANCELLED not found in reference table"));
+        order.setStatus(cancelledStatus);
         return OrderDto.from(orderRepository.save(order));
     }
 }

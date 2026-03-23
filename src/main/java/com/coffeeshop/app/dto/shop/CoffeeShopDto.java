@@ -1,14 +1,14 @@
 package com.coffeeshop.app.dto.shop;
 
 import com.coffeeshop.app.domain.CoffeeShop;
-import com.coffeeshop.app.domain.ShopStatus;
 
 public class CoffeeShopDto {
     private Long id;
     private String name;
     private String city;
     private String address;
-    private ShopStatus status;
+    private String status;
+    private String statusNameRu;
 
     public CoffeeShopDto() {}
 
@@ -18,7 +18,8 @@ public class CoffeeShopDto {
         dto.name = shop.getName();
         dto.city = shop.getCity();
         dto.address = shop.getAddress();
-        dto.status = shop.getStatus();
+        dto.status = shop.getStatus().getCode();
+        dto.statusNameRu = shop.getStatus().getNameRu();
         return dto;
     }
 
@@ -26,5 +27,6 @@ public class CoffeeShopDto {
     public String getName() { return name; }
     public String getCity() { return city; }
     public String getAddress() { return address; }
-    public ShopStatus getStatus() { return status; }
+    public String getStatus() { return status; }
+    public String getStatusNameRu() { return statusNameRu; }
 }

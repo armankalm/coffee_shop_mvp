@@ -34,9 +34,20 @@ class AdminServiceTest {
     @Mock private ToppingRepository toppingRepository;
     @Mock private UserRepository userRepository;
     @Mock private PrintService printService;
+    @Mock private RefOrderStatusRepository refOrderStatusRepository;
+    @Mock private RefShopStatusRepository refShopStatusRepository;
+    @Mock private RefProductCategoryRepository refProductCategoryRepository;
+    @Mock private RefToppingTypeRepository refToppingTypeRepository;
 
     @InjectMocks
     private AdminService adminService;
+
+    private RefUserRole userRole;
+    private RefShopStatus openStatus;
+    private RefOrderStatus newStatus;
+    private RefOrderStatus inProgressStatus;
+    private RefProductCategory coffeeCategory;
+    private RefToppingType milkType;
 
     private User user;
     private CoffeeShop shop;
@@ -46,15 +57,22 @@ class AdminServiceTest {
 
     @BeforeEach
     void setUp() {
-        user = User.builder().id(1L).email("user@test.com").role(Role.USER).build();
+        userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
+        openStatus = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
+        newStatus = RefOrderStatus.builder().id(1L).code("NEW").nameRu("Новый").nameEn("New").build();
+        inProgressStatus = RefOrderStatus.builder().id(2L).code("IN_PROGRESS").nameRu("В работе").nameEn("In Progress").build();
+        coffeeCategory = RefProductCategory.builder().id(1L).code("COFFEE").nameRu("Кофе").nameEn("Coffee").build();
+        milkType = RefToppingType.builder().id(1L).code("MILK").nameRu("Молоко").nameEn("Milk").build();
+
+        user = User.builder().id(1L).email("user@test.com").role(userRole).build();
         shop = CoffeeShop.builder().id(1L).name("Test Shop").city("Almaty")
-                .address("123 St").status(ShopStatus.OPEN).build();
-        product = Product.builder().id(1L).name("Latte").category(ProductCategory.COFFEE)
+                .address("123 St").status(openStatus).build();
+        product = Product.builder().id(1L).name("Latte").category(coffeeCategory)
                 .basePrice(BigDecimal.valueOf(500)).available(true).build();
-        topping = Topping.builder().id(1L).name("Oat Milk").type(ToppingType.MILK)
+        topping = Topping.builder().id(1L).name("Oat Milk").type(milkType)
                 .price(BigDecimal.valueOf(100)).build();
         order = Order.builder().id(1L).user(user).shop(shop)
-                .status(OrderStatus.NEW).total(BigDecimal.valueOf(500)).build();
+                .status(newStatus).total(BigDecimal.valueOf(500)).build();
     }
 
     @Test
@@ -69,12 +87,13 @@ class AdminServiceTest {
 
     @Test
     void getAllOrders_filterByStatus_returnsMatchingOrders() {
-        when(orderRepository.findByStatus(OrderStatus.NEW)).thenReturn(List.of(order));
+        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
+        when(orderRepository.findByStatus(newStatus)).thenReturn(List.of(order));
 
-        List<OrderDto> result = adminService.getAllOrders(OrderStatus.NEW, null);
+        List<OrderDto> result = adminService.getAllOrders("NEW", null);
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getStatus()).isEqualTo(OrderStatus.NEW);
+        assertThat(result.get(0).getStatus()).isEqualTo("NEW");
     }
 
     @Test
@@ -88,17 +107,14 @@ class AdminServiceTest {
 
     @Test
     void getAllOrders_filterByStatusAndShopId_returnsMatchingOrders() {
-        CoffeeShop otherShop = CoffeeShop.builder().id(2L).name("Other Shop").city("Astana")
-                .address("456 Ave").status(ShopStatus.OPEN).build();
-        Order orderFromOtherShop = Order.builder().id(2L).user(user).shop(otherShop)
-                .status(OrderStatus.NEW).total(BigDecimal.valueOf(700)).build();
-        when(orderRepository.findByStatusAndShopId(OrderStatus.NEW, 1L)).thenReturn(List.of(order));
+        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
+        when(orderRepository.findByStatusAndShopId(newStatus, 1L)).thenReturn(List.of(order));
 
-        List<OrderDto> result = adminService.getAllOrders(OrderStatus.NEW, 1L);
+        List<OrderDto> result = adminService.getAllOrders("NEW", 1L);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);
-        verify(orderRepository).findByStatusAndShopId(OrderStatus.NEW, 1L);
+        verify(orderRepository).findByStatusAndShopId(newStatus, 1L);
         verify(orderRepository, never()).findByStatus(any());
     }
 
@@ -123,18 +139,19 @@ class AdminServiceTest {
     @Test
     void updateOrderStatus_validOrder_updatesStatus() {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(refOrderStatusRepository.findByCode("IN_PROGRESS")).thenReturn(Optional.of(inProgressStatus));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        OrderDto result = adminService.updateOrderStatus(1L, OrderStatus.IN_PROGRESS);
+        OrderDto result = adminService.updateOrderStatus(1L, "IN_PROGRESS");
 
-        assertThat(result.getStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
+        assertThat(result.getStatus()).isEqualTo("IN_PROGRESS");
     }
 
     @Test
     void updateOrderStatus_notFound_throwsNoSuchElement() {
         when(orderRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> adminService.updateOrderStatus(99L, OrderStatus.IN_PROGRESS))
+        assertThatThrownBy(() -> adminService.updateOrderStatus(99L, "IN_PROGRESS"))
                 .isInstanceOf(NoSuchElementException.class);
     }
 
@@ -144,13 +161,13 @@ class AdminServiceTest {
         request.setName("New Shop");
         request.setCity("Astana");
         request.setAddress("456 Ave");
-        request.setStatus(ShopStatus.OPEN);
+        request.setStatusCode("OPEN");
 
+        when(refShopStatusRepository.findByCode("OPEN")).thenReturn(Optional.of(openStatus));
         when(coffeeShopRepository.save(any(CoffeeShop.class))).thenAnswer(inv -> {
             CoffeeShop s = inv.getArgument(0);
-            s = CoffeeShop.builder().id(2L).name(s.getName()).city(s.getCity())
+            return CoffeeShop.builder().id(2L).name(s.getName()).city(s.getCity())
                     .address(s.getAddress()).status(s.getStatus()).build();
-            return s;
         });
 
         CoffeeShopDto result = adminService.createShop(request);
@@ -167,7 +184,7 @@ class AdminServiceTest {
         request.setName("Updated");
         request.setCity("City");
         request.setAddress("Addr");
-        request.setStatus(ShopStatus.OPEN);
+        request.setStatusCode("OPEN");
 
         assertThatThrownBy(() -> adminService.updateShop(99L, request))
                 .isInstanceOf(NoSuchElementException.class);
@@ -194,10 +211,11 @@ class AdminServiceTest {
     void createProduct_validRequest_returnsDto() {
         CreateProductRequest request = new CreateProductRequest();
         request.setName("Cappuccino");
-        request.setCategory(ProductCategory.COFFEE);
+        request.setCategoryCode("COFFEE");
         request.setBasePrice(BigDecimal.valueOf(450));
         request.setAvailable(true);
 
+        when(refProductCategoryRepository.findByCode("COFFEE")).thenReturn(Optional.of(coffeeCategory));
         when(productRepository.save(any(Product.class))).thenAnswer(inv -> {
             Product p = inv.getArgument(0);
             return Product.builder().id(2L).name(p.getName()).category(p.getCategory())
@@ -215,7 +233,7 @@ class AdminServiceTest {
 
         CreateProductRequest request = new CreateProductRequest();
         request.setName("Updated");
-        request.setCategory(ProductCategory.COFFEE);
+        request.setCategoryCode("COFFEE");
         request.setBasePrice(BigDecimal.valueOf(500));
 
         assertThatThrownBy(() -> adminService.updateProduct(99L, request))
@@ -235,9 +253,10 @@ class AdminServiceTest {
     void createTopping_validRequest_returnsDto() {
         CreateToppingRequest request = new CreateToppingRequest();
         request.setName("Soy Milk");
-        request.setType(ToppingType.MILK);
+        request.setTypeCode("MILK");
         request.setPrice(BigDecimal.valueOf(80));
 
+        when(refToppingTypeRepository.findByCode("MILK")).thenReturn(Optional.of(milkType));
         when(toppingRepository.save(any(Topping.class))).thenAnswer(inv -> {
             Topping t = inv.getArgument(0);
             return Topping.builder().id(2L).name(t.getName()).type(t.getType())
@@ -253,10 +272,11 @@ class AdminServiceTest {
     void updateTopping_validRequest_returnsDto() {
         CreateToppingRequest request = new CreateToppingRequest();
         request.setName("Almond Milk");
-        request.setType(ToppingType.MILK);
+        request.setTypeCode("MILK");
         request.setPrice(BigDecimal.valueOf(120));
 
         when(toppingRepository.findById(1L)).thenReturn(Optional.of(topping));
+        when(refToppingTypeRepository.findByCode("MILK")).thenReturn(Optional.of(milkType));
         when(toppingRepository.save(any(Topping.class))).thenAnswer(inv -> inv.getArgument(0));
 
         ToppingDto result = adminService.updateTopping(1L, request);

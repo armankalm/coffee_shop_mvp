@@ -29,12 +29,16 @@ class OrderPrintListenerTest {
     private OrderPrintListener listener;
 
     private Order buildOrder() {
-        User user = User.builder().id(1L).email("test@test.com").role(Role.USER).build();
+        RefUserRole userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
+        RefShopStatus openStatus = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
+        RefOrderStatus newStatus = RefOrderStatus.builder().id(1L).code("NEW").nameRu("Новый").nameEn("New").build();
+
+        User user = User.builder().id(1L).email("test@test.com").role(userRole).build();
         CoffeeShop shop = CoffeeShop.builder().id(1L).name("Shop").city("City")
-                .address("Addr").status(ShopStatus.OPEN).build();
+                .address("Addr").status(openStatus).build();
         Order order = Order.builder()
                 .id(1L).user(user).shop(shop)
-                .status(OrderStatus.NEW).total(BigDecimal.valueOf(500)).items(List.of())
+                .status(newStatus).total(BigDecimal.valueOf(500)).items(List.of())
                 .build();
         order.setCreatedAt(Instant.now());
         return order;

@@ -44,10 +44,34 @@ class AdminControllerTest {
     @MockBean
     private AdminService adminService;
 
-    private OrderDto buildOrderDto(Long id, OrderStatus status) {
-        User user = User.builder().id(1L).email("user@test.com").role(Role.USER).build();
+    private RefUserRole userRole() {
+        return RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
+    }
+
+    private RefShopStatus openStatus() {
+        return RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
+    }
+
+    private RefOrderStatus newStatus() {
+        return RefOrderStatus.builder().id(1L).code("NEW").nameRu("Новый").nameEn("New").build();
+    }
+
+    private RefOrderStatus inProgressStatus() {
+        return RefOrderStatus.builder().id(2L).code("IN_PROGRESS").nameRu("В работе").nameEn("In Progress").build();
+    }
+
+    private RefProductCategory coffeeCategory() {
+        return RefProductCategory.builder().id(1L).code("COFFEE").nameRu("Кофе").nameEn("Coffee").build();
+    }
+
+    private RefToppingType milkType() {
+        return RefToppingType.builder().id(1L).code("MILK").nameRu("Молоко").nameEn("Milk").build();
+    }
+
+    private OrderDto buildOrderDto(Long id, RefOrderStatus status) {
+        User user = User.builder().id(1L).email("user@test.com").role(userRole()).build();
         CoffeeShop shop = CoffeeShop.builder().id(1L).name("Test Shop").city("Almaty")
-                .address("123 St").status(ShopStatus.OPEN).build();
+                .address("123 St").status(openStatus()).build();
         Order order = Order.builder().id(id).user(user).shop(shop)
                 .status(status).total(BigDecimal.valueOf(500)).build();
         return OrderDto.from(order);
@@ -55,18 +79,18 @@ class AdminControllerTest {
 
     private CoffeeShopDto buildShopDto(Long id, String name) {
         CoffeeShop shop = CoffeeShop.builder().id(id).name(name).city("Almaty")
-                .address("123 St").status(ShopStatus.OPEN).build();
+                .address("123 St").status(openStatus()).build();
         return CoffeeShopDto.from(shop);
     }
 
     private ProductDto buildProductDto(Long id, String name) {
-        Product product = Product.builder().id(id).name(name).category(ProductCategory.COFFEE)
+        Product product = Product.builder().id(id).name(name).category(coffeeCategory())
                 .basePrice(BigDecimal.valueOf(500)).available(true).build();
         return ProductDto.from(product);
     }
 
     private ToppingDto buildToppingDto(Long id, String name) {
-        Topping topping = Topping.builder().id(id).name(name).type(ToppingType.MILK)
+        Topping topping = Topping.builder().id(id).name(name).type(milkType())
                 .price(BigDecimal.valueOf(100)).build();
         return ToppingDto.from(topping);
     }
@@ -76,7 +100,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin@test.com", roles = "ADMIN")
     void getAllOrders_asAdmin_returnsOrders() throws Exception {
-        when(adminService.getAllOrders(null, null)).thenReturn(List.of(buildOrderDto(1L, OrderStatus.NEW)));
+        when(adminService.getAllOrders(null, null)).thenReturn(List.of(buildOrderDto(1L, newStatus())));
 
         mockMvc.perform(get("/api/admin/orders"))
                 .andExpect(status().isOk())
@@ -87,7 +111,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "barista@test.com", roles = "BARISTA")
     void getAllOrders_asBarista_returnsOrders() throws Exception {
-        when(adminService.getAllOrders(null, null)).thenReturn(List.of(buildOrderDto(1L, OrderStatus.NEW)));
+        when(adminService.getAllOrders(null, null)).thenReturn(List.of(buildOrderDto(1L, newStatus())));
 
         mockMvc.perform(get("/api/admin/orders"))
                 .andExpect(status().isOk());
@@ -109,7 +133,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin@test.com", roles = "ADMIN")
     void getAllOrders_withStatusFilter_returnsFilteredOrders() throws Exception {
-        when(adminService.getAllOrders(OrderStatus.NEW, null)).thenReturn(List.of(buildOrderDto(1L, OrderStatus.NEW)));
+        when(adminService.getAllOrders("NEW", null)).thenReturn(List.of(buildOrderDto(1L, newStatus())));
 
         mockMvc.perform(get("/api/admin/orders").param("status", "NEW"))
                 .andExpect(status().isOk())
@@ -119,7 +143,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin@test.com", roles = "ADMIN")
     void getOrderById_existingOrder_returnsOrder() throws Exception {
-        when(adminService.getOrderById(1L)).thenReturn(buildOrderDto(1L, OrderStatus.NEW));
+        when(adminService.getOrderById(1L)).thenReturn(buildOrderDto(1L, newStatus()));
 
         mockMvc.perform(get("/api/admin/orders/1"))
                 .andExpect(status().isOk())
@@ -139,10 +163,10 @@ class AdminControllerTest {
     @WithMockUser(username = "barista@test.com", roles = "BARISTA")
     void updateOrderStatus_asBarista_updatesStatus() throws Exception {
         UpdateOrderStatusRequest request = new UpdateOrderStatusRequest();
-        request.setStatus(OrderStatus.IN_PROGRESS);
+        request.setStatusCode("IN_PROGRESS");
 
-        when(adminService.updateOrderStatus(eq(1L), eq(OrderStatus.IN_PROGRESS)))
-                .thenReturn(buildOrderDto(1L, OrderStatus.IN_PROGRESS));
+        when(adminService.updateOrderStatus(eq(1L), eq("IN_PROGRESS")))
+                .thenReturn(buildOrderDto(1L, inProgressStatus()));
 
         mockMvc.perform(patch("/api/admin/orders/1/status")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -155,7 +179,7 @@ class AdminControllerTest {
     @WithMockUser(username = "user@test.com", roles = "USER")
     void updateOrderStatus_asUser_returns403() throws Exception {
         UpdateOrderStatusRequest request = new UpdateOrderStatusRequest();
-        request.setStatus(OrderStatus.IN_PROGRESS);
+        request.setStatusCode("IN_PROGRESS");
 
         mockMvc.perform(patch("/api/admin/orders/1/status")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -172,7 +196,7 @@ class AdminControllerTest {
         request.setName("New Shop");
         request.setCity("Almaty");
         request.setAddress("123 St");
-        request.setStatus(ShopStatus.OPEN);
+        request.setStatusCode("OPEN");
 
         when(adminService.createShop(any(CreateShopRequest.class))).thenReturn(buildShopDto(2L, "New Shop"));
 
@@ -190,7 +214,7 @@ class AdminControllerTest {
         request.setName("New Shop");
         request.setCity("Almaty");
         request.setAddress("123 St");
-        request.setStatus(ShopStatus.OPEN);
+        request.setStatusCode("OPEN");
 
         mockMvc.perform(post("/api/admin/shops")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -205,7 +229,7 @@ class AdminControllerTest {
         request.setName("Updated Shop");
         request.setCity("Almaty");
         request.setAddress("456 Ave");
-        request.setStatus(ShopStatus.OPEN);
+        request.setStatusCode("OPEN");
 
         when(adminService.updateShop(eq(1L), any(CreateShopRequest.class))).thenReturn(buildShopDto(1L, "Updated Shop"));
 
@@ -232,7 +256,7 @@ class AdminControllerTest {
     void createProduct_asManager_returnsCreatedProduct() throws Exception {
         CreateProductRequest request = new CreateProductRequest();
         request.setName("Espresso");
-        request.setCategory(ProductCategory.COFFEE);
+        request.setCategoryCode("COFFEE");
         request.setBasePrice(BigDecimal.valueOf(300));
         request.setAvailable(true);
 
@@ -250,7 +274,7 @@ class AdminControllerTest {
     void updateProduct_asManager_returnsUpdatedProduct() throws Exception {
         CreateProductRequest request = new CreateProductRequest();
         request.setName("Updated Latte");
-        request.setCategory(ProductCategory.COFFEE);
+        request.setCategoryCode("COFFEE");
         request.setBasePrice(BigDecimal.valueOf(550));
         request.setAvailable(true);
 
@@ -279,7 +303,7 @@ class AdminControllerTest {
     void createTopping_asManager_returnsCreatedTopping() throws Exception {
         CreateToppingRequest request = new CreateToppingRequest();
         request.setName("Oat Milk");
-        request.setType(ToppingType.MILK);
+        request.setTypeCode("MILK");
         request.setPrice(BigDecimal.valueOf(100));
 
         when(adminService.createTopping(any(CreateToppingRequest.class))).thenReturn(buildToppingDto(2L, "Oat Milk"));
@@ -305,7 +329,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "manager@test.com", roles = "MANAGER")
     void getAllUsers_asManager_returnsUsers() throws Exception {
-        User user = User.builder().id(1L).email("user@test.com").role(Role.USER).build();
+        User user = User.builder().id(1L).email("user@test.com").role(userRole()).build();
         when(adminService.getAllUsers()).thenReturn(List.of(UserDto.from(user)));
 
         mockMvc.perform(get("/api/admin/users"))

@@ -25,9 +25,9 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "role_id", nullable = false)
+    private RefUserRole role;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

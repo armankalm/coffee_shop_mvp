@@ -1,6 +1,7 @@
 package com.coffeeshop.app.controller;
 
-import com.coffeeshop.app.domain.ShopStatus;
+import com.coffeeshop.app.domain.CoffeeShop;
+import com.coffeeshop.app.domain.RefShopStatus;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.service.CoffeeShopService;
 import org.junit.jupiter.api.Test;
@@ -33,19 +34,15 @@ class CoffeeShopControllerTest {
     @MockBean
     private CoffeeShopService coffeeShopService;
 
-    private CoffeeShopDto buildDto(Long id, String name, String city) {
-        CoffeeShopDto dto = new CoffeeShopDto();
-        // Use reflection-free approach — rely on the static factory using a real CoffeeShop
-        // We can't call the private constructor directly, so build via a helper
-        return dto;
+    private RefShopStatus openStatus() {
+        return RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
     }
 
     @Test
     @WithMockUser
     void getAll_returnsGroupedByCity() throws Exception {
-        // Create DTO via static factory
-        com.coffeeshop.app.domain.CoffeeShop shop = com.coffeeshop.app.domain.CoffeeShop.builder()
-                .id(1L).name("Test Cafe").city("Almaty").address("Addr").status(ShopStatus.OPEN).build();
+        CoffeeShop shop = CoffeeShop.builder()
+                .id(1L).name("Test Cafe").city("Almaty").address("Addr").status(openStatus()).build();
         CoffeeShopDto dto = CoffeeShopDto.from(shop);
         when(coffeeShopService.getAllGroupedByCity()).thenReturn(Map.of("Almaty", List.of(dto)));
 
@@ -58,8 +55,8 @@ class CoffeeShopControllerTest {
     @Test
     @WithMockUser
     void getById_existingId_returnsShop() throws Exception {
-        com.coffeeshop.app.domain.CoffeeShop shop = com.coffeeshop.app.domain.CoffeeShop.builder()
-                .id(1L).name("Test Cafe").city("Almaty").address("Addr").status(ShopStatus.OPEN).build();
+        CoffeeShop shop = CoffeeShop.builder()
+                .id(1L).name("Test Cafe").city("Almaty").address("Addr").status(openStatus()).build();
         CoffeeShopDto dto = CoffeeShopDto.from(shop);
         when(coffeeShopService.getById(1L)).thenReturn(dto);
 
@@ -82,8 +79,8 @@ class CoffeeShopControllerTest {
     @Test
     @WithMockUser
     void search_returnsMatchingShops() throws Exception {
-        com.coffeeshop.app.domain.CoffeeShop shop = com.coffeeshop.app.domain.CoffeeShop.builder()
-                .id(1L).name("Downtown Cafe").city("Almaty").address("Addr").status(ShopStatus.OPEN).build();
+        CoffeeShop shop = CoffeeShop.builder()
+                .id(1L).name("Downtown Cafe").city("Almaty").address("Addr").status(openStatus()).build();
         when(coffeeShopService.search("downtown")).thenReturn(List.of(CoffeeShopDto.from(shop)));
 
         mockMvc.perform(get("/api/shops/search").param("query", "downtown"))

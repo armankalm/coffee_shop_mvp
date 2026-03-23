@@ -16,7 +16,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -43,19 +42,22 @@ class OrderControllerTest {
     @MockBean
     private OrderService orderService;
 
-    private OrderDto buildOrderDto(Long id, OrderStatus status) {
-        OrderDto dto = new OrderDto() {
-            {
-            }
-        };
-        // Use reflection-free approach with a helper method
-        return buildDto(id, status);
+    private RefUserRole userRole() {
+        return RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
     }
 
-    private OrderDto buildDto(Long id, OrderStatus status) {
-        User user = User.builder().id(1L).email("user@test.com").role(Role.USER).build();
+    private RefShopStatus openStatus() {
+        return RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
+    }
+
+    private RefOrderStatus orderStatus(Long id, String code, String nameEn) {
+        return RefOrderStatus.builder().id(id).code(code).nameRu(nameEn).nameEn(nameEn).build();
+    }
+
+    private OrderDto buildDto(Long id, RefOrderStatus status) {
+        User user = User.builder().id(1L).email("user@test.com").role(userRole()).build();
         CoffeeShop shop = CoffeeShop.builder().id(1L).name("Test Shop").city("Almaty")
-                .address("123 St").status(ShopStatus.OPEN).build();
+                .address("123 St").status(openStatus()).build();
         Order order = Order.builder()
                 .id(id).user(user).shop(shop)
                 .status(status)
@@ -75,7 +77,7 @@ class OrderControllerTest {
         request.setShopId(1L);
         request.setItems(List.of(itemRequest));
 
-        OrderDto orderDto = buildDto(1L, OrderStatus.NEW);
+        OrderDto orderDto = buildDto(1L, orderStatus(1L, "NEW", "New"));
         when(orderService.createOrder(eq("user@test.com"), any(CreateOrderRequest.class)))
                 .thenReturn(orderDto);
 
@@ -102,7 +104,7 @@ class OrderControllerTest {
     @Test
     @WithMockUser(username = "user@test.com")
     void getUserOrders_returnsOrderList() throws Exception {
-        OrderDto dto = buildDto(1L, OrderStatus.NEW);
+        OrderDto dto = buildDto(1L, orderStatus(1L, "NEW", "New"));
         when(orderService.getUserOrders("user@test.com")).thenReturn(List.of(dto));
 
         mockMvc.perform(get("/api/orders"))
@@ -113,7 +115,7 @@ class OrderControllerTest {
     @Test
     @WithMockUser(username = "user@test.com")
     void getOrderById_existingOrder_returnsOrder() throws Exception {
-        OrderDto dto = buildDto(1L, OrderStatus.NEW);
+        OrderDto dto = buildDto(1L, orderStatus(1L, "NEW", "New"));
         when(orderService.getOrderById("user@test.com", 1L)).thenReturn(dto);
 
         mockMvc.perform(get("/api/orders/1"))
@@ -134,7 +136,7 @@ class OrderControllerTest {
     @Test
     @WithMockUser(username = "user@test.com")
     void cancelOrder_validOrder_returnsCancelledOrder() throws Exception {
-        OrderDto dto = buildDto(1L, OrderStatus.CANCELLED);
+        OrderDto dto = buildDto(1L, orderStatus(5L, "CANCELLED", "Cancelled"));
         when(orderService.cancelOrder("user@test.com", 1L)).thenReturn(dto);
 
         mockMvc.perform(post("/api/orders/1/cancel"))

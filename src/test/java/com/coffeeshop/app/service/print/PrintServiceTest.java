@@ -24,13 +24,33 @@ class PrintServiceTest {
         receiptFormatter = new ReceiptFormatter();
     }
 
+    private RefUserRole userRole() {
+        return RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
+    }
+
+    private RefShopStatus openStatus() {
+        return RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
+    }
+
+    private RefOrderStatus newStatus() {
+        return RefOrderStatus.builder().id(1L).code("NEW").nameRu("Новый").nameEn("New").build();
+    }
+
+    private RefProductCategory coffeeCategory() {
+        return RefProductCategory.builder().id(1L).code("COFFEE").nameRu("Кофе").nameEn("Coffee").build();
+    }
+
+    private RefToppingType milkType() {
+        return RefToppingType.builder().id(1L).code("MILK").nameRu("Молоко").nameEn("Milk").build();
+    }
+
     private Order buildOrder() {
-        User user = User.builder().id(1L).email("customer@test.com").role(Role.USER).build();
+        User user = User.builder().id(1L).email("customer@test.com").role(userRole()).build();
         CoffeeShop shop = CoffeeShop.builder().id(1L).name("Central Coffee")
-                .city("Almaty").address("10 Main St").status(ShopStatus.OPEN).build();
-        Product product = Product.builder().id(1L).name("Latte").category(ProductCategory.COFFEE)
+                .city("Almaty").address("10 Main St").status(openStatus()).build();
+        Product product = Product.builder().id(1L).name("Latte").category(coffeeCategory())
                 .basePrice(BigDecimal.valueOf(500)).available(true).build();
-        Topping topping = Topping.builder().id(1L).name("Oat Milk").type(ToppingType.MILK)
+        Topping topping = Topping.builder().id(1L).name("Oat Milk").type(milkType())
                 .price(BigDecimal.valueOf(100)).build();
 
         OrderItem item = OrderItem.builder()
@@ -45,7 +65,7 @@ class PrintServiceTest {
                 .id(42L)
                 .user(user)
                 .shop(shop)
-                .status(OrderStatus.NEW)
+                .status(newStatus())
                 .total(BigDecimal.valueOf(1200))
                 .items(List.of(item))
                 .build();
@@ -119,10 +139,10 @@ class PrintServiceTest {
     void receiptFormatter_noItemOrder_stillFormats() {
         Order order = Order.builder()
                 .id(1L)
-                .user(User.builder().id(1L).email("test@test.com").role(Role.USER).build())
+                .user(User.builder().id(1L).email("test@test.com").role(userRole()).build())
                 .shop(CoffeeShop.builder().id(1L).name("Shop").city("City").address("Addr")
-                        .status(ShopStatus.OPEN).build())
-                .status(OrderStatus.NEW)
+                        .status(openStatus()).build())
+                .status(newStatus())
                 .total(BigDecimal.ZERO)
                 .items(List.of())
                 .build();

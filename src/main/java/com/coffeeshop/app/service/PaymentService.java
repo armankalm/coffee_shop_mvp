@@ -5,6 +5,7 @@ import com.coffeeshop.app.domain.*;
 import com.coffeeshop.app.dto.payment.PaymentTransactionDto;
 import com.coffeeshop.app.repository.OrderRepository;
 import com.coffeeshop.app.repository.PaymentTransactionRepository;
+import com.coffeeshop.app.repository.RefOrderStatusRepository;
 import com.coffeeshop.app.service.payment.PaymentProviderService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -23,14 +24,17 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final PaymentTransactionRepository transactionRepository;
     private final Map<PaymentProvider, PaymentProviderService> providers;
+    private final RefOrderStatusRepository refOrderStatusRepository;
 
     public PaymentService(OrderRepository orderRepository,
                           PaymentTransactionRepository transactionRepository,
-                          List<PaymentProviderService> providerList) {
+                          List<PaymentProviderService> providerList,
+                          RefOrderStatusRepository refOrderStatusRepository) {
         this.orderRepository = orderRepository;
         this.transactionRepository = transactionRepository;
         this.providers = providerList.stream()
                 .collect(Collectors.toMap(PaymentProviderService::getProvider, Function.identity()));
+        this.refOrderStatusRepository = refOrderStatusRepository;
     }
 
     public PaymentTransactionDto initiatePayment(String userEmail, Long orderId, PaymentProvider provider) {
@@ -41,8 +45,9 @@ public class PaymentService {
             throw new AccessDeniedException("Access denied to order: " + orderId);
         }
 
-        if (order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.COMPLETED) {
-            throw new IllegalStateException("Cannot pay for order in status: " + order.getStatus());
+        String orderStatusCode = order.getStatus().getCode();
+        if ("CANCELLED".equals(orderStatusCode) || "COMPLETED".equals(orderStatusCode)) {
+            throw new IllegalStateException("Cannot pay for order in status: " + orderStatusCode);
         }
 
         transactionRepository.findByOrderIdAndStatus(orderId, PaymentStatus.PENDING)
@@ -104,8 +109,10 @@ public class PaymentService {
         boolean success = providerService.isSuccessStatus(providerStatus);
         tx.setStatus(success ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
 
-        if (success && tx.getOrder().getStatus() == OrderStatus.NEW) {
-            tx.getOrder().setStatus(OrderStatus.IN_PROGRESS);
+        if (success && "NEW".equals(tx.getOrder().getStatus().getCode())) {
+            RefOrderStatus inProgressStatus = refOrderStatusRepository.findByCode("IN_PROGRESS")
+                    .orElseThrow(() -> new NoSuchElementException("Order status IN_PROGRESS not found in reference table"));
+            tx.getOrder().setStatus(inProgressStatus);
             orderRepository.save(tx.getOrder());
         }
 

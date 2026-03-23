@@ -1,6 +1,5 @@
 package com.coffeeshop.app.dto.admin;
 
-import com.coffeeshop.app.domain.ProductCategory;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,8 +12,8 @@ public class CreateProductRequest {
     @NotBlank
     private String name;
 
-    @NotNull
-    private ProductCategory category;
+    @NotBlank
+    private String categoryCode;
 
     @NotNull
     @DecimalMin("0.01")
@@ -27,8 +26,8 @@ public class CreateProductRequest {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public ProductCategory getCategory() { return category; }
-    public void setCategory(ProductCategory category) { this.category = category; }
+    public String getCategoryCode() { return categoryCode; }
+    public void setCategoryCode(String categoryCode) { this.categoryCode = categoryCode; }
 
     public BigDecimal getBasePrice() { return basePrice; }
     public void setBasePrice(BigDecimal basePrice) { this.basePrice = basePrice; }

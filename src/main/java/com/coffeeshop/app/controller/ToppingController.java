@@ -1,6 +1,5 @@
 package com.coffeeshop.app.controller;
 
-import com.coffeeshop.app.domain.ToppingType;
 import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.service.ToppingService;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +19,7 @@ public class ToppingController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<ToppingType, List<ToppingDto>>> getAll() {
+    public ResponseEntity<Map<String, List<ToppingDto>>> getAll() {
         return ResponseEntity.ok(toppingService.getAllGroupedByType());
     }
 }

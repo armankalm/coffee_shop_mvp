@@ -11,7 +11,6 @@ import com.coffeeshop.app.service.print.PrintService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,12 +22,13 @@ import java.util.stream.Collectors;
 @Transactional
 public class AdminService {
 
-    private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_TRANSITIONS = Map.of(
-            OrderStatus.NEW,         EnumSet.of(OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED),
-            OrderStatus.IN_PROGRESS, EnumSet.of(OrderStatus.READY, OrderStatus.CANCELLED),
-            OrderStatus.READY,       EnumSet.of(OrderStatus.COMPLETED, OrderStatus.CANCELLED),
-            OrderStatus.COMPLETED,   EnumSet.noneOf(OrderStatus.class),
-            OrderStatus.CANCELLED,   EnumSet.noneOf(OrderStatus.class)
+    // Valid order status transitions (code-based)
+    private static final Map<String, Set<String>> ALLOWED_TRANSITIONS = Map.of(
+            "NEW",         Set.of("IN_PROGRESS", "CANCELLED"),
+            "IN_PROGRESS", Set.of("READY", "CANCELLED"),
+            "READY",       Set.of("COMPLETED", "CANCELLED"),
+            "COMPLETED",   Set.of(),
+            "CANCELLED",   Set.of()
     );
 
     private final OrderRepository orderRepository;
@@ -37,27 +37,41 @@ public class AdminService {
     private final ToppingRepository toppingRepository;
     private final UserRepository userRepository;
     private final PrintService printService;
+    private final RefOrderStatusRepository refOrderStatusRepository;
+    private final RefShopStatusRepository refShopStatusRepository;
+    private final RefProductCategoryRepository refProductCategoryRepository;
+    private final RefToppingTypeRepository refToppingTypeRepository;
 
     public AdminService(OrderRepository orderRepository,
                         CoffeeShopRepository coffeeShopRepository,
                         ProductRepository productRepository,
                         ToppingRepository toppingRepository,
                         UserRepository userRepository,
-                        PrintService printService) {
+                        PrintService printService,
+                        RefOrderStatusRepository refOrderStatusRepository,
+                        RefShopStatusRepository refShopStatusRepository,
+                        RefProductCategoryRepository refProductCategoryRepository,
+                        RefToppingTypeRepository refToppingTypeRepository) {
         this.orderRepository = orderRepository;
         this.coffeeShopRepository = coffeeShopRepository;
         this.productRepository = productRepository;
         this.toppingRepository = toppingRepository;
         this.userRepository = userRepository;
         this.printService = printService;
+        this.refOrderStatusRepository = refOrderStatusRepository;
+        this.refShopStatusRepository = refShopStatusRepository;
+        this.refProductCategoryRepository = refProductCategoryRepository;
+        this.refToppingTypeRepository = refToppingTypeRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<OrderDto> getAllOrders(OrderStatus status, Long shopId) {
+    public List<OrderDto> getAllOrders(String statusCode, Long shopId) {
         List<Order> orders;
-        if (status != null && shopId != null) {
+        if (statusCode != null && shopId != null) {
+            RefOrderStatus status = resolveOrderStatus(statusCode);
             orders = orderRepository.findByStatusAndShopId(status, shopId);
-        } else if (status != null) {
+        } else if (statusCode != null) {
+            RefOrderStatus status = resolveOrderStatus(statusCode);
             orders = orderRepository.findByStatus(status);
         } else if (shopId != null) {
             orders = orderRepository.findByShopId(shopId);
@@ -74,24 +88,27 @@ public class AdminService {
         return OrderDto.from(order);
     }
 
-    public OrderDto updateOrderStatus(Long orderId, OrderStatus newStatus) {
+    public OrderDto updateOrderStatus(Long orderId, String newStatusCode) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
-        Set<OrderStatus> allowed = ALLOWED_TRANSITIONS.get(order.getStatus());
-        if (!allowed.contains(newStatus)) {
+        String currentCode = order.getStatus().getCode();
+        Set<String> allowed = ALLOWED_TRANSITIONS.getOrDefault(currentCode, Set.of());
+        if (!allowed.contains(newStatusCode)) {
             throw new IllegalStateException(
-                    "Cannot transition order from " + order.getStatus() + " to " + newStatus);
+                    "Cannot transition order from " + currentCode + " to " + newStatusCode);
         }
+        RefOrderStatus newStatus = resolveOrderStatus(newStatusCode);
         order.setStatus(newStatus);
         return OrderDto.from(orderRepository.save(order));
     }
 
     public CoffeeShopDto createShop(CreateShopRequest request) {
+        RefShopStatus status = resolveShopStatus(request.getStatusCode());
         CoffeeShop shop = CoffeeShop.builder()
                 .name(request.getName())
                 .city(request.getCity())
                 .address(request.getAddress())
-                .status(request.getStatus())
+                .status(status)
                 .build();
         return CoffeeShopDto.from(coffeeShopRepository.save(shop));
     }
@@ -102,7 +119,7 @@ public class AdminService {
         shop.setName(request.getName());
         shop.setCity(request.getCity());
         shop.setAddress(request.getAddress());
-        shop.setStatus(request.getStatus());
+        shop.setStatus(resolveShopStatus(request.getStatusCode()));
         return CoffeeShopDto.from(coffeeShopRepository.save(shop));
     }
 
@@ -115,9 +132,10 @@ public class AdminService {
 
     public ProductDto createProduct(CreateProductRequest request) {
         Set<Topping> availableToppings = resolveToppings(request.getAvailableToppingIds());
+        RefProductCategory category = resolveProductCategory(request.getCategoryCode());
         Product product = Product.builder()
                 .name(request.getName())
-                .category(request.getCategory())
+                .category(category)
                 .basePrice(request.getBasePrice())
                 .available(request.isAvailable())
                 .availableToppings(availableToppings)
@@ -129,7 +147,7 @@ public class AdminService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException("Product not found: " + productId));
         product.setName(request.getName());
-        product.setCategory(request.getCategory());
+        product.setCategory(resolveProductCategory(request.getCategoryCode()));
         product.setBasePrice(request.getBasePrice());
         product.setAvailable(request.isAvailable());
         product.setAvailableToppings(resolveToppings(request.getAvailableToppingIds()));
@@ -162,9 +180,10 @@ public class AdminService {
                 throw new IllegalArgumentException("One or more incompatible topping IDs not found");
             }
         }
+        RefToppingType type = resolveToppingType(request.getTypeCode());
         Topping topping = Topping.builder()
                 .name(request.getName())
-                .type(request.getType())
+                .type(type)
                 .price(request.getPrice())
                 .incompatibleWith(incompatible)
                 .build();
@@ -175,7 +194,7 @@ public class AdminService {
         Topping topping = toppingRepository.findById(toppingId)
                 .orElseThrow(() -> new NoSuchElementException("Topping not found: " + toppingId));
         topping.setName(request.getName());
-        topping.setType(request.getType());
+        topping.setType(resolveToppingType(request.getTypeCode()));
         topping.setPrice(request.getPrice());
         Set<Topping> incompatible = new HashSet<>();
         if (request.getIncompatibleWithIds() != null && !request.getIncompatibleWithIds().isEmpty()) {
@@ -206,5 +225,25 @@ public class AdminService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
         printService.printReceipt(order);
+    }
+
+    private RefOrderStatus resolveOrderStatus(String code) {
+        return refOrderStatusRepository.findByCode(code)
+                .orElseThrow(() -> new NoSuchElementException("Unknown order status code: " + code));
+    }
+
+    private RefShopStatus resolveShopStatus(String code) {
+        return refShopStatusRepository.findByCode(code)
+                .orElseThrow(() -> new NoSuchElementException("Unknown shop status code: " + code));
+    }
+
+    private RefProductCategory resolveProductCategory(String code) {
+        return refProductCategoryRepository.findByCode(code)
+                .orElseThrow(() -> new NoSuchElementException("Unknown product category code: " + code));
+    }
+
+    private RefToppingType resolveToppingType(String code) {
+        return refToppingTypeRepository.findByCode(code)
+                .orElseThrow(() -> new NoSuchElementException("Unknown topping type code: " + code));
     }
 }

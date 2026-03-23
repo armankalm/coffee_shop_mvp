@@ -1,6 +1,5 @@
 package com.coffeeshop.app.controller;
 
-import com.coffeeshop.app.domain.ProductCategory;
 import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.service.ProductService;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +19,7 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<ProductDto>> getAll(
-            @RequestParam(required = false) ProductCategory category) {
+            @RequestParam(required = false) String category) {
         return ResponseEntity.ok(productService.getAll(category));
     }
 

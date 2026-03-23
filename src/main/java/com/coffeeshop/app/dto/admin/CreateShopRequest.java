@@ -1,8 +1,6 @@
 package com.coffeeshop.app.dto.admin;
 
-import com.coffeeshop.app.domain.ShopStatus;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 public class CreateShopRequest {
 
@@ -15,8 +13,8 @@ public class CreateShopRequest {
     @NotBlank
     private String address;
 
-    @NotNull
-    private ShopStatus status;
+    @NotBlank
+    private String statusCode;
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -27,6 +25,6 @@ public class CreateShopRequest {
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
-    public ShopStatus getStatus() { return status; }
-    public void setStatus(ShopStatus status) { this.status = status; }
+    public String getStatusCode() { return statusCode; }
+    public void setStatusCode(String statusCode) { this.statusCode = statusCode; }
 }

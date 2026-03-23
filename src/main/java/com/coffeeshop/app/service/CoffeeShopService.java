@@ -1,7 +1,6 @@
 package com.coffeeshop.app.service;
 
 import com.coffeeshop.app.domain.CoffeeShop;
-import com.coffeeshop.app.domain.ShopStatus;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.repository.CoffeeShopRepository;
 import org.springframework.stereotype.Service;

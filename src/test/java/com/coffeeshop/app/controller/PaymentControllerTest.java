@@ -1,7 +1,6 @@
 package com.coffeeshop.app.controller;
 
-import com.coffeeshop.app.domain.PaymentProvider;
-import com.coffeeshop.app.domain.PaymentStatus;
+import com.coffeeshop.app.domain.*;
 import com.coffeeshop.app.dto.payment.PaymentRequest;
 import com.coffeeshop.app.dto.payment.PaymentTransactionDto;
 import com.coffeeshop.app.dto.payment.WebhookPayload;
@@ -43,30 +42,22 @@ class PaymentControllerTest {
     @MockBean
     private PaymentService paymentService;
 
-    private PaymentTransactionDto buildTxDto(PaymentProvider provider, PaymentStatus status) {
-        PaymentTransactionDto dto = new PaymentTransactionDto() {
-            {
-            }
-        };
-        // Build via static factory is not possible directly, use a subclass workaround
-        return buildTx(provider, status);
-    }
-
     private PaymentTransactionDto buildTx(PaymentProvider provider, PaymentStatus status) {
-        com.coffeeshop.app.domain.User user = com.coffeeshop.app.domain.User.builder()
-                .id(1L).email("user@test.com").role(com.coffeeshop.app.domain.Role.USER).build();
-        com.coffeeshop.app.domain.CoffeeShop shop = com.coffeeshop.app.domain.CoffeeShop.builder()
-                .id(1L).name("Shop").city("City").address("Addr")
-                .status(com.coffeeshop.app.domain.ShopStatus.OPEN).build();
-        com.coffeeshop.app.domain.Order order = com.coffeeshop.app.domain.Order.builder()
+        RefUserRole userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
+        RefShopStatus openStatus = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
+        RefOrderStatus newStatus = RefOrderStatus.builder().id(1L).code("NEW").nameRu("Новый").nameEn("New").build();
+
+        User user = User.builder().id(1L).email("user@test.com").role(userRole).build();
+        CoffeeShop shop = CoffeeShop.builder()
+                .id(1L).name("Shop").city("City").address("Addr").status(openStatus).build();
+        Order order = Order.builder()
                 .id(1L).user(user).shop(shop)
-                .status(com.coffeeshop.app.domain.OrderStatus.NEW)
+                .status(newStatus)
                 .total(BigDecimal.valueOf(500)).build();
-        com.coffeeshop.app.domain.PaymentTransaction tx = com.coffeeshop.app.domain.PaymentTransaction.builder()
+        PaymentTransaction tx = PaymentTransaction.builder()
                 .id(10L).order(order).provider(provider).status(status)
                 .amount(BigDecimal.valueOf(500)).externalId("EXT-001")
                 .build();
-        // Set timestamps manually since @PrePersist won't fire in unit tests
         tx.setCreatedAt(Instant.now());
         tx.setUpdatedAt(Instant.now());
         return PaymentTransactionDto.from(tx);

@@ -1,6 +1,5 @@
 package com.coffeeshop.app.dto.admin;
 
-import com.coffeeshop.app.domain.ToppingType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,8 +13,8 @@ public class CreateToppingRequest {
     @NotBlank
     private String name;
 
-    @NotNull
-    private ToppingType type;
+    @NotBlank
+    private String typeCode;
 
     @NotNull
     @DecimalMin("0.00")
@@ -26,8 +25,8 @@ public class CreateToppingRequest {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public ToppingType getType() { return type; }
-    public void setType(ToppingType type) { this.type = type; }
+    public String getTypeCode() { return typeCode; }
+    public void setTypeCode(String typeCode) { this.typeCode = typeCode; }
 
     public BigDecimal getPrice() { return price; }
     public void setPrice(BigDecimal price) { this.price = price; }

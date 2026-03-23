@@ -1,13 +1,12 @@
 package com.coffeeshop.app.dto.admin;
 
-import com.coffeeshop.app.domain.OrderStatus;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public class UpdateOrderStatusRequest {
 
-    @NotNull
-    private OrderStatus status;
+    @NotBlank
+    private String statusCode;
 
-    public OrderStatus getStatus() { return status; }
-    public void setStatus(OrderStatus status) { this.status = status; }
+    public String getStatusCode() { return statusCode; }
+    public void setStatusCode(String statusCode) { this.statusCode = statusCode; }
 }

@@ -1,7 +1,6 @@
 package com.coffeeshop.app.dto.order;
 
 import com.coffeeshop.app.domain.Order;
-import com.coffeeshop.app.domain.OrderStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -14,7 +13,8 @@ public class OrderDto {
     private Long userId;
     private Long shopId;
     private String shopName;
-    private OrderStatus status;
+    private String status;
+    private String statusNameRu;
     private BigDecimal total;
     private Instant createdAt;
     private List<OrderItemDto> items;
@@ -25,7 +25,8 @@ public class OrderDto {
         dto.userId = order.getUser().getId();
         dto.shopId = order.getShop().getId();
         dto.shopName = order.getShop().getName();
-        dto.status = order.getStatus();
+        dto.status = order.getStatus().getCode();
+        dto.statusNameRu = order.getStatus().getNameRu();
         dto.total = order.getTotal();
         dto.createdAt = order.getCreatedAt();
         dto.items = order.getItems().stream()
@@ -38,7 +39,8 @@ public class OrderDto {
     public Long getUserId() { return userId; }
     public Long getShopId() { return shopId; }
     public String getShopName() { return shopName; }
-    public OrderStatus getStatus() { return status; }
+    public String getStatus() { return status; }
+    public String getStatusNameRu() { return statusNameRu; }
     public BigDecimal getTotal() { return total; }
     public Instant getCreatedAt() { return createdAt; }
     public List<OrderItemDto> getItems() { return items; }

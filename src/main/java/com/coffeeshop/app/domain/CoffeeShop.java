@@ -25,7 +25,7 @@ public class CoffeeShop {
     @Column(nullable = false)
     private String address;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ShopStatus status;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "status_id", nullable = false)
+    private RefShopStatus status;
 }

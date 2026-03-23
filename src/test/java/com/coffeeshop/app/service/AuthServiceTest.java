@@ -1,15 +1,15 @@
 package com.coffeeshop.app.service;
 
-import com.coffeeshop.app.domain.Role;
+import com.coffeeshop.app.domain.RefUserRole;
 import com.coffeeshop.app.domain.User;
 import com.coffeeshop.app.dto.auth.AuthResponse;
+import com.coffeeshop.app.repository.RefUserRoleRepository;
 import com.coffeeshop.app.repository.UserRepository;
 import com.coffeeshop.app.security.JwtProperties;
 import com.coffeeshop.app.security.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -30,9 +30,14 @@ class AuthServiceTest {
     @Mock
     private OtpService otpService;
 
+    @Mock
+    private RefUserRoleRepository refUserRoleRepository;
+
     private JwtTokenProvider tokenProvider;
 
     private AuthService authService;
+
+    private RefUserRole userRole;
 
     @BeforeEach
     void setUp() {
@@ -41,12 +46,15 @@ class AuthServiceTest {
         props.setAccessTokenExpiration(900000L);
         props.setRefreshTokenExpiration(604800000L);
         tokenProvider = new JwtTokenProvider(props);
-        authService = new AuthService(userRepository, otpService, tokenProvider);
+        authService = new AuthService(userRepository, otpService, tokenProvider, refUserRoleRepository);
+
+        userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
     }
 
     @Test
     void requestCode_newUser_registersAndSendsOtp() {
         when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+        when(refUserRoleRepository.findByCode("USER")).thenReturn(Optional.of(userRole));
         when(userRepository.saveAndFlush(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
         doNothing().when(otpService).generateAndSend("new@example.com");
 
@@ -69,7 +77,7 @@ class AuthServiceTest {
 
     @Test
     void verifyCode_validCode_returnsTokens() {
-        User user = User.builder().email("user@example.com").role(Role.USER).build();
+        User user = User.builder().email("user@example.com").role(userRole).build();
         when(otpService.verifyCode("user@example.com", "123456")).thenReturn(true);
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
 
@@ -92,7 +100,7 @@ class AuthServiceTest {
 
     @Test
     void refresh_validToken_returnsNewTokens() {
-        User user = User.builder().email("user@example.com").role(Role.USER).build();
+        User user = User.builder().email("user@example.com").role(userRole).build();
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         String refreshToken = tokenProvider.generateRefreshToken("user@example.com", "USER");
 

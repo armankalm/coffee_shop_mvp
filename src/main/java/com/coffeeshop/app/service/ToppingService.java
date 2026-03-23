@@ -1,7 +1,6 @@
 package com.coffeeshop.app.service;
 
 import com.coffeeshop.app.domain.Topping;
-import com.coffeeshop.app.domain.ToppingType;
 import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.repository.ToppingRepository;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,7 @@ public class ToppingService {
         this.toppingRepository = toppingRepository;
     }
 
-    public Map<ToppingType, List<ToppingDto>> getAllGroupedByType() {
+    public Map<String, List<ToppingDto>> getAllGroupedByType() {
         return toppingRepository.findAll().stream()
                 .map(ToppingDto::from)
                 .collect(Collectors.groupingBy(ToppingDto::getType));

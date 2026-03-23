@@ -40,8 +40,11 @@ class SavedCombinationServiceTest {
 
     @BeforeEach
     void setUp() {
-        user = User.builder().id(1L).email("test@example.com").role(Role.USER).build();
-        product = Product.builder().id(1L).name("Latte").category(ProductCategory.COFFEE)
+        RefUserRole userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
+        RefProductCategory coffeeCategory = RefProductCategory.builder().id(1L).code("COFFEE").nameRu("Кофе").nameEn("Coffee").build();
+
+        user = User.builder().id(1L).email("test@example.com").role(userRole).build();
+        product = Product.builder().id(1L).name("Latte").category(coffeeCategory)
                 .basePrice(BigDecimal.valueOf(500)).available(true).build();
         combination = SavedCombination.builder()
                 .id(1L).user(user).product(product).name("My Latte").build();
@@ -101,7 +104,8 @@ class SavedCombinationServiceTest {
 
     @Test
     void delete_otherUsersCombination_throwsAccessDenied() {
-        User otherUser = User.builder().id(2L).email("other@example.com").role(Role.USER).build();
+        RefUserRole userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
+        User otherUser = User.builder().id(2L).email("other@example.com").role(userRole).build();
         when(savedCombinationRepository.findById(1L)).thenReturn(Optional.of(combination));
         when(userRepository.findByEmail("other@example.com")).thenReturn(Optional.of(otherUser));
 

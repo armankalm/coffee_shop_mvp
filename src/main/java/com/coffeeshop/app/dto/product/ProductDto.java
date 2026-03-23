@@ -1,7 +1,6 @@
 package com.coffeeshop.app.dto.product;
 
 import com.coffeeshop.app.domain.Product;
-import com.coffeeshop.app.domain.ProductCategory;
 
 import java.math.BigDecimal;
 import java.util.Set;
@@ -10,7 +9,8 @@ import java.util.stream.Collectors;
 public class ProductDto {
     private Long id;
     private String name;
-    private ProductCategory category;
+    private String category;
+    private String categoryNameRu;
     private BigDecimal basePrice;
     private boolean available;
     private Set<ToppingDto> availableToppings;
@@ -21,7 +21,8 @@ public class ProductDto {
         ProductDto dto = new ProductDto();
         dto.id = product.getId();
         dto.name = product.getName();
-        dto.category = product.getCategory();
+        dto.category = product.getCategory().getCode();
+        dto.categoryNameRu = product.getCategory().getNameRu();
         dto.basePrice = product.getBasePrice();
         dto.available = product.isAvailable();
         dto.availableToppings = product.getAvailableToppings().stream()
@@ -32,7 +33,8 @@ public class ProductDto {
 
     public Long getId() { return id; }
     public String getName() { return name; }
-    public ProductCategory getCategory() { return category; }
+    public String getCategory() { return category; }
+    public String getCategoryNameRu() { return categoryNameRu; }
     public BigDecimal getBasePrice() { return basePrice; }
     public boolean isAvailable() { return available; }
     public Set<ToppingDto> getAvailableToppings() { return availableToppings; }
