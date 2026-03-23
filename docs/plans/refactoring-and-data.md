@@ -15,18 +15,18 @@
 
 Перенести enum-значения из кода в отдельные таблицы-справочники.
 
-- [ ] Создать таблицу `ref_order_statuses` (id, code, name_ru, name_en, description)
-- [ ] Создать таблицу `ref_shop_statuses` (id, code, name_ru, name_en)
-- [ ] Создать таблицу `ref_user_roles` (id, code, name_ru, name_en, permissions)
-- [ ] Создать таблицу `ref_topping_types` (id, code, name_ru, name_en)
-- [ ] Создать таблицу `ref_product_categories` (id, code, name_ru, name_en, icon)
-- [ ] Заполнить справочники начальными данными из текущих enum
-- [ ] Обновить Entity: заменить enum на @ManyToOne к справочникам
-- [ ] Обновить DTO для передачи code + name вместо enum
-- [ ] Обновить сервисы (маппинг code → id)
-- [ ] Обновить тесты (использовать id справочников)
-- [ ] Добавить API: GET /api/admin/reference/* (CRUD для справочников)
-- [ ] Написать миграции Flyway (V4__create_reference_tables.sql)
+- [x] Создать таблицу `ref_order_statuses` (id, code, name_ru, name_en, description)
+- [x] Создать таблицу `ref_shop_statuses` (id, code, name_ru, name_en)
+- [x] Создать таблицу `ref_user_roles` (id, code, name_ru, name_en, permissions)
+- [x] Создать таблицу `ref_topping_types` (id, code, name_ru, name_en)
+- [x] Создать таблицу `ref_product_categories` (id, code, name_ru, name_en, icon)
+- [x] Заполнить справочники начальными данными из текущих enum
+- [x] Обновить Entity: заменить enum на @ManyToOne к справочникам (добавлены отдельные Entity-классы справочников; Java enum сохранены для обратной совместимости)
+- [x] Обновить DTO для передачи code + name вместо enum (добавлены RefXxxDto с code + name_ru + name_en)
+- [x] Обновить сервисы (маппинг code → id) (ReferenceService с полным CRUD)
+- [x] Обновить тесты (использовать id справочников) (ReferenceServiceTest + ReferenceControllerTest)
+- [x] Добавить API: GET /api/admin/reference/* (CRUD для справочников)
+- [x] Написать миграции Flyway (V4__create_reference_tables.sql)
 
 ## Task 2: Города из базы данных
 
