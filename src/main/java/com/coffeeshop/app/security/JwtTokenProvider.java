@@ -16,14 +16,12 @@ public class JwtTokenProvider {
     private static final Logger log = LoggerFactory.getLogger(JwtTokenProvider.class);
 
     private final JwtProperties jwtProperties;
+    private final SecretKey signingKey;
 
     public JwtTokenProvider(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
-    }
-
-    private SecretKey signingKey() {
         byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generateAccessToken(String email, String role) {
@@ -43,7 +41,7 @@ public class JwtTokenProvider {
                 .claim("type", type)
                 .issuedAt(now)
                 .expiration(expiryDate)
-                .signWith(signingKey())
+                .signWith(signingKey)
                 .compact();
     }
 
@@ -73,7 +71,7 @@ public class JwtTokenProvider {
 
     private Claims parseClaims(String token) {
         return Jwts.parser()
-                .verifyWith(signingKey())
+                .verifyWith(signingKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

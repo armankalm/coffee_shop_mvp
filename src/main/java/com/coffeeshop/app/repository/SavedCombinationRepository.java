@@ -7,9 +7,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SavedCombinationRepository extends JpaRepository<SavedCombination, Long> {
+    @Query("SELECT sc FROM SavedCombination sc JOIN FETCH sc.user WHERE sc.id = :id")
+    Optional<SavedCombination> findByIdWithUser(@Param("id") Long id);
+
     @Query("SELECT DISTINCT sc FROM SavedCombination sc " +
            "JOIN FETCH sc.product p " +
            "JOIN FETCH p.category " +

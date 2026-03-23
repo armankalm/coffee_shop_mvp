@@ -94,7 +94,7 @@ class SavedCombinationServiceTest {
 
     @Test
     void delete_ownCombination_deletesSuccessfully() {
-        when(savedCombinationRepository.findById(1L)).thenReturn(Optional.of(combination));
+        when(savedCombinationRepository.findByIdWithUser(1L)).thenReturn(Optional.of(combination));
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
 
         savedCombinationService.delete("test@example.com", 1L);
@@ -106,7 +106,7 @@ class SavedCombinationServiceTest {
     void delete_otherUsersCombination_throwsAccessDenied() {
         RefUserRole userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
         User otherUser = User.builder().id(2L).email("other@example.com").role(userRole).build();
-        when(savedCombinationRepository.findById(1L)).thenReturn(Optional.of(combination));
+        when(savedCombinationRepository.findByIdWithUser(1L)).thenReturn(Optional.of(combination));
         when(userRepository.findByEmail("other@example.com")).thenReturn(Optional.of(otherUser));
 
         assertThatThrownBy(() -> savedCombinationService.delete("other@example.com", 1L))
@@ -120,7 +120,7 @@ class SavedCombinationServiceTest {
                 .id(1L).user(user).savedCombination(combination).build();
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(savedCombinationRepository.findById(1L)).thenReturn(Optional.of(combination));
+        when(savedCombinationRepository.findByIdWithUser(1L)).thenReturn(Optional.of(combination));
         when(favoriteItemRepository.existsByUserIdAndSavedCombinationId(1L, 1L)).thenReturn(false);
         when(favoriteItemRepository.save(any(FavoriteItem.class))).thenReturn(favorite);
 
@@ -133,7 +133,7 @@ class SavedCombinationServiceTest {
     @Test
     void addFavorite_alreadyFavorite_throwsIllegalArgument() {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(savedCombinationRepository.findById(1L)).thenReturn(Optional.of(combination));
+        when(savedCombinationRepository.findByIdWithUser(1L)).thenReturn(Optional.of(combination));
         when(favoriteItemRepository.existsByUserIdAndSavedCombinationId(1L, 1L)).thenReturn(true);
 
         assertThatThrownBy(() -> savedCombinationService.addFavorite("test@example.com", 1L))

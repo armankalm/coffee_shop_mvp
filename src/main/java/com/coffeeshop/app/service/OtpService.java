@@ -21,6 +21,7 @@ public class OtpService {
 
     private static final Logger log = LoggerFactory.getLogger(OtpService.class);
     private static final int MAX_OTP_ATTEMPTS = 5;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final OtpCodeRepository otpCodeRepository;
     private final JavaMailSender mailSender;
@@ -99,9 +100,8 @@ public class OtpService {
     }
 
     private String generateCode() {
-        SecureRandom random = new SecureRandom();
         int max = (int) Math.pow(10, otpLength);
-        int num = random.nextInt(max);
+        int num = SECURE_RANDOM.nextInt(max);
         return String.format("%0" + otpLength + "d", num);
     }
 

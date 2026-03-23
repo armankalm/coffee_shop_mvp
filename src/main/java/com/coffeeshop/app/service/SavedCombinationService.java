@@ -87,7 +87,7 @@ public class SavedCombinationService {
     }
 
     public void delete(String userEmail, Long combinationId) {
-        SavedCombination combination = savedCombinationRepository.findById(combinationId)
+        SavedCombination combination = savedCombinationRepository.findByIdWithUser(combinationId)
                 .orElseThrow(() -> new NoSuchElementException("Saved combination not found: " + combinationId));
 
         User user = userRepository.findByEmail(userEmail)
@@ -104,7 +104,7 @@ public class SavedCombinationService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
-        SavedCombination combination = savedCombinationRepository.findById(savedCombinationId)
+        SavedCombination combination = savedCombinationRepository.findByIdWithUser(savedCombinationId)
                 .orElseThrow(() -> new NoSuchElementException("Saved combination not found: " + savedCombinationId));
 
         if (!combination.getUser().getId().equals(user.getId())) {
@@ -133,7 +133,7 @@ public class SavedCombinationService {
     }
 
     public void removeFavorite(String userEmail, Long favoriteItemId) {
-        FavoriteItem favorite = favoriteItemRepository.findById(favoriteItemId)
+        FavoriteItem favorite = favoriteItemRepository.findByIdWithUser(favoriteItemId)
                 .orElseThrow(() -> new NoSuchElementException("Favorite not found: " + favoriteItemId));
 
         User user = userRepository.findByEmail(userEmail)

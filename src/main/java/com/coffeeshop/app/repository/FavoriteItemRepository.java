@@ -11,6 +11,8 @@ import java.util.Optional;
 
 @Repository
 public interface FavoriteItemRepository extends JpaRepository<FavoriteItem, Long> {
+    @Query("SELECT fi FROM FavoriteItem fi JOIN FETCH fi.user WHERE fi.id = :id")
+    Optional<FavoriteItem> findByIdWithUser(@Param("id") Long id);
     @Query("SELECT DISTINCT fi FROM FavoriteItem fi " +
            "JOIN FETCH fi.savedCombination sc " +
            "JOIN FETCH sc.product p " +
