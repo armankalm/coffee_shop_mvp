@@ -97,6 +97,7 @@ class OrderServiceTest {
                 .total(BigDecimal.valueOf(1000))
                 .build();
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(savedOrder));
 
         OrderDto result = orderService.createOrder("test@example.com", request);
 
@@ -187,6 +188,7 @@ class OrderServiceTest {
                 .total(BigDecimal.valueOf(1200)) // (500 + 100) * 2
                 .build();
         when(orderRepository.save(orderCaptor.capture())).thenReturn(savedOrder);
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(savedOrder));
 
         OrderDto result = orderService.createOrder("test@example.com", request);
 

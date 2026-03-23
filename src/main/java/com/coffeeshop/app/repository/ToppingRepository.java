@@ -3,6 +3,7 @@ package com.coffeeshop.app.repository;
 import com.coffeeshop.app.domain.RefToppingType;
 import com.coffeeshop.app.domain.Topping;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -34,4 +35,8 @@ public interface ToppingRepository extends JpaRepository<Topping, Long> {
            "JOIN FETCH t.type " +
            "WHERE t.id IN :ids")
     List<Topping> findAllByIdWithIncompatibilities(@Param("ids") Collection<Long> ids);
+
+    @Modifying
+    @Query(value = "DELETE FROM topping_incompatibilities", nativeQuery = true)
+    void deleteAllIncompatibilities();
 }

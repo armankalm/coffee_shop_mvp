@@ -99,6 +99,7 @@ public class DemoDataService {
         userRepository.deleteAll();
         coffeeShopRepository.deleteAll();
         productRepository.deleteAll();
+        toppingRepository.deleteAllIncompatibilities();
         toppingRepository.deleteAll();
         cityRepository.deleteAll();
     }
@@ -142,9 +143,9 @@ public class DemoDataService {
         // Актобе - 2 shops
         shops.add(coffeeShopRepository.save(CoffeeShop.builder().name("Brew & Co Актобе Центр").city(cities.get(3)).address("пр. Абилкайыр Хана, 15").status(open).build()));
         shops.add(coffeeShopRepository.save(CoffeeShop.builder().name("Brew & Co Актобе Сити").city(cities.get(3)).address("ул. Маресьева, 22").status(open).build()));
-        // Карагнада - 2 shops
-        shops.add(coffeeShopRepository.save(CoffeeShop.builder().name("Brew & Co Карагнада Центр").city(cities.get(4)).address("пр. Бухар-Жырау, 50").status(open).build()));
-        shops.add(coffeeShopRepository.save(CoffeeShop.builder().name("Brew & Co Карагнада Михайловка").city(cities.get(4)).address("ул. Ерубаева, 3").status(open).build()));
+        // Карагнда - 2 shops
+        shops.add(coffeeShopRepository.save(CoffeeShop.builder().name("Brew & Co Карагнда Центр").city(cities.get(4)).address("пр. Бухар-Жырау, 50").status(open).build()));
+        shops.add(coffeeShopRepository.save(CoffeeShop.builder().name("Brew & Co Карагнда Михайловка").city(cities.get(4)).address("ул. Ерубаева, 3").status(open).build()));
         return shops;
     }
 

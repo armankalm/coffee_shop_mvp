@@ -121,7 +121,9 @@ public class OrderService {
         order.setTotal(total);
         Order saved = orderRepository.save(order);
         eventPublisher.publishEvent(new NewOrderEvent(this, saved.getId()));
-        return OrderDto.from(saved);
+        Order withDetails = orderRepository.findByIdWithDetails(saved.getId())
+                .orElseThrow(() -> new NoSuchElementException("Order not found after save: " + saved.getId()));
+        return OrderDto.from(withDetails);
     }
 
     @Transactional(readOnly = true)
