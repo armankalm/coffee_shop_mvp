@@ -16,7 +16,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.items i " +
-           "LEFT JOIN FETCH i.toppings " +
+           "LEFT JOIN FETCH i.toppings t " +
+           "LEFT JOIN FETCH t.type " +
+           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH o.user u " +
            "JOIN FETCH u.role " +
            "JOIN FETCH o.shop s " +
@@ -28,7 +30,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.items i " +
-           "LEFT JOIN FETCH i.toppings " +
+           "LEFT JOIN FETCH i.toppings t " +
+           "LEFT JOIN FETCH t.type " +
+           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH o.user u " +
            "JOIN FETCH u.role " +
            "JOIN FETCH o.shop s " +
@@ -40,7 +44,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.items i " +
-           "LEFT JOIN FETCH i.toppings " +
+           "LEFT JOIN FETCH i.toppings t " +
+           "LEFT JOIN FETCH t.type " +
+           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH o.user u " +
            "JOIN FETCH u.role " +
            "JOIN FETCH o.shop s " +
@@ -52,7 +58,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.items i " +
-           "LEFT JOIN FETCH i.toppings " +
+           "LEFT JOIN FETCH i.toppings t " +
+           "LEFT JOIN FETCH t.type " +
+           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH o.user u " +
            "JOIN FETCH u.role " +
            "JOIN FETCH o.shop s " +
@@ -63,7 +71,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.items i " +
-           "LEFT JOIN FETCH i.toppings " +
+           "LEFT JOIN FETCH i.toppings t " +
+           "LEFT JOIN FETCH t.type " +
+           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH o.user u " +
            "JOIN FETCH u.role " +
            "JOIN FETCH o.shop s " +
@@ -75,7 +85,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.items i " +
-           "LEFT JOIN FETCH i.toppings " +
+           "LEFT JOIN FETCH i.toppings t " +
+           "LEFT JOIN FETCH t.type " +
+           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH o.user u " +
            "JOIN FETCH u.role " +
            "JOIN FETCH o.shop s " +

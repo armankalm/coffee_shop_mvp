@@ -300,7 +300,7 @@ class AdminServiceTest {
 
     @Test
     void getAllUsers_returnsAllUsers() {
-        when(userRepository.findAll()).thenReturn(List.of(user));
+        when(userRepository.findAllWithRole()).thenReturn(List.of(user));
 
         List<UserDto> result = adminService.getAllUsers();
 

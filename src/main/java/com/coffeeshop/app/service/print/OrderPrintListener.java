@@ -39,7 +39,7 @@ public class OrderPrintListener {
         Long orderId = event.getOrderId();
         log.info("Auto-printing receipt for new order #{}", orderId);
         try {
-            Order order = orderRepository.findById(orderId)
+            Order order = orderRepository.findByIdWithDetails(orderId)
                     .orElseThrow(() -> new IllegalStateException("Order not found for printing: " + orderId));
             printService.printReceipt(order);
         } catch (PrintException e) {

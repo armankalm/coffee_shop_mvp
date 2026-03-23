@@ -221,7 +221,7 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream()
+        return userRepository.findAllWithRole().stream()
                 .map(UserDto::from)
                 .collect(Collectors.toList());
     }

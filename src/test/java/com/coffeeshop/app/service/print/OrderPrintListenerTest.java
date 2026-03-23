@@ -50,7 +50,7 @@ class OrderPrintListenerTest {
         ReflectionTestUtils.setField(listener, "autoPrintEnabled", true);
         Order order = buildOrder();
         NewOrderEvent event = new NewOrderEvent(this, order.getId());
-        when(orderRepository.findById(order.getId())).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdWithDetails(order.getId())).thenReturn(Optional.of(order));
 
         listener.onNewOrder(event);
 
@@ -73,7 +73,7 @@ class OrderPrintListenerTest {
         ReflectionTestUtils.setField(listener, "autoPrintEnabled", true);
         Order order = buildOrder();
         NewOrderEvent event = new NewOrderEvent(this, order.getId());
-        when(orderRepository.findById(order.getId())).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdWithDetails(order.getId())).thenReturn(Optional.of(order));
         doThrow(new PrintException("Printer offline")).when(printService).printReceipt(order);
 
         // Should not propagate exception

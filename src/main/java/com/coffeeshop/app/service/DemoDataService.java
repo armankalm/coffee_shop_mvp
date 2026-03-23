@@ -4,6 +4,7 @@ import com.coffeeshop.app.domain.*;
 import com.coffeeshop.app.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +12,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 @Service
+@Profile("demo")
 public class DemoDataService {
 
     private static final Logger log = LoggerFactory.getLogger(DemoDataService.class);
@@ -22,6 +24,7 @@ public class DemoDataService {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final SavedCombinationRepository savedCombinationRepository;
+    private final FavoriteItemRepository favoriteItemRepository;
     private final RefShopStatusRepository refShopStatusRepository;
     private final RefOrderStatusRepository refOrderStatusRepository;
     private final RefProductCategoryRepository refProductCategoryRepository;
@@ -35,6 +38,7 @@ public class DemoDataService {
                            UserRepository userRepository,
                            OrderRepository orderRepository,
                            SavedCombinationRepository savedCombinationRepository,
+                           FavoriteItemRepository favoriteItemRepository,
                            RefShopStatusRepository refShopStatusRepository,
                            RefOrderStatusRepository refOrderStatusRepository,
                            RefProductCategoryRepository refProductCategoryRepository,
@@ -47,6 +51,7 @@ public class DemoDataService {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.savedCombinationRepository = savedCombinationRepository;
+        this.favoriteItemRepository = favoriteItemRepository;
         this.refShopStatusRepository = refShopStatusRepository;
         this.refOrderStatusRepository = refOrderStatusRepository;
         this.refProductCategoryRepository = refProductCategoryRepository;
@@ -84,6 +89,7 @@ public class DemoDataService {
     }
 
     private void clearAll() {
+        favoriteItemRepository.deleteAll();
         savedCombinationRepository.deleteAll();
         orderRepository.deleteAll();
         userRepository.deleteAll();

@@ -29,6 +29,7 @@ class DemoDataServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private OrderRepository orderRepository;
     @Mock private SavedCombinationRepository savedCombinationRepository;
+    @Mock private FavoriteItemRepository favoriteItemRepository;
     @Mock private RefShopStatusRepository refShopStatusRepository;
     @Mock private RefOrderStatusRepository refOrderStatusRepository;
     @Mock private RefProductCategoryRepository refProductCategoryRepository;
