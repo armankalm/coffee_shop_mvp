@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: coffee-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-coffeeshop}
+      POSTGRES_USER: ${DB_USERNAME:-coffeeshop}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - coffee-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-coffeeshop}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    image: coffee-shop-system:latest
+    container_name: coffee-app
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-coffeeshop}
+      DB_USERNAME: ${DB_USERNAME:-coffeeshop}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-900000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+      SERVER_PORT: 8080
+      # Mail (OTP)
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      # Payment
+      KASPI_API_KEY: ${KASPI_API_KEY:-}
+      KASPI_MERCHANT_ID: ${KASPI_MERCHANT_ID:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      # Printer
+      PRINTER_ENABLED: ${PRINTER_ENABLED:-false}
+      PRINTER_HOST: ${PRINTER_HOST:-}
+      PRINTER_PORT: ${PRINTER_PORT:-9100}
+    ports:
+      - "8080:8080"
+    networks:
+      - coffee-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres_data:
+
+networks:
+  coffee-network:
+    driver: bridge
