@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CoffeeShopRepository extends JpaRepository<CoffeeShop, Long> {
@@ -20,4 +21,15 @@ public interface CoffeeShopRepository extends JpaRepository<CoffeeShop, Long> {
            "LOWER(s.city.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(s.address) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<CoffeeShop> searchByNameOrCityOrAddress(@Param("query") String query);
+
+    @Query("SELECT DISTINCT s FROM CoffeeShop s " +
+           "JOIN FETCH s.city " +
+           "JOIN FETCH s.status")
+    List<CoffeeShop> findAllWithDetails();
+
+    @Query("SELECT DISTINCT s FROM CoffeeShop s " +
+           "JOIN FETCH s.city " +
+           "JOIN FETCH s.status " +
+           "WHERE s.id = :id")
+    Optional<CoffeeShop> findByIdWithDetails(@Param("id") Long id);
 }

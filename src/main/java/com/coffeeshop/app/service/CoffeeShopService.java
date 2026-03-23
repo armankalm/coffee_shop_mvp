@@ -22,13 +22,13 @@ public class CoffeeShopService {
     }
 
     public Map<String, List<CoffeeShopDto>> getAllGroupedByCity() {
-        return coffeeShopRepository.findAll().stream()
+        return coffeeShopRepository.findAllWithDetails().stream()
                 .map(CoffeeShopDto::from)
                 .collect(Collectors.groupingBy(dto -> dto.getCity().getName()));
     }
 
     public CoffeeShopDto getById(Long id) {
-        CoffeeShop shop = coffeeShopRepository.findById(id)
+        CoffeeShop shop = coffeeShopRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + id));
         return CoffeeShopDto.from(shop);
     }

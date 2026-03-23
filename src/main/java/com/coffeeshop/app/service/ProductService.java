@@ -30,15 +30,15 @@ public class ProductService {
         if (categoryCode != null) {
             RefProductCategory category = refProductCategoryRepository.findByCode(categoryCode)
                     .orElseThrow(() -> new NoSuchElementException("Unknown category code: " + categoryCode));
-            products = productRepository.findByCategoryAndAvailableTrue(category);
+            products = productRepository.findByCategoryAndAvailableTrueWithToppings(category);
         } else {
-            products = productRepository.findByAvailableTrue();
+            products = productRepository.findAllAvailableWithToppings();
         }
         return products.stream().map(ProductDto::from).collect(Collectors.toList());
     }
 
     public ProductDto getById(Long id) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdWithToppings(id)
                 .orElseThrow(() -> new NoSuchElementException("Product not found: " + id));
         return ProductDto.from(product);
     }

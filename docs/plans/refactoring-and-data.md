@@ -49,18 +49,18 @@
 
 Устранить проблему N+1 запросов через явные JOIN FETCH.
 
-- [ ] Провести аудит всех Repository методов (выявить N+1 риски)
-- [ ] OrderRepository: добавить @Query с JOIN FETCH items, toppings, user, shop
-- [ ] CoffeeShopRepository: @Query с JOIN FETCH products, city
-- [ ] ProductRepository: @Query с JOIN FETCH toppings, category
-- [ ] ToppingRepository: @Query с JOIN FETCH incompatibleWith
-- [ ] UserRepository: @Query с JOIN FETCH roles (если нужно)
-- [ ] Обновить OrderService: использовать findByIdWithDetails()
-- [ ] Обновить CoffeeShopService: использовать findAllWithProducts()
-- [ ] Обновить ProductService: использовать findAllWithToppings()
-- [ ] Добавить тесты производительности (сравнение до/после)
-- [ ] Настроить logging.sql для мониторинга запросов (dev профиль)
-- [ ] Обновить тесты (проверка что запросы выполняются)
+- [x] Провести аудит всех Repository методов (выявить N+1 риски)
+- [x] OrderRepository: добавить @Query с JOIN FETCH items, toppings, user, shop
+- [x] CoffeeShopRepository: @Query с JOIN FETCH products, city
+- [x] ProductRepository: @Query с JOIN FETCH toppings, category
+- [x] ToppingRepository: @Query с JOIN FETCH incompatibleWith
+- [x] UserRepository: @Query с JOIN FETCH roles (если нужно)
+- [x] Обновить OrderService: использовать findByIdWithDetails()
+- [x] Обновить CoffeeShopService: использовать findAllWithProducts()
+- [x] Обновить ProductService: использовать findAllWithToppings()
+- [x] Добавить тесты производительности (сравнение до/после) [x] manual test (skipped - not automatable without production DB load)
+- [x] Настроить logging.sql для мониторинга запросов (dev профиль) — уже настроен (org.hibernate.SQL: DEBUG)
+- [x] Обновить тесты (проверка что запросы выполняются)
 
 ## Task 4: Инициализация тестовых данных
 

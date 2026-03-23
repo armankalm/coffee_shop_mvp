@@ -126,20 +126,20 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<OrderDto> getUserOrders(String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
+        User user = userRepository.findByEmailWithRole(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
-        return orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId()).stream()
+        return orderRepository.findByUserIdWithDetailsOrderByCreatedAtDesc(user.getId()).stream()
                 .map(OrderDto::from)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public OrderDto getOrderById(String userEmail, Long orderId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
 
         // Users can only see their own orders; admins/managers/baristas can see all
-        User user = userRepository.findByEmail(userEmail)
+        User user = userRepository.findByEmailWithRole(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
         if ("USER".equals(user.getRole().getCode()) && !order.getUser().getId().equals(user.getId())) {
@@ -150,10 +150,10 @@ public class OrderService {
     }
 
     public OrderDto cancelOrder(String userEmail, Long orderId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
 
-        User user = userRepository.findByEmail(userEmail)
+        User user = userRepository.findByEmailWithRole(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
         if ("USER".equals(user.getRole().getCode()) && !order.getUser().getId().equals(user.getId())) {

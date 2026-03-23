@@ -55,20 +55,20 @@ class ProductServiceTest {
     void getAll_noCategory_returnsAllAvailable() {
         Product p1 = buildProduct(1L, "Latte", coffeeCategory);
         Product p2 = buildProduct(2L, "Green Tea", teaCategory);
-        when(productRepository.findByAvailableTrue()).thenReturn(List.of(p1, p2));
+        when(productRepository.findAllAvailableWithToppings()).thenReturn(List.of(p1, p2));
 
         List<ProductDto> result = productService.getAll(null);
 
         assertThat(result).hasSize(2);
-        verify(productRepository).findByAvailableTrue();
-        verify(productRepository, never()).findByCategoryAndAvailableTrue(any());
+        verify(productRepository).findAllAvailableWithToppings();
+        verify(productRepository, never()).findByCategoryAndAvailableTrueWithToppings(any());
     }
 
     @Test
     void getAll_withCategory_filtersCorrectly() {
         Product p1 = buildProduct(1L, "Latte", coffeeCategory);
         when(refProductCategoryRepository.findByCode("COFFEE")).thenReturn(Optional.of(coffeeCategory));
-        when(productRepository.findByCategoryAndAvailableTrue(coffeeCategory)).thenReturn(List.of(p1));
+        when(productRepository.findByCategoryAndAvailableTrueWithToppings(coffeeCategory)).thenReturn(List.of(p1));
 
         List<ProductDto> result = productService.getAll("COFFEE");
 
@@ -79,7 +79,7 @@ class ProductServiceTest {
     @Test
     void getById_existingId_returnsDto() {
         Product product = buildProduct(1L, "Espresso", coffeeCategory);
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
 
         ProductDto result = productService.getById(1L);
 
@@ -89,7 +89,7 @@ class ProductServiceTest {
 
     @Test
     void getById_missingId_throwsNoSuchElement() {
-        when(productRepository.findById(99L)).thenReturn(Optional.empty());
+        when(productRepository.findByIdWithToppings(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> productService.getById(99L))
                 .isInstanceOf(NoSuchElementException.class)

@@ -49,7 +49,7 @@ class CoffeeShopServiceTest {
         CoffeeShop shop1 = buildShop(1L, "Downtown Cafe", almaty);
         CoffeeShop shop2 = buildShop(2L, "North Cafe", almaty);
         CoffeeShop shop3 = buildShop(3L, "Capital Cafe", astana);
-        when(coffeeShopRepository.findAll()).thenReturn(List.of(shop1, shop2, shop3));
+        when(coffeeShopRepository.findAllWithDetails()).thenReturn(List.of(shop1, shop2, shop3));
 
         Map<String, List<CoffeeShopDto>> result = coffeeShopService.getAllGroupedByCity();
 
@@ -62,7 +62,7 @@ class CoffeeShopServiceTest {
     void getById_existingId_returnsDto() {
         City almaty = buildCity(1L, "Almaty");
         CoffeeShop shop = buildShop(1L, "Test Cafe", almaty);
-        when(coffeeShopRepository.findById(1L)).thenReturn(Optional.of(shop));
+        when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
 
         CoffeeShopDto result = coffeeShopService.getById(1L);
 
@@ -73,7 +73,7 @@ class CoffeeShopServiceTest {
 
     @Test
     void getById_missingId_throwsNoSuchElement() {
-        when(coffeeShopRepository.findById(99L)).thenReturn(Optional.empty());
+        when(coffeeShopRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> coffeeShopService.getById(99L))
                 .isInstanceOf(NoSuchElementException.class)

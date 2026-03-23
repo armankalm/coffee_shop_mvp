@@ -197,10 +197,10 @@ class OrderServiceTest {
 
     @Test
     void getUserOrders_returnsUserOrders() {
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
         Order order = Order.builder().id(1L).user(user).shop(shop)
                 .status(newStatus).total(BigDecimal.valueOf(500)).build();
-        when(orderRepository.findByUserIdOrderByCreatedAtDesc(1L)).thenReturn(List.of(order));
+        when(orderRepository.findByUserIdWithDetailsOrderByCreatedAtDesc(1L)).thenReturn(List.of(order));
 
         List<OrderDto> result = orderService.getUserOrders("test@example.com");
 
@@ -212,8 +212,8 @@ class OrderServiceTest {
         Order order = Order.builder().id(1L).user(user).shop(shop)
                 .status(newStatus).total(BigDecimal.valueOf(500)).build();
 
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
         when(refOrderStatusRepository.findByCode("CANCELLED")).thenReturn(Optional.of(cancelledStatus));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -227,8 +227,8 @@ class OrderServiceTest {
         Order order = Order.builder().id(1L).user(user).shop(shop)
                 .status(completedStatus).total(BigDecimal.valueOf(500)).build();
 
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
 
         assertThatThrownBy(() -> orderService.cancelOrder("test@example.com", 1L))
                 .isInstanceOf(IllegalStateException.class);
@@ -240,8 +240,8 @@ class OrderServiceTest {
         Order order = Order.builder().id(1L).user(otherUser).shop(shop)
                 .status(newStatus).total(BigDecimal.valueOf(500)).build();
 
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
 
         assertThatThrownBy(() -> orderService.getOrderById("test@example.com", 1L))
                 .isInstanceOf(AccessDeniedException.class)
@@ -255,8 +255,8 @@ class OrderServiceTest {
         Order order = Order.builder().id(1L).user(user).shop(shop)
                 .status(newStatus).total(BigDecimal.valueOf(500)).build();
 
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(admin));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByEmailWithRole("admin@example.com")).thenReturn(Optional.of(admin));
 
         OrderDto result = orderService.getOrderById("admin@example.com", 1L);
 

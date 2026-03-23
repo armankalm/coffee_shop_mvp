@@ -79,7 +79,7 @@ class AuthServiceTest {
     void verifyCode_validCode_returnsTokens() {
         User user = User.builder().email("user@example.com").role(userRole).build();
         when(otpService.verifyCode("user@example.com", "123456")).thenReturn(true);
-        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailWithRole("user@example.com")).thenReturn(Optional.of(user));
 
         AuthResponse response = authService.verifyCode("user@example.com", "123456");
 
@@ -101,7 +101,7 @@ class AuthServiceTest {
     @Test
     void refresh_validToken_returnsNewTokens() {
         User user = User.builder().email("user@example.com").role(userRole).build();
-        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailWithRole("user@example.com")).thenReturn(Optional.of(user));
         String refreshToken = tokenProvider.generateRefreshToken("user@example.com", "USER");
 
         AuthResponse response = authService.refresh(refreshToken);

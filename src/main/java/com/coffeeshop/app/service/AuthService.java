@@ -62,7 +62,7 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid or expired OTP code");
         }
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailWithRole(email)
                 .orElseThrow(() -> new IllegalStateException("User not found after OTP verification"));
 
         String role = user.getRole().getCode();
@@ -78,7 +78,7 @@ public class AuthService {
         }
 
         String email = tokenProvider.getEmailFromToken(refreshToken);
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailWithRole(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
 
         String role = user.getRole().getCode();
