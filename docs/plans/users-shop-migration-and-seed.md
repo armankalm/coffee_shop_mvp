@@ -28,10 +28,10 @@
 
 ### Task 4: Обновить DTO и API
 
-- [ ] Добавить поле `coffeeShopId` (nullable Long) в `UserResponse` DTO
-- [ ] Добавить endpoint `PATCH /api/users/me/shop` для смены кофейни пользователем
-- [ ] Добавить `@PreAuthorize("hasRole('USER')")` на новый endpoint
-- [ ] Написать тест контроллера для нового endpoint
+- [x] Добавить поле `coffeeShopId` (nullable Long) в `UserResponse` DTO
+- [x] Добавить endpoint `PATCH /api/users/me/shop` для смены кофейни пользователем
+- [x] Добавить `@PreAuthorize("hasRole('USER')")` на новый endpoint
+- [x] Написать тест контроллера для нового endpoint
 
 ### Task 5: Flyway-миграция — тестовые данные (seed)
 

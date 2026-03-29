@@ -10,6 +10,7 @@ public class UserDto {
     private String email;
     private String role;
     private Instant createdAt;
+    private Long coffeeShopId;
 
     public static UserDto from(User user) {
         UserDto dto = new UserDto();
@@ -17,6 +18,7 @@ public class UserDto {
         dto.email = user.getEmail();
         dto.role = user.getRole().getCode();
         dto.createdAt = user.getCreatedAt();
+        dto.coffeeShopId = user.getCoffeeShop() != null ? user.getCoffeeShop().getId() : null;
         return dto;
     }
 
@@ -24,4 +26,5 @@ public class UserDto {
     public String getEmail() { return email; }
     public String getRole() { return role; }
     public Instant getCreatedAt() { return createdAt; }
+    public Long getCoffeeShopId() { return coffeeShopId; }
 }
