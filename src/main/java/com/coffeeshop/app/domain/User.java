@@ -29,6 +29,10 @@ public class User {
     @JoinColumn(name = "role_id", nullable = false)
     private RefUserRole role;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coffee_shop_id")
+    private CoffeeShop coffeeShop;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

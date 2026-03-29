@@ -17,8 +17,8 @@
 
 ### Task 2: Обновить User.java entity
 
-- [ ] Добавить поле `@ManyToOne CoffeeShop coffeeShop` (nullable, LAZY)
-- [ ] Аннотировать `@JoinColumn(name = "coffee_shop_id")`
+- [x] Добавить поле `@ManyToOne CoffeeShop coffeeShop` (nullable, LAZY)
+- [x] Аннотировать `@JoinColumn(name = "coffee_shop_id")`
 
 ### Task 3: Логика выбора кофейни по умолчанию
 
