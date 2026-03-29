@@ -40,7 +40,7 @@ class UserControllerTest {
     private UserDto buildUserDto(Long shopId) {
         RefUserRole userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
         City city = City.builder().id(1L).name("Almaty").active(true).build();
-        RefShopStatus status = RefShopStatus.builder().id(1L).code("ACTIVE").nameRu("Активна").nameEn("Active").build();
+        RefShopStatus status = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыта").nameEn("Open").build();
         CoffeeShop shop = CoffeeShop.builder().id(shopId).name("Test Shop").city(city).address("123 St").status(status).build();
         User user = User.builder().id(1L).email("user@test.com").role(userRole).coffeeShop(shop).build();
         return UserDto.from(user);

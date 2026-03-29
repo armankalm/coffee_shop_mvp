@@ -47,7 +47,7 @@ class UserServiceTest {
     @Test
     void updateUserShop_validRequest_updatesShopAndReturnsDto() {
         when(userRepository.findByEmailWithRole("user@example.com")).thenReturn(Optional.of(user));
-        when(coffeeShopRepository.findById(10L)).thenReturn(Optional.of(shop));
+        when(coffeeShopRepository.findByIdWithDetails(10L)).thenReturn(Optional.of(shop));
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
         UserDto result = userService.updateUserShop("user@example.com", 10L);
@@ -68,7 +68,7 @@ class UserServiceTest {
     @Test
     void updateUserShop_shopNotFound_throwsNoSuchElement() {
         when(userRepository.findByEmailWithRole("user@example.com")).thenReturn(Optional.of(user));
-        when(coffeeShopRepository.findById(99L)).thenReturn(Optional.empty());
+        when(coffeeShopRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.updateUserShop("user@example.com", 99L))
                 .isInstanceOf(NoSuchElementException.class)

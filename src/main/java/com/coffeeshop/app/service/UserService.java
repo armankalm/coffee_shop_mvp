@@ -25,7 +25,7 @@ public class UserService {
     public UserDto updateUserShop(String email, Long shopId) {
         User user = userRepository.findByEmailWithRole(email)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + email));
-        CoffeeShop shop = coffeeShopRepository.findById(shopId)
+        CoffeeShop shop = coffeeShopRepository.findByIdWithDetails(shopId)
                 .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + shopId));
         user.setCoffeeShop(shop);
         userRepository.save(user);
