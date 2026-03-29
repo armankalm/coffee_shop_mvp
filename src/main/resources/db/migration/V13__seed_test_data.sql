@@ -29,62 +29,42 @@ SELECT 'CoffeeShop Астана',
 WHERE NOT EXISTS (SELECT 1 FROM coffee_shops WHERE name = 'CoffeeShop Астана');
 
 -- Products
-INSERT INTO products (name, category_id, base_price, available) VALUES
-    (
-        'Эспрессо',
-        (SELECT id FROM ref_product_categories WHERE code = 'COFFEE'),
-        800.00,
-        TRUE
-    ),
-    (
-        'Капучино',
-        (SELECT id FROM ref_product_categories WHERE code = 'COFFEE'),
-        1200.00,
-        TRUE
-    ),
-    (
-        'Зелёный чай',
-        (SELECT id FROM ref_product_categories WHERE code = 'TEA'),
-        700.00,
-        TRUE
-    ),
-    (
-        'Лимонад',
-        (SELECT id FROM ref_product_categories WHERE code = 'COLD_DRINKS'),
-        900.00,
-        TRUE
-    ),
-    (
-        'Круассан',
-        (SELECT id FROM ref_product_categories WHERE code = 'FOOD'),
-        650.00,
-        TRUE
-    )
-ON CONFLICT DO NOTHING;
+INSERT INTO products (name, category_id, base_price, available)
+SELECT 'Эспрессо', (SELECT id FROM ref_product_categories WHERE code = 'COFFEE'), 800.00, TRUE
+WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Эспрессо');
+
+INSERT INTO products (name, category_id, base_price, available)
+SELECT 'Капучино', (SELECT id FROM ref_product_categories WHERE code = 'COFFEE'), 1200.00, TRUE
+WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Капучино');
+
+INSERT INTO products (name, category_id, base_price, available)
+SELECT 'Зелёный чай', (SELECT id FROM ref_product_categories WHERE code = 'TEA'), 700.00, TRUE
+WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Зелёный чай');
+
+INSERT INTO products (name, category_id, base_price, available)
+SELECT 'Лимонад', (SELECT id FROM ref_product_categories WHERE code = 'COLD_DRINKS'), 900.00, TRUE
+WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Лимонад');
+
+INSERT INTO products (name, category_id, base_price, available)
+SELECT 'Круассан', (SELECT id FROM ref_product_categories WHERE code = 'FOOD'), 650.00, TRUE
+WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Круассан');
 
 -- Toppings
-INSERT INTO toppings (name, type_id, price) VALUES
-    (
-        'Миндальное молоко',
-        (SELECT id FROM ref_topping_types WHERE code = 'MILK'),
-        200.00
-    ),
-    (
-        'Ванильный сироп',
-        (SELECT id FROM ref_topping_types WHERE code = 'SYRUP'),
-        150.00
-    ),
-    (
-        'Корица',
-        (SELECT id FROM ref_topping_types WHERE code = 'TOPPING'),
-        50.00
-    ),
-    (
-        'Взбитые сливки',
-        (SELECT id FROM ref_topping_types WHERE code = 'EXTRAS'),
-        180.00
-    )
-ON CONFLICT DO NOTHING;
+INSERT INTO toppings (name, type_id, price)
+SELECT 'Миндальное молоко', (SELECT id FROM ref_topping_types WHERE code = 'MILK'), 200.00
+WHERE NOT EXISTS (SELECT 1 FROM toppings WHERE name = 'Миндальное молоко');
+
+INSERT INTO toppings (name, type_id, price)
+SELECT 'Ванильный сироп', (SELECT id FROM ref_topping_types WHERE code = 'SYRUP'), 150.00
+WHERE NOT EXISTS (SELECT 1 FROM toppings WHERE name = 'Ванильный сироп');
+
+INSERT INTO toppings (name, type_id, price)
+SELECT 'Корица', (SELECT id FROM ref_topping_types WHERE code = 'TOPPING'), 50.00
+WHERE NOT EXISTS (SELECT 1 FROM toppings WHERE name = 'Корица');
+
+INSERT INTO toppings (name, type_id, price)
+SELECT 'Взбитые сливки', (SELECT id FROM ref_topping_types WHERE code = 'EXTRAS'), 180.00
+WHERE NOT EXISTS (SELECT 1 FROM toppings WHERE name = 'Взбитые сливки');
 
 -- Users (seed only if email not already taken)
 INSERT INTO users (email, role_id, coffee_shop_id)
@@ -205,7 +185,7 @@ SELECT
        AND o.status_id = (SELECT id FROM ref_order_statuses WHERE code = 'COMPLETED')
      LIMIT 1),
     'KASPI',
-    'COMPLETED',
+    'SUCCESS',
     1600.00,
     'KASPI-SEED-001',
     NOW() - INTERVAL '1 day',
