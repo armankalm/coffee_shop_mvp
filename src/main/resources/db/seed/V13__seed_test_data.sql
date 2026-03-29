@@ -121,7 +121,7 @@ SELECT
     (SELECT id FROM orders o
      WHERE o.user_id = (SELECT id FROM users WHERE email = 'user@example.com')
        AND o.status_id = (SELECT id FROM ref_order_statuses WHERE code = 'NEW')
-     LIMIT 1),
+     ORDER BY id ASC LIMIT 1),
     (SELECT id FROM products WHERE name = 'Капучино'),
     1,
     1200.00
@@ -131,7 +131,7 @@ WHERE NOT EXISTS (
         SELECT id FROM orders o
         WHERE o.user_id = (SELECT id FROM users WHERE email = 'user@example.com')
           AND o.status_id = (SELECT id FROM ref_order_statuses WHERE code = 'NEW')
-        LIMIT 1
+        ORDER BY id ASC LIMIT 1
     )
     AND oi.product_id = (SELECT id FROM products WHERE name = 'Капучино')
 );
@@ -141,7 +141,7 @@ SELECT
     (SELECT id FROM orders o
      WHERE o.user_id = (SELECT id FROM users WHERE email = 'user@example.com')
        AND o.status_id = (SELECT id FROM ref_order_statuses WHERE code = 'NEW')
-     LIMIT 1),
+     ORDER BY id ASC LIMIT 1),
     (SELECT id FROM products WHERE name = 'Круассан'),
     1,
     650.00
@@ -151,7 +151,7 @@ WHERE NOT EXISTS (
         SELECT id FROM orders o
         WHERE o.user_id = (SELECT id FROM users WHERE email = 'user@example.com')
           AND o.status_id = (SELECT id FROM ref_order_statuses WHERE code = 'NEW')
-        LIMIT 1
+        ORDER BY id ASC LIMIT 1
     )
     AND oi.product_id = (SELECT id FROM products WHERE name = 'Круассан')
 );
@@ -162,7 +162,7 @@ SELECT
     (SELECT id FROM orders o
      WHERE o.user_id = (SELECT id FROM users WHERE email = 'user@example.com')
        AND o.status_id = (SELECT id FROM ref_order_statuses WHERE code = 'COMPLETED')
-     LIMIT 1),
+     ORDER BY id ASC LIMIT 1),
     (SELECT id FROM products WHERE name = 'Эспрессо'),
     2,
     1600.00
@@ -172,7 +172,7 @@ WHERE NOT EXISTS (
         SELECT id FROM orders o
         WHERE o.user_id = (SELECT id FROM users WHERE email = 'user@example.com')
           AND o.status_id = (SELECT id FROM ref_order_statuses WHERE code = 'COMPLETED')
-        LIMIT 1
+        ORDER BY id ASC LIMIT 1
     )
     AND oi.product_id = (SELECT id FROM products WHERE name = 'Эспрессо')
 );
@@ -183,7 +183,7 @@ SELECT
     (SELECT id FROM orders o
      WHERE o.user_id = (SELECT id FROM users WHERE email = 'user@example.com')
        AND o.status_id = (SELECT id FROM ref_order_statuses WHERE code = 'COMPLETED')
-     LIMIT 1),
+     ORDER BY id ASC LIMIT 1),
     'KASPI',
     'SUCCESS',
     1600.00,
