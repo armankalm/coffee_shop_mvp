@@ -17,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -57,6 +58,8 @@ class AuthServiceTest {
         props.setRefreshTokenExpiration(604800000L);
         tokenProvider = new JwtTokenProvider(props);
         authService = new AuthService(userRepository, otpService, tokenProvider, refUserRoleRepository, coffeeShopRepository);
+        // In unit tests there is no Spring proxy, so wire self directly to invoke tryRegisterUser without a proxy.
+        ReflectionTestUtils.setField(authService, "self", authService);
 
         userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
     }

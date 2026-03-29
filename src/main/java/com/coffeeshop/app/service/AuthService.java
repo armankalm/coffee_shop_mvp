@@ -10,9 +10,12 @@ import com.coffeeshop.app.repository.UserRepository;
 import com.coffeeshop.app.security.JwtTokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -29,6 +32,11 @@ public class AuthService {
     private final RefUserRoleRepository refUserRoleRepository;
     private final CoffeeShopRepository coffeeShopRepository;
 
+    // Self-reference to allow @Transactional(REQUIRES_NEW) on tryRegisterUser to be applied via the proxy.
+    @Lazy
+    @Autowired
+    private AuthService self;
+
     public AuthService(UserRepository userRepository,
                        OtpService otpService,
                        JwtTokenProvider tokenProvider,
@@ -41,28 +49,37 @@ public class AuthService {
         this.coffeeShopRepository = coffeeShopRepository;
     }
 
-    @Transactional
     public void requestCode(String email) {
-        // Auto-register new users; handle concurrent registration via the unique constraint
+        // Auto-register new users in a separate transaction so that a concurrent-registration
+        // DataIntegrityViolationException does not poison the transaction used by otpService.generateAndSend.
         if (!userRepository.existsByEmail(email)) {
-            try {
-                RefUserRole userRole = refUserRoleRepository.findByCode("USER")
-                        .orElseThrow(() -> new NoSuchElementException("User role USER not found in reference table"));
-                List<CoffeeShop> activeShops = coffeeShopRepository.findFirstByStatusCode("OPEN", PageRequest.of(0, 1));
-                CoffeeShop defaultShop = activeShops.isEmpty() ? null : activeShops.get(0);
-                User user = User.builder()
-                        .email(email)
-                        .role(userRole)
-                        .coffeeShop(defaultShop)
-                        .build();
-                userRepository.saveAndFlush(user);
-                log.info("Auto-registered new user: {}", email);
-            } catch (DataIntegrityViolationException e) {
-                // Another concurrent request already registered this user — that's fine
-                log.debug("Concurrent registration for {}, user already exists", email);
-            }
+            self.tryRegisterUser(email);
         }
         otpService.generateAndSend(email);
+    }
+
+    /**
+     * Runs in its own REQUIRES_NEW transaction so a DataIntegrityViolationException from a
+     * concurrent registration only rolls back this transaction, leaving the caller's context clean.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void tryRegisterUser(String email) {
+        try {
+            RefUserRole userRole = refUserRoleRepository.findByCode("USER")
+                    .orElseThrow(() -> new NoSuchElementException("User role USER not found in reference table"));
+            List<CoffeeShop> activeShops = coffeeShopRepository.findFirstByStatusCode("OPEN", PageRequest.of(0, 1));
+            CoffeeShop defaultShop = activeShops.isEmpty() ? null : activeShops.get(0);
+            User user = User.builder()
+                    .email(email)
+                    .role(userRole)
+                    .coffeeShop(defaultShop)
+                    .build();
+            userRepository.saveAndFlush(user);
+            log.info("Auto-registered new user: {}", email);
+        } catch (DataIntegrityViolationException e) {
+            // Another concurrent request already registered this user — that's fine
+            log.debug("Concurrent registration for {}, user already exists", email);
+        }
     }
 
     @Transactional
