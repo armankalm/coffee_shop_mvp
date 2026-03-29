@@ -83,14 +83,11 @@ class UserControllerTest {
 
     @Test
     @WithMockUser(username = "barista@test.com", roles = "BARISTA")
-    void updateMyShop_baristaRole_returns200() throws Exception {
-        UserDto mockDto = buildUserDto(2L);
-        when(userService.updateUserShop("barista@test.com", 2L)).thenReturn(mockDto);
-
+    void updateMyShop_baristaRole_returns403() throws Exception {
         mockMvc.perform(patch("/api/users/me/shop")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("shopId", 2))))
-                .andExpect(status().isOk());
+                .andExpect(status().isForbidden());
     }
 
     @Test
