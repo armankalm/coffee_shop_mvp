@@ -151,6 +151,18 @@ class AdminServiceTest {
     }
 
     @Test
+    void updateOrderStatus_invalidTransition_throwsIllegalState() {
+        RefOrderStatus completedStatus = RefOrderStatus.builder().id(3L).code("COMPLETED").nameRu("Завершён").nameEn("Completed").build();
+        order.setStatus(completedStatus);
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> adminService.updateOrderStatus(1L, "IN_PROGRESS"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("COMPLETED")
+                .hasMessageContaining("IN_PROGRESS");
+    }
+
+    @Test
     void updateOrderStatus_notFound_throwsNoSuchElement() {
         when(orderRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 

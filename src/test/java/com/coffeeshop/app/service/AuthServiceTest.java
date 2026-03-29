@@ -130,12 +130,12 @@ class AuthServiceTest {
 
     @Test
     void requestCode_newUser_assignsDefaultActiveCoffeeShop() {
-        RefShopStatus activeStatus = RefShopStatus.builder().id(1L).code("ACTIVE").nameRu("Активна").nameEn("Active").build();
-        CoffeeShop shop = CoffeeShop.builder().id(1L).name("Test Shop").address("Test Address").status(activeStatus).build();
+        RefShopStatus openStatus = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
+        CoffeeShop shop = CoffeeShop.builder().id(1L).name("Test Shop").address("Test Address").status(openStatus).build();
 
         when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
         when(refUserRoleRepository.findByCode("USER")).thenReturn(Optional.of(userRole));
-        when(coffeeShopRepository.findFirstByStatusCode(eq("ACTIVE"), any(Pageable.class))).thenReturn(List.of(shop));
+        when(coffeeShopRepository.findFirstByStatusCode(eq("OPEN"), any(Pageable.class))).thenReturn(List.of(shop));
         when(userRepository.saveAndFlush(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
         doNothing().when(otpService).generateAndSend("new@example.com");
 
@@ -150,7 +150,7 @@ class AuthServiceTest {
     void requestCode_newUser_noActiveShop_assignsNullCoffeeShop() {
         when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
         when(refUserRoleRepository.findByCode("USER")).thenReturn(Optional.of(userRole));
-        when(coffeeShopRepository.findFirstByStatusCode(eq("ACTIVE"), any(Pageable.class))).thenReturn(List.of());
+        when(coffeeShopRepository.findFirstByStatusCode(eq("OPEN"), any(Pageable.class))).thenReturn(List.of());
         when(userRepository.saveAndFlush(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
         doNothing().when(otpService).generateAndSend("new@example.com");
 

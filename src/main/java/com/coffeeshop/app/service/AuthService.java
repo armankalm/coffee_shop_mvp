@@ -48,7 +48,7 @@ public class AuthService {
             try {
                 RefUserRole userRole = refUserRoleRepository.findByCode("USER")
                         .orElseThrow(() -> new NoSuchElementException("User role USER not found in reference table"));
-                List<CoffeeShop> activeShops = coffeeShopRepository.findFirstByStatusCode("ACTIVE", PageRequest.of(0, 1));
+                List<CoffeeShop> activeShops = coffeeShopRepository.findFirstByStatusCode("OPEN", PageRequest.of(0, 1));
                 CoffeeShop defaultShop = activeShops.isEmpty() ? null : activeShops.get(0);
                 User user = User.builder()
                         .email(email)

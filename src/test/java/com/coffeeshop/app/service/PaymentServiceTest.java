@@ -133,6 +133,40 @@ class PaymentServiceTest {
     }
 
     @Test
+    void initiatePayment_pendingTransactionExists_throwsIllegalState() {
+        PaymentTransaction pendingTx = PaymentTransaction.builder()
+                .id(5L).order(order).provider(PaymentProvider.KASPI)
+                .status(PaymentStatus.PENDING).amount(BigDecimal.valueOf(500))
+                .externalId("KASPI-pending").build();
+
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
+        when(transactionRepository.findByOrderIdAndStatus(1L, PaymentStatus.PENDING))
+                .thenReturn(Optional.of(pendingTx));
+
+        assertThatThrownBy(() -> paymentService.initiatePayment("user@test.com", 1L, PaymentProvider.KASPI))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("pending payment already exists");
+    }
+
+    @Test
+    void initiatePayment_successTransactionExists_throwsIllegalState() {
+        PaymentTransaction successTx = PaymentTransaction.builder()
+                .id(6L).order(order).provider(PaymentProvider.KASPI)
+                .status(PaymentStatus.SUCCESS).amount(BigDecimal.valueOf(500))
+                .externalId("KASPI-paid").build();
+
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
+        when(transactionRepository.findByOrderIdAndStatus(1L, PaymentStatus.PENDING))
+                .thenReturn(Optional.empty());
+        when(transactionRepository.findByOrderIdAndStatus(1L, PaymentStatus.SUCCESS))
+                .thenReturn(Optional.of(successTx));
+
+        assertThatThrownBy(() -> paymentService.initiatePayment("user@test.com", 1L, PaymentProvider.KASPI))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("already been paid");
+    }
+
+    @Test
     void handleWebhook_kaspiSuccess_setsTransactionSuccessAndOrderInProgress() {
         PaymentTransaction tx = PaymentTransaction.builder()
                 .id(10L).order(order).provider(PaymentProvider.KASPI)

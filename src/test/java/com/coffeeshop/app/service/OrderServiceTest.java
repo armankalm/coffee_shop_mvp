@@ -237,6 +237,33 @@ class OrderServiceTest {
     }
 
     @Test
+    void cancelOrder_userCancelsOtherUsersOrder_throwsAccessDenied() {
+        User otherUser = User.builder().id(2L).email("other@example.com").role(userRole).build();
+        Order order = Order.builder().id(1L).user(otherUser).shop(shop)
+                .status(newStatus).total(BigDecimal.valueOf(500)).build();
+
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> orderService.cancelOrder("test@example.com", 1L))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessageContaining("Access denied");
+    }
+
+    @Test
+    void cancelOrder_userCancelsInProgressOrder_throwsIllegalState() {
+        Order order = Order.builder().id(1L).user(user).shop(shop)
+                .status(inProgressStatus).total(BigDecimal.valueOf(500)).build();
+
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> orderService.cancelOrder("test@example.com", 1L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("already in progress");
+    }
+
+    @Test
     void getOrderById_otherUsersOrder_throwsAccessDenied() {
         User otherUser = User.builder().id(2L).email("other@example.com").role(userRole).build();
         Order order = Order.builder().id(1L).user(otherUser).shop(shop)

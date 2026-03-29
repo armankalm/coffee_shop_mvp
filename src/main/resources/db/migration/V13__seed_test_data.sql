@@ -7,26 +7,26 @@ INSERT INTO cities (name, region, country, active) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- Coffee Shops
-INSERT INTO coffee_shops (name, city_id, address, status_id) VALUES
-    (
-        'CoffeeShop Алматы Центр',
-        (SELECT id FROM cities WHERE name = 'Алматы'),
-        'ул. Абая 12, Алматы',
-        (SELECT id FROM ref_shop_statuses WHERE code = 'OPEN')
-    ),
-    (
-        'CoffeeShop Алматы Медеу',
-        (SELECT id FROM cities WHERE name = 'Алматы'),
-        'пр. Достык 88, Алматы',
-        (SELECT id FROM ref_shop_statuses WHERE code = 'OPEN')
-    ),
-    (
-        'CoffeeShop Астана',
-        (SELECT id FROM cities WHERE name = 'Астана'),
-        'пр. Республики 5, Астана',
-        (SELECT id FROM ref_shop_statuses WHERE code = 'OPEN')
-    )
-ON CONFLICT DO NOTHING;
+INSERT INTO coffee_shops (name, city_id, address, status_id)
+SELECT 'CoffeeShop Алматы Центр',
+       (SELECT id FROM cities WHERE name = 'Алматы'),
+       'ул. Абая 12, Алматы',
+       (SELECT id FROM ref_shop_statuses WHERE code = 'OPEN')
+WHERE NOT EXISTS (SELECT 1 FROM coffee_shops WHERE name = 'CoffeeShop Алматы Центр');
+
+INSERT INTO coffee_shops (name, city_id, address, status_id)
+SELECT 'CoffeeShop Алматы Медеу',
+       (SELECT id FROM cities WHERE name = 'Алматы'),
+       'пр. Достык 88, Алматы',
+       (SELECT id FROM ref_shop_statuses WHERE code = 'OPEN')
+WHERE NOT EXISTS (SELECT 1 FROM coffee_shops WHERE name = 'CoffeeShop Алматы Медеу');
+
+INSERT INTO coffee_shops (name, city_id, address, status_id)
+SELECT 'CoffeeShop Астана',
+       (SELECT id FROM cities WHERE name = 'Астана'),
+       'пр. Республики 5, Астана',
+       (SELECT id FROM ref_shop_statuses WHERE code = 'OPEN')
+WHERE NOT EXISTS (SELECT 1 FROM coffee_shops WHERE name = 'CoffeeShop Астана');
 
 -- Products
 INSERT INTO products (name, category_id, base_price, available) VALUES
@@ -127,7 +127,7 @@ SELECT
     (SELECT id FROM users WHERE email = 'user@example.com'),
     (SELECT id FROM coffee_shops WHERE name = 'CoffeeShop Алматы Медеу'),
     (SELECT id FROM ref_order_statuses WHERE code = 'COMPLETED'),
-    1850.00,
+    1600.00,
     NOW() - INTERVAL '1 day'
 WHERE NOT EXISTS (
     SELECT 1 FROM orders o
@@ -206,7 +206,7 @@ SELECT
      LIMIT 1),
     'KASPI',
     'COMPLETED',
-    1850.00,
+    1600.00,
     'KASPI-SEED-001',
     NOW() - INTERVAL '1 day',
     NOW() - INTERVAL '1 day'
