@@ -83,7 +83,19 @@ class UserControllerTest {
 
     @Test
     @WithMockUser(username = "barista@test.com", roles = "BARISTA")
-    void updateMyShop_wrongRole_returns403() throws Exception {
+    void updateMyShop_baristaRole_returns200() throws Exception {
+        UserDto mockDto = buildUserDto(2L);
+        when(userService.updateUserShop("barista@test.com", 2L)).thenReturn(mockDto);
+
+        mockMvc.perform(patch("/api/users/me/shop")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("shopId", 2))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "admin@test.com", roles = "ADMIN")
+    void updateMyShop_adminRole_returns403() throws Exception {
         mockMvc.perform(patch("/api/users/me/shop")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("shopId", 1))))

@@ -20,7 +20,7 @@ public class UserController {
     }
 
     @PatchMapping("/me/shop")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'BARISTA', 'MANAGER')")
     public ResponseEntity<UserDto> updateMyShop(
             Authentication authentication,
             @RequestBody Map<String, Long> body) {
