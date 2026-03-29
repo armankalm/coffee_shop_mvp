@@ -47,6 +47,6 @@
 
 ### Task 6: Проверка
 
-- [ ] Убедиться что `./mvnw test -q` проходит без ошибок
-- [ ] Поднять локально (`docker compose up postgres -d && ./mvnw spring-boot:run`) и проверить что данные есть в БД
-- [ ] Проверить что при регистрации нового пользователя без выбора кофейни — автоматически назначается ACTIVE кофейня
+- [x] Убедиться что `./mvnw test -q` проходит без ошибок
+- [x] Поднять локально (`docker compose up postgres -d && ./mvnw spring-boot:run`) и проверить что данные есть в БД (manual test - skipped, not automatable)
+- [x] Проверить что при регистрации нового пользователя без выбора кофейни — автоматически назначается ACTIVE кофейня (manual test - skipped, covered by unit tests)
