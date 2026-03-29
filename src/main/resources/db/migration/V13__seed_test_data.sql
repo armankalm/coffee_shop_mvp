@@ -94,7 +94,7 @@ SELECT
     (SELECT id FROM users WHERE email = 'user@example.com'),
     (SELECT id FROM coffee_shops WHERE name = 'CoffeeShop Алматы Центр'),
     (SELECT id FROM ref_order_statuses WHERE code = 'NEW'),
-    2000.00,
+    1850.00,
     NOW()
 WHERE NOT EXISTS (
     SELECT 1 FROM orders o
