@@ -2,6 +2,7 @@ package com.coffeeshop.app.repository;
 
 import com.coffeeshop.app.domain.City;
 import com.coffeeshop.app.domain.CoffeeShop;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,4 +37,11 @@ public interface CoffeeShopRepository extends JpaRepository<CoffeeShop, Long> {
            "JOIN FETCH s.status " +
            "WHERE s.id = :id")
     Optional<CoffeeShop> findByIdWithDetails(@Param("id") Long id);
+
+    @Query("SELECT s FROM CoffeeShop s " +
+           "JOIN FETCH s.city " +
+           "JOIN FETCH s.status " +
+           "WHERE s.status.code = :statusCode " +
+           "ORDER BY s.id ASC")
+    List<CoffeeShop> findFirstByStatusCode(@Param("statusCode") String statusCode, Pageable pageable);
 }

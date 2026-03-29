@@ -22,9 +22,9 @@
 
 ### Task 3: Логика выбора кофейни по умолчанию
 
-- [ ] В `UserService` (или аналоге) при авторизации/регистрации: если `coffeeShop == null` — назначить первую доступную (статус `ACTIVE`) кофейню
-- [ ] Добавить метод в `CoffeeShopRepository`: `findFirstByStatusCode("ACTIVE")` с `@Query` + `JOIN FETCH`
-- [ ] Написать unit-тест для этой логики в `UserServiceTest`
+- [x] В `UserService` (или аналоге) при авторизации/регистрации: если `coffeeShop == null` — назначить первую доступную (статус `ACTIVE`) кофейню
+- [x] Добавить метод в `CoffeeShopRepository`: `findFirstByStatusCode("ACTIVE")` с `@Query` + `JOIN FETCH`
+- [x] Написать unit-тест для этой логики в `UserServiceTest`
 
 ### Task 4: Обновить DTO и API
 

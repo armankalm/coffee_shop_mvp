@@ -20,6 +20,8 @@ spring:
     password: test
 
 app:
+  cors:
+    allowed-origins: http://localhost:3000
   jwt:
     secret: dGVzdC1zZWNyZXQta2V5LWZvci10ZXN0aW5nLW9ubHktbWluaW11bS0yNTYtYml0cy1sb25nLXBhZGRpbmc=
     access-token-expiration: 900000
