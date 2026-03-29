@@ -34,6 +34,8 @@ class ProductControllerTest {
     @MockBean
     private ProductService productService;
 
+    private static final Long SHOP_ID = 1L;
+
     private RefProductCategory coffeeCategory() {
         return RefProductCategory.builder().id(1L).code("COFFEE").nameRu("Кофе").nameEn("Coffee").build();
     }
@@ -51,9 +53,9 @@ class ProductControllerTest {
     @WithMockUser
     void getAll_noFilter_returnsAllProducts() throws Exception {
         ProductDto dto = buildDto(1L, "Latte");
-        when(productService.getAll(null)).thenReturn(List.of(dto));
+        when(productService.getAll(SHOP_ID, null)).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/products"))
+        mockMvc.perform(get("/api/products").param("shopId", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Latte"));
     }
@@ -62,9 +64,9 @@ class ProductControllerTest {
     @WithMockUser
     void getAll_withCategoryFilter_filtersProducts() throws Exception {
         ProductDto dto = buildDto(1L, "Espresso");
-        when(productService.getAll("COFFEE")).thenReturn(List.of(dto));
+        when(productService.getAll(SHOP_ID, "COFFEE")).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/products").param("category", "COFFEE"))
+        mockMvc.perform(get("/api/products").param("shopId", "1").param("category", "COFFEE"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].category").value("COFFEE"));
     }

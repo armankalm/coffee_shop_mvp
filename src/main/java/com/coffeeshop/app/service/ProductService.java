@@ -25,14 +25,14 @@ public class ProductService {
         this.refProductCategoryRepository = refProductCategoryRepository;
     }
 
-    public List<ProductDto> getAll(String categoryCode) {
+    public List<ProductDto> getAll(Long shopId, String categoryCode) {
         List<Product> products;
         if (categoryCode != null) {
             RefProductCategory category = refProductCategoryRepository.findByCode(categoryCode)
                     .orElseThrow(() -> new NoSuchElementException("Unknown category code: " + categoryCode));
-            products = productRepository.findByCategoryAndAvailableTrueWithToppings(category);
+            products = productRepository.findByCategoryAndAvailableTrueWithToppingsByShop(category, shopId);
         } else {
-            products = productRepository.findAllAvailableWithToppings();
+            products = productRepository.findAllAvailableWithToppingsByShop(shopId);
         }
         return products.stream().map(ProductDto::from).collect(Collectors.toList());
     }

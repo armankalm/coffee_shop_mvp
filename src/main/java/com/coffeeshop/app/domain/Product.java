@@ -24,6 +24,10 @@ public class Product {
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "coffee_shop_id", nullable = false)
+    private CoffeeShop coffeeShop;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
     private RefProductCategory category;
 

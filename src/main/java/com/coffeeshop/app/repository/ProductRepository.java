@@ -12,23 +12,21 @@ import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    List<Product> findByCategory(RefProductCategory category);
-    List<Product> findByAvailableTrue();
-    List<Product> findByCategoryAndAvailableTrue(RefProductCategory category);
 
     @Query("SELECT DISTINCT p FROM Product p " +
            "LEFT JOIN FETCH p.availableToppings t " +
            "LEFT JOIN FETCH t.type " +
            "JOIN FETCH p.category " +
-           "WHERE p.available = true")
-    List<Product> findAllAvailableWithToppings();
+           "WHERE p.available = true AND p.coffeeShop.id = :shopId")
+    List<Product> findAllAvailableWithToppingsByShop(@Param("shopId") Long shopId);
 
     @Query("SELECT DISTINCT p FROM Product p " +
            "LEFT JOIN FETCH p.availableToppings t " +
            "LEFT JOIN FETCH t.type " +
            "JOIN FETCH p.category " +
-           "WHERE p.available = true AND p.category = :category")
-    List<Product> findByCategoryAndAvailableTrueWithToppings(@Param("category") RefProductCategory category);
+           "WHERE p.available = true AND p.category = :category AND p.coffeeShop.id = :shopId")
+    List<Product> findByCategoryAndAvailableTrueWithToppingsByShop(@Param("category") RefProductCategory category,
+                                                                   @Param("shopId") Long shopId);
 
     @Query("SELECT DISTINCT p FROM Product p " +
            "LEFT JOIN FETCH p.availableToppings t " +

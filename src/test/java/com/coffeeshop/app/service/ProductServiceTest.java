@@ -37,6 +37,8 @@ class ProductServiceTest {
     private RefProductCategory coffeeCategory;
     private RefProductCategory teaCategory;
 
+    private static final Long SHOP_ID = 1L;
+
     @BeforeEach
     void setUp() {
         coffeeCategory = RefProductCategory.builder().id(1L).code("COFFEE").nameRu("Кофе").nameEn("Coffee").build();
@@ -55,22 +57,22 @@ class ProductServiceTest {
     void getAll_noCategory_returnsAllAvailable() {
         Product p1 = buildProduct(1L, "Latte", coffeeCategory);
         Product p2 = buildProduct(2L, "Green Tea", teaCategory);
-        when(productRepository.findAllAvailableWithToppings()).thenReturn(List.of(p1, p2));
+        when(productRepository.findAllAvailableWithToppingsByShop(SHOP_ID)).thenReturn(List.of(p1, p2));
 
-        List<ProductDto> result = productService.getAll(null);
+        List<ProductDto> result = productService.getAll(SHOP_ID, null);
 
         assertThat(result).hasSize(2);
-        verify(productRepository).findAllAvailableWithToppings();
-        verify(productRepository, never()).findByCategoryAndAvailableTrueWithToppings(any());
+        verify(productRepository).findAllAvailableWithToppingsByShop(SHOP_ID);
+        verify(productRepository, never()).findByCategoryAndAvailableTrueWithToppingsByShop(any(), any());
     }
 
     @Test
     void getAll_withCategory_filtersCorrectly() {
         Product p1 = buildProduct(1L, "Latte", coffeeCategory);
         when(refProductCategoryRepository.findByCode("COFFEE")).thenReturn(Optional.of(coffeeCategory));
-        when(productRepository.findByCategoryAndAvailableTrueWithToppings(coffeeCategory)).thenReturn(List.of(p1));
+        when(productRepository.findByCategoryAndAvailableTrueWithToppingsByShop(coffeeCategory, SHOP_ID)).thenReturn(List.of(p1));
 
-        List<ProductDto> result = productService.getAll("COFFEE");
+        List<ProductDto> result = productService.getAll(SHOP_ID, "COFFEE");
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getCategory()).isEqualTo("COFFEE");
