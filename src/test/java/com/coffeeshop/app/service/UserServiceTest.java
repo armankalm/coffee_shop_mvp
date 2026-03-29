@@ -74,4 +74,16 @@ class UserServiceTest {
                 .isInstanceOf(NoSuchElementException.class)
                 .hasMessageContaining("99");
     }
+
+    @Test
+    void updateUserShop_shopNotOpen_throwsIllegalArgument() {
+        RefShopStatus closedStatus = RefShopStatus.builder().id(2L).code("CLOSED").nameRu("Закрыто").nameEn("Closed").build();
+        CoffeeShop closedShop = CoffeeShop.builder().id(20L).name("Closed Shop").address("Addr").status(closedStatus).build();
+        when(userRepository.findByEmailWithRole("user@example.com")).thenReturn(Optional.of(user));
+        when(coffeeShopRepository.findByIdWithDetails(20L)).thenReturn(Optional.of(closedShop));
+
+        assertThatThrownBy(() -> userService.updateUserShop("user@example.com", 20L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("20");
+    }
 }

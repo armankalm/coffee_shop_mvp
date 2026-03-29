@@ -27,6 +27,9 @@ public class UserService {
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + email));
         CoffeeShop shop = coffeeShopRepository.findByIdWithDetails(shopId)
                 .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + shopId));
+        if (!"OPEN".equals(shop.getStatus().getCode())) {
+            throw new IllegalArgumentException("Coffee shop is not open: " + shopId);
+        }
         user.setCoffeeShop(shop);
         userRepository.save(user);
         return UserDto.from(user);

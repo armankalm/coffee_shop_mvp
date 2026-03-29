@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.coffeeshop.app.dto.user.UpdateShopRequest;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -97,5 +98,23 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("shopId", 1))))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "user@test.com", roles = "USER")
+    void updateMyShop_missingShopId_returns400() throws Exception {
+        mockMvc.perform(patch("/api/users/me/shop")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "user@test.com", roles = "USER")
+    void updateMyShop_negativeShopId_returns400() throws Exception {
+        mockMvc.perform(patch("/api/users/me/shop")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("shopId", -1))))
+                .andExpect(status().isBadRequest());
     }
 }
