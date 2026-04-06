@@ -30,7 +30,7 @@ public class ReferenceController {
 
     @GetMapping("/order-statuses/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public ResponseEntity<RefOrderStatusDto> getOrderStatusById(@PathVariable Long id) {
+    public ResponseEntity<RefOrderStatusDto> getOrderStatusById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(referenceService.getOrderStatusById(id));
     }
 
@@ -43,14 +43,14 @@ public class ReferenceController {
     @PutMapping("/order-statuses/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RefOrderStatusDto> updateOrderStatus(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody RefOrderStatusRequest request) {
         return ResponseEntity.ok(referenceService.updateOrderStatus(id, request));
     }
 
     @DeleteMapping("/order-statuses/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteOrderStatus(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteOrderStatus(@PathVariable("id") Long id) {
         referenceService.deleteOrderStatus(id);
         return ResponseEntity.noContent().build();
     }
@@ -65,7 +65,7 @@ public class ReferenceController {
 
     @GetMapping("/shop-statuses/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public ResponseEntity<RefShopStatusDto> getShopStatusById(@PathVariable Long id) {
+    public ResponseEntity<RefShopStatusDto> getShopStatusById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(referenceService.getShopStatusById(id));
     }
 
@@ -78,14 +78,14 @@ public class ReferenceController {
     @PutMapping("/shop-statuses/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RefShopStatusDto> updateShopStatus(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody RefShopStatusRequest request) {
         return ResponseEntity.ok(referenceService.updateShopStatus(id, request));
     }
 
     @DeleteMapping("/shop-statuses/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteShopStatus(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteShopStatus(@PathVariable("id") Long id) {
         referenceService.deleteShopStatus(id);
         return ResponseEntity.noContent().build();
     }
@@ -100,7 +100,7 @@ public class ReferenceController {
 
     @GetMapping("/user-roles/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public ResponseEntity<RefUserRoleDto> getUserRoleById(@PathVariable Long id) {
+    public ResponseEntity<RefUserRoleDto> getUserRoleById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(referenceService.getUserRoleById(id));
     }
 
@@ -113,14 +113,14 @@ public class ReferenceController {
     @PutMapping("/user-roles/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RefUserRoleDto> updateUserRole(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody RefUserRoleRequest request) {
         return ResponseEntity.ok(referenceService.updateUserRole(id, request));
     }
 
     @DeleteMapping("/user-roles/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteUserRole(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUserRole(@PathVariable("id") Long id) {
         referenceService.deleteUserRole(id);
         return ResponseEntity.noContent().build();
     }
@@ -135,7 +135,7 @@ public class ReferenceController {
 
     @GetMapping("/topping-types/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public ResponseEntity<RefToppingTypeDto> getToppingTypeById(@PathVariable Long id) {
+    public ResponseEntity<RefToppingTypeDto> getToppingTypeById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(referenceService.getToppingTypeById(id));
     }
 
@@ -148,14 +148,14 @@ public class ReferenceController {
     @PutMapping("/topping-types/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RefToppingTypeDto> updateToppingType(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody RefToppingTypeRequest request) {
         return ResponseEntity.ok(referenceService.updateToppingType(id, request));
     }
 
     @DeleteMapping("/topping-types/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteToppingType(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteToppingType(@PathVariable("id") Long id) {
         referenceService.deleteToppingType(id);
         return ResponseEntity.noContent().build();
     }
@@ -170,7 +170,7 @@ public class ReferenceController {
 
     @GetMapping("/product-categories/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public ResponseEntity<RefProductCategoryDto> getProductCategoryById(@PathVariable Long id) {
+    public ResponseEntity<RefProductCategoryDto> getProductCategoryById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(referenceService.getProductCategoryById(id));
     }
 
@@ -183,14 +183,14 @@ public class ReferenceController {
     @PutMapping("/product-categories/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RefProductCategoryDto> updateProductCategory(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody RefProductCategoryRequest request) {
         return ResponseEntity.ok(referenceService.updateProductCategory(id, request));
     }
 
     @DeleteMapping("/product-categories/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteProductCategory(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteProductCategory(@PathVariable("id") Long id) {
         referenceService.deleteProductCategory(id);
         return ResponseEntity.noContent().build();
     }

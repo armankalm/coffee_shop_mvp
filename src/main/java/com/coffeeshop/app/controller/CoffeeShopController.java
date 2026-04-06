@@ -24,12 +24,12 @@ public class CoffeeShopController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CoffeeShopDto> getById(@PathVariable Long id) {
+    public ResponseEntity<CoffeeShopDto> getById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(coffeeShopService.getById(id));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<CoffeeShopDto>> search(@RequestParam String query) {
+    public ResponseEntity<List<CoffeeShopDto>> search(@RequestParam("query") String query) {
         return ResponseEntity.ok(coffeeShopService.search(query));
     }
 }

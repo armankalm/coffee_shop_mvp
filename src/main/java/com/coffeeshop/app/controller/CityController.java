@@ -24,7 +24,7 @@ public class CityController {
     }
 
     @GetMapping("/{id}/shops")
-    public ResponseEntity<List<CoffeeShopDto>> getShopsByCity(@PathVariable Long id) {
+    public ResponseEntity<List<CoffeeShopDto>> getShopsByCity(@PathVariable("id") Long id) {
         return ResponseEntity.ok(cityService.getShopsByCity(id));
     }
 }
