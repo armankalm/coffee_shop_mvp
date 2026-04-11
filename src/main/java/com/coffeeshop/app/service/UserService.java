@@ -30,7 +30,7 @@ public class UserService {
 
     @Transactional
     public UserDto updateUserShop(String email, Long shopId) {
-        User user = userRepository.findByEmailWithRole(email)
+        User user = userRepository.findByEmailWithDetails(email)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + email));
         CoffeeShop shop = coffeeShopRepository.findByIdWithDetails(shopId)
                 .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + shopId));
@@ -39,6 +39,6 @@ public class UserService {
         }
         user.setCoffeeShop(shop);
         userRepository.save(user);
-        return UserDto.from(user);
+        return UserDto.fromWithDetails(user);
     }
 }

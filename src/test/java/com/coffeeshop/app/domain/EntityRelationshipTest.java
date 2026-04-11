@@ -49,6 +49,7 @@ class EntityRelationshipTest {
     private RefToppingType milkType;
     private City almatyCity;
     private City defaultCity;
+    private CoffeeShop defaultShop;
 
     @BeforeEach
     void setUp() {
@@ -64,6 +65,8 @@ class EntityRelationshipTest {
                 RefToppingType.builder().code("MILK").nameRu("Молоко").nameEn("Milk").build());
         almatyCity = cityRepository.save(City.builder().name("Almaty").active(true).build());
         defaultCity = cityRepository.save(City.builder().name("City").active(true).build());
+        defaultShop = coffeeShopRepository.save(CoffeeShop.builder()
+                .name("Default Shop").city(defaultCity).address("Addr").status(openStatus).build());
     }
 
     @Test
@@ -102,6 +105,7 @@ class EntityRelationshipTest {
 
         Product latte = Product.builder()
                 .name("Latte")
+                .coffeeShop(defaultShop)
                 .category(coffeeCategory)
                 .basePrice(new BigDecimal("1200.00"))
                 .available(true)
@@ -120,7 +124,7 @@ class EntityRelationshipTest {
         CoffeeShop shop = coffeeShopRepository.save(CoffeeShop.builder()
                 .name("Shop").city(defaultCity).address("Addr").status(openStatus).build());
         Product product = productRepository.save(Product.builder()
-                .name("Espresso").category(coffeeCategory)
+                .name("Espresso").coffeeShop(shop).category(coffeeCategory)
                 .basePrice(new BigDecimal("800.00")).available(true).build());
 
         OrderItem item = OrderItem.builder()
@@ -149,7 +153,7 @@ class EntityRelationshipTest {
         User user = userRepository.save(User.builder()
                 .email("fav@example.com").role(userRole).build());
         Product product = productRepository.save(Product.builder()
-                .name("Cappuccino").category(coffeeCategory)
+                .name("Cappuccino").coffeeShop(defaultShop).category(coffeeCategory)
                 .basePrice(new BigDecimal("1000.00")).available(true).build());
 
         SavedCombination combo = savedCombinationRepository.save(SavedCombination.builder()

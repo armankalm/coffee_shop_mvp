@@ -20,14 +20,14 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserDto> getCurrentUser(Authentication authentication) {
         UserDto user = userService.getCurrentUser(authentication.getName());
         return ResponseEntity.ok(user);
     }
 
     @PatchMapping("/me/shop")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserDto> updateMyShop(
             Authentication authentication,
             @Valid @RequestBody UpdateShopRequest body) {

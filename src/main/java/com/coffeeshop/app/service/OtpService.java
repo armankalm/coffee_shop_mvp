@@ -52,7 +52,7 @@ public class OtpService {
                 .findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(email, now);
         if (existing.isPresent() && existing.get().getFailedAttempts() < MAX_OTP_ATTEMPTS) {
             log.debug("Active OTP already exists for: {}, ignoring re-request", email);
-            return;
+            throw new IllegalStateException("An OTP was recently sent. Please wait before requesting a new one.");
         }
 
         // Only delete OTPs that are already expired, used, or exhausted

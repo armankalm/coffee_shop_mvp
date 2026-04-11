@@ -9,10 +9,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class FileStorageService {
+
+    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/webp", "image/gif"
+    );
 
     private final Path uploadDir;
 
@@ -20,11 +25,12 @@ public class FileStorageService {
         this.uploadDir = Paths.get(uploadDir).toAbsolutePath().normalize();
     }
 
-    public void init() throws IOException {
-        Files.createDirectories(uploadDir);
-    }
-
     public String store(MultipartFile file) throws IOException {
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+            throw new IllegalArgumentException("Only image files are allowed (JPEG, PNG, WebP, GIF)");
+        }
+
         Files.createDirectories(uploadDir);
 
         String originalFilename = file.getOriginalFilename();

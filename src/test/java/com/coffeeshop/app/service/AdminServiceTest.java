@@ -227,15 +227,17 @@ class AdminServiceTest {
     @Test
     void createProduct_validRequest_returnsDto() {
         CreateProductRequest request = new CreateProductRequest();
+        request.setShopId(1L);
         request.setName("Cappuccino");
         request.setCategoryCode("COFFEE");
         request.setBasePrice(BigDecimal.valueOf(450));
         request.setAvailable(true);
 
+        when(coffeeShopRepository.findById(1L)).thenReturn(Optional.of(shop));
         when(refProductCategoryRepository.findByCode("COFFEE")).thenReturn(Optional.of(coffeeCategory));
         when(productRepository.save(any(Product.class))).thenAnswer(inv -> {
             Product p = inv.getArgument(0);
-            return Product.builder().id(2L).name(p.getName()).category(p.getCategory())
+            return Product.builder().id(2L).name(p.getName()).coffeeShop(p.getCoffeeShop()).category(p.getCategory())
                     .basePrice(p.getBasePrice()).available(p.isAvailable()).build();
         });
 

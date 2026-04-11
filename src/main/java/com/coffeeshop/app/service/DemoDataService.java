@@ -108,7 +108,7 @@ public class DemoDataService {
         List<City> cities = seedCities();
         List<CoffeeShop> shops = seedShops(cities);
         List<Topping> toppings = seedToppings();
-        List<Product> products = seedProducts(toppings);
+        List<Product> products = seedProducts(shops, toppings);
         List<User> users = seedUsers();
         seedOrders(users, shops, products, toppings);
         seedSavedCombinations(users, products, toppings);
@@ -202,7 +202,8 @@ public class DemoDataService {
         return toppings;
     }
 
-    private List<Product> seedProducts(List<Topping> toppings) {
+    private List<Product> seedProducts(List<CoffeeShop> shops, List<Topping> toppings) {
+        CoffeeShop defaultShop = shops.get(0);
         RefProductCategory coffee = refProductCategoryRepository.findByCode("COFFEE")
                 .orElseThrow(() -> new NoSuchElementException("Category COFFEE not found"));
         RefProductCategory tea = refProductCategoryRepository.findByCode("TEA")
@@ -246,64 +247,64 @@ public class DemoDataService {
         List<Product> products = new ArrayList<>();
 
         // Кофе (COFFEE) - 15 items
-        products.add(productRepository.save(Product.builder().name("Эспрессо").category(coffee).basePrice(new BigDecimal("600")).available(true).availableToppings(coffeeBaseToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Двойной эспрессо").category(coffee).basePrice(new BigDecimal("900")).available(true).availableToppings(coffeeBaseToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Американо").category(coffee).basePrice(new BigDecimal("700")).available(true).availableToppings(coffeeBaseToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Капучино").category(coffee).basePrice(new BigDecimal("900")).available(true).availableToppings(coffeeBaseToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Латте").category(coffee).basePrice(new BigDecimal("1000")).available(true).availableToppings(coffeeBaseToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Флэт уайт").category(coffee).basePrice(new BigDecimal("950")).available(true).availableToppings(coffeeBaseToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Макиато").category(coffee).basePrice(new BigDecimal("850")).available(true).availableToppings(coffeeBaseToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Мокко").category(coffee).basePrice(new BigDecimal("1050")).available(true).availableToppings(coffeeBaseToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Раф кофе").category(coffee).basePrice(new BigDecimal("1100")).available(true).availableToppings(coffeeBaseToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Доппио").category(coffee).basePrice(new BigDecimal("800")).available(true).availableToppings(coffeeBaseToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Кортадо").category(coffee).basePrice(new BigDecimal("900")).available(true).availableToppings(coffeeBaseToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Колд брю").category(coffee).basePrice(new BigDecimal("1200")).available(true).availableToppings(coldToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Айс латте").category(coffee).basePrice(new BigDecimal("1100")).available(true).availableToppings(coldToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Айс американо").category(coffee).basePrice(new BigDecimal("800")).available(true).availableToppings(coldToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Дальгона кофе").category(coffee).basePrice(new BigDecimal("1300")).available(true).availableToppings(coffeeBaseToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Эспрессо").category(coffee).basePrice(new BigDecimal("600")).available(true).availableToppings(coffeeBaseToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Двойной эспрессо").category(coffee).basePrice(new BigDecimal("900")).available(true).availableToppings(coffeeBaseToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Американо").category(coffee).basePrice(new BigDecimal("700")).available(true).availableToppings(coffeeBaseToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Капучино").category(coffee).basePrice(new BigDecimal("900")).available(true).availableToppings(coffeeBaseToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Латте").category(coffee).basePrice(new BigDecimal("1000")).available(true).availableToppings(coffeeBaseToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Флэт уайт").category(coffee).basePrice(new BigDecimal("950")).available(true).availableToppings(coffeeBaseToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Макиато").category(coffee).basePrice(new BigDecimal("850")).available(true).availableToppings(coffeeBaseToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Мокко").category(coffee).basePrice(new BigDecimal("1050")).available(true).availableToppings(coffeeBaseToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Раф кофе").category(coffee).basePrice(new BigDecimal("1100")).available(true).availableToppings(coffeeBaseToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Доппио").category(coffee).basePrice(new BigDecimal("800")).available(true).availableToppings(coffeeBaseToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Кортадо").category(coffee).basePrice(new BigDecimal("900")).available(true).availableToppings(coffeeBaseToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Колд брю").category(coffee).basePrice(new BigDecimal("1200")).available(true).availableToppings(coldToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Айс латте").category(coffee).basePrice(new BigDecimal("1100")).available(true).availableToppings(coldToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Айс американо").category(coffee).basePrice(new BigDecimal("800")).available(true).availableToppings(coldToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Дальгона кофе").category(coffee).basePrice(new BigDecimal("1300")).available(true).availableToppings(coffeeBaseToppings).build()));
 
         // Чай (TEA) - 8 items
-        products.add(productRepository.save(Product.builder().name("Чёрный чай").category(tea).basePrice(new BigDecimal("500")).available(true).availableToppings(teaToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Зелёный чай").category(tea).basePrice(new BigDecimal("500")).available(true).availableToppings(teaToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Матча латте").category(tea).basePrice(new BigDecimal("1000")).available(true).availableToppings(teaToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Чай масала").category(tea).basePrice(new BigDecimal("700")).available(true).availableToppings(teaToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Ромашковый чай").category(tea).basePrice(new BigDecimal("450")).available(true).availableToppings(teaToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Мятный чай").category(tea).basePrice(new BigDecimal("450")).available(true).availableToppings(teaToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Фруктовый чай").category(tea).basePrice(new BigDecimal("600")).available(true).availableToppings(teaToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Ройбос").category(tea).basePrice(new BigDecimal("550")).available(true).availableToppings(teaToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Чёрный чай").category(tea).basePrice(new BigDecimal("500")).available(true).availableToppings(teaToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Зелёный чай").category(tea).basePrice(new BigDecimal("500")).available(true).availableToppings(teaToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Матча латте").category(tea).basePrice(new BigDecimal("1000")).available(true).availableToppings(teaToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Чай масала").category(tea).basePrice(new BigDecimal("700")).available(true).availableToppings(teaToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Ромашковый чай").category(tea).basePrice(new BigDecimal("450")).available(true).availableToppings(teaToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Мятный чай").category(tea).basePrice(new BigDecimal("450")).available(true).availableToppings(teaToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Фруктовый чай").category(tea).basePrice(new BigDecimal("600")).available(true).availableToppings(teaToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Ройбос").category(tea).basePrice(new BigDecimal("550")).available(true).availableToppings(teaToppings).build()));
 
         // Холодные напитки (COLD_DRINKS) - 7 items
-        products.add(productRepository.save(Product.builder().name("Лимонад классический").category(coldDrinks).basePrice(new BigDecimal("800")).available(true).availableToppings(lemonadeToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Смузи клубника").category(coldDrinks).basePrice(new BigDecimal("1200")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Смузи манго").category(coldDrinks).basePrice(new BigDecimal("1200")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Молочный коктейль ваниль").category(coldDrinks).basePrice(new BigDecimal("1000")).available(true).availableToppings(coldToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Молочный коктейль шоколад").category(coldDrinks).basePrice(new BigDecimal("1000")).available(true).availableToppings(coldToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Холодный матча").category(coldDrinks).basePrice(new BigDecimal("1100")).available(true).availableToppings(coldToppings).build()));
-        products.add(productRepository.save(Product.builder().name("Апельсиновый фреш").category(coldDrinks).basePrice(new BigDecimal("900")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Лимонад классический").category(coldDrinks).basePrice(new BigDecimal("800")).available(true).availableToppings(lemonadeToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Смузи клубника").category(coldDrinks).basePrice(new BigDecimal("1200")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Смузи манго").category(coldDrinks).basePrice(new BigDecimal("1200")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Молочный коктейль ваниль").category(coldDrinks).basePrice(new BigDecimal("1000")).available(true).availableToppings(coldToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Молочный коктейль шоколад").category(coldDrinks).basePrice(new BigDecimal("1000")).available(true).availableToppings(coldToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Холодный матча").category(coldDrinks).basePrice(new BigDecimal("1100")).available(true).availableToppings(coldToppings).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Апельсиновый фреш").category(coldDrinks).basePrice(new BigDecimal("900")).available(true).availableToppings(new HashSet<>()).build()));
 
         // Еда (FOOD) - 10 items
-        products.add(productRepository.save(Product.builder().name("Круассан классический").category(food).basePrice(new BigDecimal("500")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Круассан с миндалём").category(food).basePrice(new BigDecimal("700")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Сэндвич с лососем").category(food).basePrice(new BigDecimal("1500")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Сэндвич с курицей").category(food).basePrice(new BigDecimal("1300")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Авокадо тост").category(food).basePrice(new BigDecimal("1400")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Багель с сыром").category(food).basePrice(new BigDecimal("800")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Маффин черничный").category(food).basePrice(new BigDecimal("500")).available(false).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Маффин шоколадный").category(food).basePrice(new BigDecimal("550")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Гранола с йогуртом").category(food).basePrice(new BigDecimal("900")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Чиабатта с ветчиной").category(food).basePrice(new BigDecimal("1100")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Круассан классический").category(food).basePrice(new BigDecimal("500")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Круассан с миндалём").category(food).basePrice(new BigDecimal("700")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Сэндвич с лососем").category(food).basePrice(new BigDecimal("1500")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Сэндвич с курицей").category(food).basePrice(new BigDecimal("1300")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Авокадо тост").category(food).basePrice(new BigDecimal("1400")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Багель с сыром").category(food).basePrice(new BigDecimal("800")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Маффин черничный").category(food).basePrice(new BigDecimal("500")).available(false).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Маффин шоколадный").category(food).basePrice(new BigDecimal("550")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Гранола с йогуртом").category(food).basePrice(new BigDecimal("900")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Чиабатта с ветчиной").category(food).basePrice(new BigDecimal("1100")).available(true).availableToppings(new HashSet<>()).build()));
 
         // Десерты (DESSERTS) - 10 items
-        products.add(productRepository.save(Product.builder().name("Чизкейк Нью-Йорк").category(desserts).basePrice(new BigDecimal("800")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Тирамису").category(desserts).basePrice(new BigDecimal("900")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Брауни шоколадный").category(desserts).basePrice(new BigDecimal("600")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Эклер ванильный").category(desserts).basePrice(new BigDecimal("500")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Макарон ассорти").category(desserts).basePrice(new BigDecimal("1200")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Медовик").category(desserts).basePrice(new BigDecimal("700")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Карамельный пудинг").category(desserts).basePrice(new BigDecimal("650")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Панна котта").category(desserts).basePrice(new BigDecimal("750")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Штрудель яблочный").category(desserts).basePrice(new BigDecimal("600")).available(true).availableToppings(new HashSet<>()).build()));
-        products.add(productRepository.save(Product.builder().name("Торт Наполеон").category(desserts).basePrice(new BigDecimal("850")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Чизкейк Нью-Йорк").category(desserts).basePrice(new BigDecimal("800")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Тирамису").category(desserts).basePrice(new BigDecimal("900")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Брауни шоколадный").category(desserts).basePrice(new BigDecimal("600")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Эклер ванильный").category(desserts).basePrice(new BigDecimal("500")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Макарон ассорти").category(desserts).basePrice(new BigDecimal("1200")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Медовик").category(desserts).basePrice(new BigDecimal("700")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Карамельный пудинг").category(desserts).basePrice(new BigDecimal("650")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Панна котта").category(desserts).basePrice(new BigDecimal("750")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Штрудель яблочный").category(desserts).basePrice(new BigDecimal("600")).available(true).availableToppings(new HashSet<>()).build()));
+        products.add(productRepository.save(Product.builder().coffeeShop(defaultShop).name("Торт Наполеон").category(desserts).basePrice(new BigDecimal("850")).available(true).availableToppings(new HashSet<>()).build()));
 
         return products;
     }

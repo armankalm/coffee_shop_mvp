@@ -138,8 +138,11 @@ public class AdminService {
     public ProductDto createProduct(CreateProductRequest request) {
         Set<Topping> availableToppings = resolveToppings(request.getAvailableToppingIds());
         RefProductCategory category = resolveProductCategory(request.getCategoryCode());
+        CoffeeShop shop = coffeeShopRepository.findById(request.getShopId())
+                .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + request.getShopId()));
         Product product = Product.builder()
                 .name(request.getName())
+                .coffeeShop(shop)
                 .category(category)
                 .basePrice(request.getBasePrice())
                 .available(request.isAvailable())

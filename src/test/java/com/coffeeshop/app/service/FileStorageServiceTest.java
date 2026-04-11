@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class FileStorageServiceTest {
 
@@ -40,23 +41,33 @@ class FileStorageServiceTest {
     }
 
     @Test
-    void store_fileWithoutExtension_works() throws IOException {
+    void store_invalidContentType_throwsIllegalArgument() {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "noext", "application/octet-stream", "data".getBytes());
 
-        String result = fileStorageService.store(file);
-
-        assertThat(result).startsWith("/uploads/products/");
-        assertThat(result).doesNotContain(".");
+        assertThatThrownBy(() -> fileStorageService.store(file))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Only image files are allowed");
     }
 
     @Test
-    void store_nullFilename_works() throws IOException {
+    void store_nullContentType_throwsIllegalArgument() {
         MockMultipartFile file = new MockMultipartFile(
-                "file", null, "image/png", "data".getBytes());
+                "file", "test.exe", null, "data".getBytes());
+
+        assertThatThrownBy(() -> fileStorageService.store(file))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Only image files are allowed");
+    }
+
+    @Test
+    void store_pngFile_works() throws IOException {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "test.png", "image/png", "data".getBytes());
 
         String result = fileStorageService.store(file);
 
         assertThat(result).startsWith("/uploads/products/");
+        assertThat(result).endsWith(".png");
     }
 }

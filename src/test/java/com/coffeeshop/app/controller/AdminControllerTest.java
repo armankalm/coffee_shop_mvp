@@ -263,6 +263,7 @@ class AdminControllerTest {
     @WithMockUser(username = "manager@test.com", roles = "MANAGER")
     void createProduct_asManager_returnsCreatedProduct() throws Exception {
         CreateProductRequest request = new CreateProductRequest();
+        request.setShopId(1L);
         request.setName("Espresso");
         request.setCategoryCode("COFFEE");
         request.setBasePrice(BigDecimal.valueOf(300));
@@ -281,6 +282,7 @@ class AdminControllerTest {
     @WithMockUser(username = "manager@test.com", roles = "MANAGER")
     void updateProduct_asManager_returnsUpdatedProduct() throws Exception {
         CreateProductRequest request = new CreateProductRequest();
+        request.setShopId(1L);
         request.setName("Updated Latte");
         request.setCategoryCode("COFFEE");
         request.setBasePrice(BigDecimal.valueOf(550));

@@ -80,7 +80,7 @@ class UserServiceTest {
 
     @Test
     void updateUserShop_validRequest_updatesShopAndReturnsDto() {
-        when(userRepository.findByEmailWithRole("user@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailWithDetails("user@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findByIdWithDetails(10L)).thenReturn(Optional.of(shop));
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -92,7 +92,7 @@ class UserServiceTest {
 
     @Test
     void updateUserShop_userNotFound_throwsNoSuchElement() {
-        when(userRepository.findByEmailWithRole("unknown@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailWithDetails("unknown@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.updateUserShop("unknown@example.com", 10L))
                 .isInstanceOf(NoSuchElementException.class)
@@ -101,7 +101,7 @@ class UserServiceTest {
 
     @Test
     void updateUserShop_shopNotFound_throwsNoSuchElement() {
-        when(userRepository.findByEmailWithRole("user@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailWithDetails("user@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.updateUserShop("user@example.com", 99L))
@@ -113,7 +113,7 @@ class UserServiceTest {
     void updateUserShop_shopNotOpen_throwsIllegalArgument() {
         RefShopStatus closedStatus = RefShopStatus.builder().id(2L).code("CLOSED").nameRu("Закрыто").nameEn("Closed").build();
         CoffeeShop closedShop = CoffeeShop.builder().id(20L).name("Closed Shop").address("Addr").status(closedStatus).build();
-        when(userRepository.findByEmailWithRole("user@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailWithDetails("user@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findByIdWithDetails(20L)).thenReturn(Optional.of(closedShop));
 
         assertThatThrownBy(() -> userService.updateUserShop("user@example.com", 20L))

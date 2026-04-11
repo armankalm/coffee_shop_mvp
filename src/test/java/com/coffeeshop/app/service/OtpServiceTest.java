@@ -64,7 +64,7 @@ class OtpServiceTest {
     }
 
     @Test
-    void generateAndSend_activeOtpExists_skipsGeneration() {
+    void generateAndSend_activeOtpExists_throwsIllegalState() {
         OtpCode activeOtp = new OtpCode();
         activeOtp.setEmail("user@example.com");
         activeOtp.setCode("$2a$10$hash");
@@ -75,7 +75,9 @@ class OtpServiceTest {
         when(otpCodeRepository.findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(
                 eq("user@example.com"), any(Instant.class))).thenReturn(Optional.of(activeOtp));
 
-        otpService.generateAndSend("user@example.com");
+        assertThatThrownBy(() -> otpService.generateAndSend("user@example.com"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("recently sent");
 
         // No new OTP should be saved and no email sent
         verify(otpCodeRepository, never()).save(any(OtpCode.class));

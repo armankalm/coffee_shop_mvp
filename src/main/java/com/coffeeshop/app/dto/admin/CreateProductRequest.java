@@ -9,6 +9,9 @@ import java.util.Set;
 
 public class CreateProductRequest {
 
+    @NotNull
+    private Long shopId;
+
     @NotBlank
     private String name;
 
@@ -22,6 +25,9 @@ public class CreateProductRequest {
     private boolean available = true;
 
     private Set<Long> availableToppingIds;
+
+    public Long getShopId() { return shopId; }
+    public void setShopId(Long shopId) { this.shopId = shopId; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

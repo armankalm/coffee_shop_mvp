@@ -71,4 +71,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", "Validation failed", "fields", fieldErrors));
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) throws Exception {
+        // Let Spring Security exceptions propagate to the security filter chain
+        if (ex instanceof org.springframework.security.access.AccessDeniedException
+                || ex instanceof org.springframework.security.core.AuthenticationException) {
+            throw ex;
+        }
+        log.error("Unexpected error: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "An unexpected error occurred"));
+    }
 }
