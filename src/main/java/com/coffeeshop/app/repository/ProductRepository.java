@@ -16,6 +16,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT DISTINCT p FROM Product p " +
            "LEFT JOIN FETCH p.availableToppings t " +
            "LEFT JOIN FETCH t.type " +
+           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH p.category " +
            "WHERE p.available = true AND p.coffeeShop.id = :shopId")
     List<Product> findAllAvailableWithToppingsByShop(@Param("shopId") Long shopId);
@@ -23,6 +24,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT DISTINCT p FROM Product p " +
            "LEFT JOIN FETCH p.availableToppings t " +
            "LEFT JOIN FETCH t.type " +
+           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH p.category " +
            "WHERE p.available = true AND p.category = :category AND p.coffeeShop.id = :shopId")
     List<Product> findByCategoryAndAvailableTrueWithToppingsByShop(@Param("category") RefProductCategory category,
@@ -31,7 +33,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT DISTINCT p FROM Product p " +
            "LEFT JOIN FETCH p.availableToppings t " +
            "LEFT JOIN FETCH t.type " +
+           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH p.category " +
+           "JOIN FETCH p.coffeeShop " +
            "WHERE p.id = :id")
     Optional<Product> findByIdWithToppings(@Param("id") Long id);
 }

@@ -22,7 +22,7 @@ public class OrderItemDto {
         dto.productId = item.getProduct().getId();
         dto.productName = item.getProduct().getName();
         dto.toppings = item.getToppings().stream()
-                .map(ToppingDto::from)
+                .map(ToppingDto::fromWithoutIncompatibilities)
                 .collect(Collectors.toSet());
         dto.quantity = item.getQuantity();
         dto.price = item.getPrice();

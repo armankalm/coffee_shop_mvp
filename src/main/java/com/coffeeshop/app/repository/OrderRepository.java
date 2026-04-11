@@ -18,7 +18,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "LEFT JOIN FETCH p.category " +
            "LEFT JOIN FETCH i.toppings t " +
            "LEFT JOIN FETCH t.type " +
-           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH o.user u " +
            "JOIN FETCH u.role " +
            "JOIN FETCH o.shop s " +
@@ -34,7 +33,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "LEFT JOIN FETCH p.category " +
            "LEFT JOIN FETCH i.toppings t " +
            "LEFT JOIN FETCH t.type " +
-           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH o.user u " +
            "JOIN FETCH u.role " +
            "JOIN FETCH o.shop s " +
@@ -50,7 +48,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "LEFT JOIN FETCH p.category " +
            "LEFT JOIN FETCH i.toppings t " +
            "LEFT JOIN FETCH t.type " +
-           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH o.user u " +
            "JOIN FETCH u.role " +
            "JOIN FETCH o.shop s " +
@@ -66,7 +63,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "LEFT JOIN FETCH p.category " +
            "LEFT JOIN FETCH i.toppings t " +
            "LEFT JOIN FETCH t.type " +
-           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH o.user u " +
            "JOIN FETCH u.role " +
            "JOIN FETCH o.shop s " +
@@ -81,7 +77,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "LEFT JOIN FETCH p.category " +
            "LEFT JOIN FETCH i.toppings t " +
            "LEFT JOIN FETCH t.type " +
-           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH o.user u " +
            "JOIN FETCH u.role " +
            "JOIN FETCH o.shop s " +
@@ -97,7 +92,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "LEFT JOIN FETCH p.category " +
            "LEFT JOIN FETCH i.toppings t " +
            "LEFT JOIN FETCH t.type " +
-           "LEFT JOIN FETCH t.incompatibleWith " +
            "JOIN FETCH o.user u " +
            "JOIN FETCH u.role " +
            "JOIN FETCH o.shop s " +

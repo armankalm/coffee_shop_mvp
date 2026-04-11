@@ -29,6 +29,21 @@ public class ToppingDto {
         return dto;
     }
 
+    /**
+     * Lightweight mapping that skips the incompatibleWith collection,
+     * avoiding a Cartesian product when used in order queries.
+     */
+    public static ToppingDto fromWithoutIncompatibilities(Topping topping) {
+        ToppingDto dto = new ToppingDto();
+        dto.id = topping.getId();
+        dto.name = topping.getName();
+        dto.type = topping.getType().getCode();
+        dto.typeNameRu = topping.getType().getNameRu();
+        dto.price = topping.getPrice();
+        dto.incompatibleWithIds = Set.of();
+        return dto;
+    }
+
     public Long getId() { return id; }
     public String getName() { return name; }
     public String getType() { return type; }
