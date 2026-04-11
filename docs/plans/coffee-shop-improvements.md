@@ -81,18 +81,18 @@
 **Контекст:** Product entity не имеет поля для изображения. Нет file upload. Нужно: добавить поле `imagePath` в Product, создать upload endpoint, сервировать статику.
 
 **Бэкенд:**
-- [ ] Flyway-миграция: добавить колонку `image_path VARCHAR(500)` в таблицу `products` (nullable)
-- [ ] Добавить поле `imagePath` в `Product` entity
-- [ ] Добавить `imagePath` в `ProductDto`
-- [ ] Создать `FileStorageService` — сохранение файлов в локальную директорию (configurable через `app.upload.dir` в application.yml, default: `./uploads/products`)
-- [ ] Создать `FileController` или `ProductImageController` — `POST /api/products/{id}/image` (multipart/form-data, роль MANAGER/ADMIN) — загрузка изображения
-- [ ] Настроить Spring для раздачи статики из upload-директории: `GET /uploads/products/{filename}`
-- [ ] Обновить `ProductService` — при загрузке изображения обновлять `product.imagePath`
+- [x] Flyway-миграция: добавить колонку `image_path VARCHAR(500)` в таблицу `products` (nullable)
+- [x] Добавить поле `imagePath` в `Product` entity
+- [x] Добавить `imagePath` в `ProductDto`
+- [x] Создать `FileStorageService` — сохранение файлов в локальную директорию (configurable через `app.upload.dir` в application.yml, default: `./uploads/products`)
+- [x] Создать `FileController` или `ProductImageController` — `POST /api/products/{id}/image` (multipart/form-data, роль MANAGER/ADMIN) — загрузка изображения
+- [x] Настроить Spring для раздачи статики из upload-директории: `GET /uploads/products/{filename}`
+- [x] Обновить `ProductService` — при загрузке изображения обновлять `product.imagePath`
 
 **Фронтенд:**
-- [ ] В `MenuScreen.tsx` — использовать `product.imagePath` для отображения (формировать полный URL: `${BASE_URL}${imagePath}`)
-- [ ] Добавить fallback-картинку если `imagePath` пустой (placeholder с иконкой кофе/еды по категории)
-- [ ] В `CustomizationScreen.tsx` — показать изображение продукта если есть
+- [x] В `MenuScreen.tsx` — использовать `product.imagePath` для отображения (формировать полный URL: `${BASE_URL}${imagePath}`)
+- [x] Добавить fallback-картинку если `imagePath` пустой (placeholder с иконкой кофе/еды по категории)
+- [x] В `CustomizationScreen.tsx` — показать изображение продукта если есть
 
 ---
 

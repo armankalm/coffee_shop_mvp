@@ -13,6 +13,7 @@ public class ProductDto {
     private String categoryNameRu;
     private BigDecimal basePrice;
     private boolean available;
+    private String imagePath;
     private Set<ToppingDto> availableToppings;
 
     public ProductDto() {}
@@ -25,6 +26,7 @@ public class ProductDto {
         dto.categoryNameRu = product.getCategory().getNameRu();
         dto.basePrice = product.getBasePrice();
         dto.available = product.isAvailable();
+        dto.imagePath = product.getImagePath();
         dto.availableToppings = product.getAvailableToppings().stream()
                 .map(ToppingDto::from)
                 .collect(Collectors.toSet());
@@ -37,5 +39,6 @@ public class ProductDto {
     public String getCategoryNameRu() { return categoryNameRu; }
     public BigDecimal getBasePrice() { return basePrice; }
     public boolean isAvailable() { return available; }
+    public String getImagePath() { return imagePath; }
     public Set<ToppingDto> getAvailableToppings() { return availableToppings; }
 }

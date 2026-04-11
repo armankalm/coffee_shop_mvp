@@ -37,6 +37,9 @@ public class Product {
     @Column(nullable = false)
     private boolean available;
 
+    @Column(name = "image_path", length = 500)
+    private String imagePath;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "product_toppings",

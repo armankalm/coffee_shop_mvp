@@ -50,6 +50,8 @@ app:
     secret: ${JWT_SECRET:dev-only-insecure-secret-do-NOT-use-in-any-deployed-environment}
     access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}
     refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+  upload:
+    dir: ${UPLOAD_DIR:./uploads/products}
   otp:
     expiration-minutes: ${OTP_EXPIRATION_MINUTES:5}
     length: 6

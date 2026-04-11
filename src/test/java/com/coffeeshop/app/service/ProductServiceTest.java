@@ -12,6 +12,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.mock.web.MockMultipartFile;
+
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -30,6 +33,9 @@ class ProductServiceTest {
 
     @Mock
     private RefProductCategoryRepository refProductCategoryRepository;
+
+    @Mock
+    private FileStorageService fileStorageService;
 
     @InjectMocks
     private ProductService productService;
@@ -94,6 +100,34 @@ class ProductServiceTest {
         when(productRepository.findByIdWithToppings(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> productService.getById(99L))
+                .isInstanceOf(NoSuchElementException.class)
+                .hasMessageContaining("99");
+    }
+
+    @Test
+    void updateImage_existingProduct_updatesImagePath() throws IOException {
+        Product product = buildProduct(1L, "Latte", coffeeCategory);
+        when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
+        when(fileStorageService.store(any())).thenReturn("/uploads/products/abc.jpg");
+        when(productRepository.save(any(Product.class))).thenReturn(product);
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "photo.jpg", "image/jpeg", "data".getBytes());
+
+        ProductDto result = productService.updateImage(1L, file);
+
+        assertThat(result.getImagePath()).isEqualTo("/uploads/products/abc.jpg");
+        verify(productRepository).save(product);
+    }
+
+    @Test
+    void updateImage_missingProduct_throwsNoSuchElement() {
+        when(productRepository.findByIdWithToppings(99L)).thenReturn(Optional.empty());
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "photo.jpg", "image/jpeg", "data".getBytes());
+
+        assertThatThrownBy(() -> productService.updateImage(99L, file))
                 .isInstanceOf(NoSuchElementException.class)
                 .hasMessageContaining("99");
     }
