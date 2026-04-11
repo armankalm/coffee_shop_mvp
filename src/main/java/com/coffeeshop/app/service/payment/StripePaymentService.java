@@ -52,7 +52,7 @@ public class StripePaymentService implements PaymentProviderService {
             throw new IllegalArgumentException("Webhook verification failed");
         }
         if (signatureHeader == null || signatureHeader.isBlank()) {
-            throw new IllegalArgumentException("Missing Stripe-Signature header");
+            throw new IllegalArgumentException("Webhook verification failed");
         }
         // Stripe signature format: "t=<timestamp>,v1=<hmac>"
         String timestamp = null;
@@ -65,21 +65,21 @@ public class StripePaymentService implements PaymentProviderService {
             }
         }
         if (timestamp == null || expectedSig == null) {
-            throw new IllegalArgumentException("Invalid Stripe-Signature header format");
+            throw new IllegalArgumentException("Webhook verification failed");
         }
         try {
             long ts = Long.parseLong(timestamp);
             long now = Instant.now().getEpochSecond();
             if (Math.abs(now - ts) > 300) {
-                throw new IllegalArgumentException("Stripe webhook timestamp is too old or too far in the future");
+                throw new IllegalArgumentException("Webhook verification failed");
             }
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid timestamp in Stripe-Signature header");
+            throw new IllegalArgumentException("Webhook verification failed");
         }
         String signedPayload = timestamp + "." + rawPayload;
         String computed = hmacSha256(signedPayload, webhookSecret);
         if (!constantTimeEquals(computed, expectedSig)) {
-            throw new IllegalArgumentException("Stripe webhook signature verification failed");
+            throw new IllegalArgumentException("Webhook verification failed");
         }
     }
 

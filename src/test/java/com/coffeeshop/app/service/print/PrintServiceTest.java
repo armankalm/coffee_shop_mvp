@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,7 +67,7 @@ class PrintServiceTest {
                 .shop(shop)
                 .status(newStatus())
                 .total(BigDecimal.valueOf(1200))
-                .items(List.of(item))
+                .items(Set.of(item))
                 .build();
         // Set createdAt manually since @PrePersist won't run in unit tests
         order.setCreatedAt(Instant.parse("2026-03-22T10:00:00Z"));
@@ -146,7 +145,7 @@ class PrintServiceTest {
                         .address("Addr").status(openStatus()).build())
                 .status(newStatus())
                 .total(BigDecimal.ZERO)
-                .items(List.of())
+                .items(Set.of())
                 .build();
         order.setCreatedAt(Instant.now());
 

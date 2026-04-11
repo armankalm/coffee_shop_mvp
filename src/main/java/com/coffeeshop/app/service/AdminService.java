@@ -76,6 +76,8 @@ public class AdminService {
         if ("BARISTA".equals(user.getRole().getCode())) {
             if (user.getCoffeeShop() != null) {
                 shopId = user.getCoffeeShop().getId();
+            } else {
+                return List.of();
             }
         }
 

@@ -51,11 +51,11 @@ public class KaspiPaymentService implements PaymentProviderService {
             throw new IllegalArgumentException("Webhook verification failed");
         }
         if (signatureHeader == null || signatureHeader.isBlank()) {
-            throw new IllegalArgumentException("Missing X-Kaspi-Signature header");
+            throw new IllegalArgumentException("Webhook verification failed");
         }
         String computed = hmacSha256(rawPayload, apiKey);
         if (!constantTimeEquals(computed, signatureHeader)) {
-            throw new IllegalArgumentException("Kaspi webhook signature verification failed");
+            throw new IllegalArgumentException("Webhook verification failed");
         }
     }
 

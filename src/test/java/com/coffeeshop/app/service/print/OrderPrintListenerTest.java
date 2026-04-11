@@ -11,7 +11,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -39,7 +39,7 @@ class OrderPrintListenerTest {
                 .address("Addr").status(openStatus).build();
         Order order = Order.builder()
                 .id(1L).user(user).shop(shop)
-                .status(newStatus).total(BigDecimal.valueOf(500)).items(List.of())
+                .status(newStatus).total(BigDecimal.valueOf(500)).items(Set.of())
                 .build();
         order.setCreatedAt(Instant.now());
         return order;
