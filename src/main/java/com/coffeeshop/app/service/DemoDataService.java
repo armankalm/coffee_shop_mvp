@@ -238,6 +238,11 @@ public class DemoDataService {
         coldToppings.addAll(syrupToppings);
         coldToppings.add(toppings.get(25)); // Холодный лёд
 
+        // Lemonade/fruit drinks: no milk toppings (syrups + ice only)
+        Set<Topping> lemonadeToppings = new HashSet<>();
+        lemonadeToppings.addAll(syrupToppings);
+        lemonadeToppings.add(toppings.get(25)); // Холодный лёд
+
         List<Product> products = new ArrayList<>();
 
         // Кофе (COFFEE) - 15 items
@@ -268,7 +273,7 @@ public class DemoDataService {
         products.add(productRepository.save(Product.builder().name("Ройбос").category(tea).basePrice(new BigDecimal("550")).available(true).availableToppings(teaToppings).build()));
 
         // Холодные напитки (COLD_DRINKS) - 7 items
-        products.add(productRepository.save(Product.builder().name("Лимонад классический").category(coldDrinks).basePrice(new BigDecimal("800")).available(true).availableToppings(coldToppings).build()));
+        products.add(productRepository.save(Product.builder().name("Лимонад классический").category(coldDrinks).basePrice(new BigDecimal("800")).available(true).availableToppings(lemonadeToppings).build()));
         products.add(productRepository.save(Product.builder().name("Смузи клубника").category(coldDrinks).basePrice(new BigDecimal("1200")).available(true).availableToppings(new HashSet<>()).build()));
         products.add(productRepository.save(Product.builder().name("Смузи манго").category(coldDrinks).basePrice(new BigDecimal("1200")).available(true).availableToppings(new HashSet<>()).build()));
         products.add(productRepository.save(Product.builder().name("Молочный коктейль ваниль").category(coldDrinks).basePrice(new BigDecimal("1000")).available(true).availableToppings(coldToppings).build()));

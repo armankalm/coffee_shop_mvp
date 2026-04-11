@@ -198,6 +198,37 @@ class OrderServiceTest {
     }
 
     @Test
+    void createOrder_toppingNotAvailableForProduct_throwsIllegalArgument() {
+        Topping allowedTopping = Topping.builder().id(1L).name("Extra Shot")
+                .type(extrasType).price(BigDecimal.valueOf(100)).build();
+        Topping disallowedTopping = Topping.builder().id(2L).name("Soy Milk")
+                .type(extrasType).price(BigDecimal.valueOf(120)).build();
+
+        product = Product.builder().id(1L).name("Lemonade").category(coffeeCategory)
+                .basePrice(BigDecimal.valueOf(800)).available(true)
+                .availableToppings(Set.of(allowedTopping)).build();
+
+        OrderItemRequest itemRequest = new OrderItemRequest();
+        itemRequest.setProductId(1L);
+        itemRequest.setToppingIds(Set.of(2L));
+        itemRequest.setQuantity(1);
+
+        CreateOrderRequest request = new CreateOrderRequest();
+        request.setShopId(1L);
+        request.setItems(List.of(itemRequest));
+
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
+        when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
+        when(toppingRepository.findAllByIdWithIncompatibilities(Set.of(2L))).thenReturn(List.of(disallowedTopping));
+        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
+
+        assertThatThrownBy(() -> orderService.createOrder("test@example.com", request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not available for product");
+    }
+
+    @Test
     void getUserOrders_returnsUserOrders() {
         when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
         Order order = Order.builder().id(1L).user(user).shop(shop)

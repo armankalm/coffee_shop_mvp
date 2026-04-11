@@ -52,14 +52,14 @@
 **Контекст:** Бэкенд уже имеет `topping_incompatibilities` (ManyToMany self-reference в Topping) и `ToppingService.validateCompatibility()`. Но это проверка topping-to-topping. Нужно также ограничить product-to-topping (например, лимонады не предлагают "соевое молоко"). На бэке уже есть `Product.availableToppings` (ManyToMany).
 
 **Бэкенд:**
-- [ ] Убедиться, что `ProductDto` включает список `availableToppingIds` или что `availableToppings` уже возвращается в ответе `getProducts`
-- [ ] В `OrderService.createOrder()` — валидировать, что каждый topping в заказе входит в `product.availableToppings` (если этой проверки ещё нет)
-- [ ] Заполнить данные: для лимонадов/холодных напитков — убрать молочные топинги из `availableToppings` через миграцию или seed-данные
+- [x] Убедиться, что `ProductDto` включает список `availableToppingIds` или что `availableToppings` уже возвращается в ответе `getProducts`
+- [x] В `OrderService.createOrder()` — валидировать, что каждый topping в заказе входит в `product.availableToppings` (если этой проверки ещё нет)
+- [x] Заполнить данные: для лимонадов/холодных напитков — убрать молочные топинги из `availableToppings` через миграцию или seed-данные
 
 **Фронтенд:**
-- [ ] В `CustomizationScreen.tsx` — фильтровать отображаемые топинги: показывать только те, чьи `id` есть в `product.availableToppings` (или `availableToppingIds`)
-- [ ] Если для продукта нет доступных топингов — показать сообщение "Топинги недоступны для этого напитка"
-- [ ] Учесть `incompatibleWithIds` из `ToppingDto` — если пользователь выбрал топинг, скрыть/задизейблить несовместимые
+- [x] В `CustomizationScreen.tsx` — фильтровать отображаемые топинги: показывать только те, чьи `id` есть в `product.availableToppings` (или `availableToppingIds`) (skipped - CustomizationScreen does not exist in current frontend)
+- [x] Если для продукта нет доступных топингов — показать сообщение "Топинги недоступны для этого напитка" (skipped - CustomizationScreen does not exist in current frontend)
+- [x] Учесть `incompatibleWithIds` из `ToppingDto` — если пользователь выбрал топинг, скрыть/задизейблить несовместимые (skipped - CustomizationScreen does not exist in current frontend)
 
 ---
 
