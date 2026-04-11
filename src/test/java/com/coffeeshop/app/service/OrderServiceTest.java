@@ -307,7 +307,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void cancelOrder_userCancelsInProgressOrder_throwsIllegalState() {
+    void cancelOrder_inProgressOrder_throwsIllegalState() {
         Order order = Order.builder().id(1L).user(user).shop(shop)
                 .status(inProgressStatus).total(BigDecimal.valueOf(500)).build();
 
@@ -316,7 +316,7 @@ class OrderServiceTest {
 
         assertThatThrownBy(() -> orderService.cancelOrder("test@example.com", 1L))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("already in progress");
+                .hasMessageContaining("Cannot cancel order in status");
     }
 
     @Test

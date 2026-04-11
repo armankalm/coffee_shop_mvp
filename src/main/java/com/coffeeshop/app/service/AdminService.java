@@ -154,7 +154,10 @@ public class AdminService {
     public ProductDto updateProduct(Long productId, CreateProductRequest request) {
         Product product = productRepository.findByIdWithToppings(productId)
                 .orElseThrow(() -> new NoSuchElementException("Product not found: " + productId));
+        CoffeeShop shop = coffeeShopRepository.findById(request.getShopId())
+                .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + request.getShopId()));
         product.setName(request.getName());
+        product.setCoffeeShop(shop);
         product.setCategory(resolveProductCategory(request.getCategoryCode()));
         product.setBasePrice(request.getBasePrice());
         product.setAvailable(request.isAvailable());

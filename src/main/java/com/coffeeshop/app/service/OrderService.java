@@ -163,17 +163,13 @@ public class OrderService {
         User user = userRepository.findByEmailWithRole(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
-        if ("USER".equals(user.getRole().getCode()) && !order.getUser().getId().equals(user.getId())) {
+        if (!order.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("Access denied to order: " + orderId);
         }
 
         String statusCode = order.getStatus().getCode();
-        if ("COMPLETED".equals(statusCode) || "CANCELLED".equals(statusCode)) {
+        if (!"NEW".equals(statusCode)) {
             throw new IllegalStateException("Cannot cancel order in status: " + statusCode);
-        }
-
-        if ("USER".equals(user.getRole().getCode()) && "IN_PROGRESS".equals(statusCode)) {
-            throw new IllegalStateException("Cannot cancel an order that is already in progress");
         }
 
         RefOrderStatus cancelledStatus = refOrderStatusRepository.findByCode("CANCELLED")
