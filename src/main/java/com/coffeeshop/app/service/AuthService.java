@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 
 @Service
@@ -50,6 +51,7 @@ public class AuthService {
     }
 
     public void requestCode(String email) {
+        email = email.toLowerCase(Locale.ROOT).trim();
         // Auto-register new users in a separate transaction so that a concurrent-registration
         // DataIntegrityViolationException does not poison the transaction used by otpService.generateAndSend.
         if (!userRepository.existsByEmail(email)) {
@@ -84,6 +86,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponse verifyCode(String email, String code) {
+        email = email.toLowerCase(Locale.ROOT).trim();
         boolean valid = otpService.verifyCode(email, code);
         if (!valid) {
             throw new IllegalArgumentException("Invalid or expired OTP code");
@@ -104,7 +107,7 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid or expired refresh token");
         }
 
-        String email = tokenProvider.getEmailFromToken(refreshToken);
+        String email = tokenProvider.getEmailFromToken(refreshToken).toLowerCase(Locale.ROOT).trim();
         User user = userRepository.findByEmailWithRole(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
 
