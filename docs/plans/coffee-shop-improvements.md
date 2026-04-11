@@ -22,11 +22,11 @@
 - [x] Убедиться, что `UserService.getCurrentUser()` возвращает DTO с вложенным `CoffeeShopDto` (или хотя бы `shopId` + `shopName`)
 
 **Фронтенд:**
-- [ ] При старте приложения (`App.tsx`, после проверки `isAuthenticated()`) — запросить `GET /api/users/me` и восстановить `selectedShop` из ответа
-- [ ] Дополнительно кэшировать `selectedShop` в `localStorage` как fallback (для быстрого рендера до ответа API)
-- [ ] В `CheckoutScreen.tsx` — убрать шаг выбора города/кофейни, если `selectedShop` уже есть; пробросить `selectedShop` из App через props
-- [ ] Показать выбранную кофейню в CheckoutScreen с возможностью изменить (кнопка "Изменить")
-- [ ] В `CartScreen.tsx` — отобразить название выбранной кофейни (пробросить через props)
+- [x] При старте приложения (`App.tsx`, после проверки `isAuthenticated()`) — запросить `GET /api/users/me` и восстановить `selectedShop` из ответа
+- [x] Дополнительно кэшировать `selectedShop` в `localStorage` как fallback (для быстрого рендера до ответа API)
+- [x] В `CheckoutScreen.tsx` — убрать шаг выбора города/кофейни, если `selectedShop` уже есть; пробросить `selectedShop` из App через props
+- [x] Показать выбранную кофейню в CheckoutScreen с возможностью изменить (кнопка "Изменить")
+- [x] В `CartScreen.tsx` — отобразить название выбранной кофейни (пробросить через props)
 
 ---
 
