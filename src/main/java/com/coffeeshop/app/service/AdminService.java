@@ -69,7 +69,16 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrderDto> getAllOrders(String statusCode, Long shopId) {
+    public List<OrderDto> getAllOrders(String userEmail, String statusCode, Long shopId) {
+        // Baristas can only see orders for their assigned shop
+        User user = userRepository.findByEmailWithDetails(userEmail)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
+        if ("BARISTA".equals(user.getRole().getCode())) {
+            if (user.getCoffeeShop() != null) {
+                shopId = user.getCoffeeShop().getId();
+            }
+        }
+
         List<Order> orders;
         if (statusCode != null && shopId != null) {
             RefOrderStatus status = resolveOrderStatus(statusCode);

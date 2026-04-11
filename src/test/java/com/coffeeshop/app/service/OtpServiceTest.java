@@ -40,6 +40,7 @@ class OtpServiceTest {
         ReflectionTestUtils.setField(otpService, "expirationMinutes", 5);
         ReflectionTestUtils.setField(otpService, "otpLength", 6);
         ReflectionTestUtils.setField(otpService, "fromEmail", "noreply@coffeeshop.local");
+        ReflectionTestUtils.setField(otpService, "self", otpService);
     }
 
     @Test

@@ -4,7 +4,9 @@ import com.coffeeshop.app.domain.OtpCode;
 import com.coffeeshop.app.repository.OtpCodeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,6 +29,11 @@ public class OtpService {
     private final JavaMailSender mailSender;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    // Self-reference to allow @Transactional on saveOtp to be applied via the proxy.
+    @Lazy
+    @Autowired
+    private OtpService self;
+
     @Value("${app.otp.expiration-minutes:5}")
     private int expirationMinutes;
 
@@ -41,8 +48,14 @@ public class OtpService {
         this.mailSender = mailSender;
     }
 
-    @Transactional
     public void generateAndSend(String email) {
+        String code = self.saveOtp(email);
+        sendEmail(email, code);
+        log.info("OTP sent to: {}", email);
+    }
+
+    @Transactional
+    public String saveOtp(String email) {
         Instant now = Instant.now();
 
         // If a valid, non-exhausted OTP already exists, reject the re-request.
@@ -67,8 +80,7 @@ public class OtpService {
         otpCode.setUsed(false);
         otpCodeRepository.save(otpCode);
 
-        sendEmail(email, code);
-        log.info("OTP sent to: {}", email);
+        return code;
     }
 
     @Transactional

@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,9 +32,10 @@ public class AdminController {
 
     @GetMapping("/orders")
     public ResponseEntity<List<OrderDto>> getAllOrders(
+            Authentication authentication,
             @RequestParam(name = "status", required = false) String status,
             @RequestParam(name = "shopId", required = false) Long shopId) {
-        return ResponseEntity.ok(adminService.getAllOrders(status, shopId));
+        return ResponseEntity.ok(adminService.getAllOrders(authentication.getName(), status, shopId));
     }
 
     @GetMapping("/orders/{id}")

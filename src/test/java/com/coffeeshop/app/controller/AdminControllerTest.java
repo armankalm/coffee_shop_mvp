@@ -108,7 +108,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin@test.com", roles = "ADMIN")
     void getAllOrders_asAdmin_returnsOrders() throws Exception {
-        when(adminService.getAllOrders(null, null)).thenReturn(List.of(buildOrderDto(1L, newStatus())));
+        when(adminService.getAllOrders("admin@test.com", null, null)).thenReturn(List.of(buildOrderDto(1L, newStatus())));
 
         mockMvc.perform(get("/api/admin/orders"))
                 .andExpect(status().isOk())
@@ -119,7 +119,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "barista@test.com", roles = "BARISTA")
     void getAllOrders_asBarista_returnsOrders() throws Exception {
-        when(adminService.getAllOrders(null, null)).thenReturn(List.of(buildOrderDto(1L, newStatus())));
+        when(adminService.getAllOrders("barista@test.com", null, null)).thenReturn(List.of(buildOrderDto(1L, newStatus())));
 
         mockMvc.perform(get("/api/admin/orders"))
                 .andExpect(status().isOk());
@@ -141,7 +141,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin@test.com", roles = "ADMIN")
     void getAllOrders_withStatusFilter_returnsFilteredOrders() throws Exception {
-        when(adminService.getAllOrders("NEW", null)).thenReturn(List.of(buildOrderDto(1L, newStatus())));
+        when(adminService.getAllOrders("admin@test.com", "NEW", null)).thenReturn(List.of(buildOrderDto(1L, newStatus())));
 
         mockMvc.perform(get("/api/admin/orders").param("status", "NEW"))
                 .andExpect(status().isOk())

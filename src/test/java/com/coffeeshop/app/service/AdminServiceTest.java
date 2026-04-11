@@ -51,7 +51,9 @@ class AdminServiceTest {
     private RefProductCategory coffeeCategory;
     private RefToppingType milkType;
 
+    private RefUserRole adminRole;
     private User user;
+    private User adminUser;
     private CoffeeShop shop;
     private Product product;
     private Topping topping;
@@ -60,6 +62,7 @@ class AdminServiceTest {
     @BeforeEach
     void setUp() {
         userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
+        adminRole = RefUserRole.builder().id(4L).code("ADMIN").nameRu("Администратор").nameEn("Admin").build();
         openStatus = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
         newStatus = RefOrderStatus.builder().id(1L).code("NEW").nameRu("Новый").nameEn("New").build();
         inProgressStatus = RefOrderStatus.builder().id(2L).code("IN_PROGRESS").nameRu("В работе").nameEn("In Progress").build();
@@ -67,6 +70,7 @@ class AdminServiceTest {
         milkType = RefToppingType.builder().id(1L).code("MILK").nameRu("Молоко").nameEn("Milk").build();
 
         user = User.builder().id(1L).email("user@test.com").role(userRole).build();
+        adminUser = User.builder().id(2L).email("admin@test.com").role(adminRole).build();
         City almatyCity = City.builder().id(1L).name("Almaty").active(true).build();
         shop = CoffeeShop.builder().id(1L).name("Test Shop").city(almatyCity)
                 .address("123 St").status(openStatus).build();
@@ -80,9 +84,10 @@ class AdminServiceTest {
 
     @Test
     void getAllOrders_noFilters_returnsAll() {
+        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(orderRepository.findAllWithDetails()).thenReturn(List.of(order));
 
-        List<OrderDto> result = adminService.getAllOrders(null, null);
+        List<OrderDto> result = adminService.getAllOrders("admin@test.com", null, null);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);
@@ -90,10 +95,11 @@ class AdminServiceTest {
 
     @Test
     void getAllOrders_filterByStatus_returnsMatchingOrders() {
+        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
         when(orderRepository.findByStatusWithDetails(newStatus)).thenReturn(List.of(order));
 
-        List<OrderDto> result = adminService.getAllOrders("NEW", null);
+        List<OrderDto> result = adminService.getAllOrders("admin@test.com", "NEW", null);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getStatus()).isEqualTo("NEW");
@@ -101,24 +107,40 @@ class AdminServiceTest {
 
     @Test
     void getAllOrders_filterByShopId_returnsMatchingOrders() {
+        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(orderRepository.findByShopIdWithDetails(1L)).thenReturn(List.of(order));
 
-        List<OrderDto> result = adminService.getAllOrders(null, 1L);
+        List<OrderDto> result = adminService.getAllOrders("admin@test.com", null, 1L);
 
         assertThat(result).hasSize(1);
     }
 
     @Test
     void getAllOrders_filterByStatusAndShopId_returnsMatchingOrders() {
+        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
         when(orderRepository.findByStatusAndShopIdWithDetails(newStatus, 1L)).thenReturn(List.of(order));
 
-        List<OrderDto> result = adminService.getAllOrders("NEW", 1L);
+        List<OrderDto> result = adminService.getAllOrders("admin@test.com", "NEW", 1L);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);
         verify(orderRepository).findByStatusAndShopIdWithDetails(newStatus, 1L);
         verify(orderRepository, never()).findByStatusWithDetails(any());
+    }
+
+    @Test
+    void getAllOrders_asBarista_scopedToAssignedShop() {
+        RefUserRole baristaRole = RefUserRole.builder().id(3L).code("BARISTA").nameRu("Бариста").nameEn("Barista").build();
+        User baristaUser = User.builder().id(3L).email("barista@test.com").role(baristaRole).coffeeShop(shop).build();
+        when(userRepository.findByEmailWithDetails("barista@test.com")).thenReturn(Optional.of(baristaUser));
+        when(orderRepository.findByShopIdWithDetails(1L)).thenReturn(List.of(order));
+
+        List<OrderDto> result = adminService.getAllOrders("barista@test.com", null, null);
+
+        assertThat(result).hasSize(1);
+        verify(orderRepository).findByShopIdWithDetails(1L);
+        verify(orderRepository, never()).findAllWithDetails();
     }
 
     @Test
