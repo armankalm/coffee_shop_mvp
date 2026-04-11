@@ -203,7 +203,15 @@ public class DemoDataService {
     }
 
     private List<Product> seedProducts(List<CoffeeShop> shops, List<Topping> toppings) {
-        CoffeeShop defaultShop = shops.get(0);
+        List<Product> allProducts = new ArrayList<>();
+        for (int shopIdx = 0; shopIdx < Math.min(shops.size(), 3); shopIdx++) {
+            allProducts.addAll(seedProductsForShop(shops.get(shopIdx), toppings));
+        }
+        return allProducts;
+    }
+
+    private List<Product> seedProductsForShop(CoffeeShop shop, List<Topping> toppings) {
+        CoffeeShop defaultShop = shop;
         RefProductCategory coffee = refProductCategoryRepository.findByCode("COFFEE")
                 .orElseThrow(() -> new NoSuchElementException("Category COFFEE not found"));
         RefProductCategory tea = refProductCategoryRepository.findByCode("TEA")
@@ -345,39 +353,47 @@ public class DemoDataService {
         CoffeeShop shop1 = shops.get(0);
         CoffeeShop shop2 = shops.get(2);
 
-        // Products for orders
-        Product espresso = products.get(0);
-        Product latte = products.get(4);
-        Product americano = products.get(2);
-        Product matcha = products.get(17);
-        Product croissant = products.get(30);
-        Product cheesecake = products.get(40);
+        // Products for orders (use shop1 products at offset 0, shop2 products at offset 100)
+        // Each shop has 50 products in the same order: coffee(0-14), tea(15-22), cold(23-29), food(30-39), desserts(40-49)
+        int shop1Offset = 0;
+        int shop2Offset = 100;
+        Product espresso = products.get(shop1Offset);
+        Product latte = products.get(shop1Offset + 4);
+        Product americano = products.get(shop1Offset + 2);
+        Product matcha = products.get(shop1Offset + 17);
+        Product croissant = products.get(shop1Offset + 30);
+        Product cheesecake = products.get(shop1Offset + 40);
+        Product espressoShop2 = products.get(shop2Offset);
+        Product latteShop2 = products.get(shop2Offset + 4);
+        Product americanoShop2 = products.get(shop2Offset + 2);
+        Product croissantShop2 = products.get(shop2Offset + 30);
+        Product cheesecakeShop2 = products.get(shop2Offset + 40);
 
         // Topping refs
         Topping vanillaSyrup = toppings.get(7);
         Topping whippedCream = toppings.get(15);
         Topping cinnamon = toppings.get(17);
 
-        // 20 orders with various statuses
+        // 20 orders with various statuses (use correct shop's products)
         createOrder(user1, shop1, newStatus, espresso, Set.of(), 1);
         createOrder(user1, shop1, newStatus, latte, Set.of(vanillaSyrup), 1);
         createOrder(user2, shop1, inProgress, americano, Set.of(), 2);
-        createOrder(user2, shop2, inProgress, latte, Set.of(vanillaSyrup, cinnamon), 1);
+        createOrder(user2, shop2, inProgress, latteShop2, Set.of(vanillaSyrup, cinnamon), 1);
         createOrder(user1, shop1, ready, matcha, Set.of(), 1);
-        createOrder(user1, shop2, ready, espresso, Set.of(), 2);
+        createOrder(user1, shop2, ready, espressoShop2, Set.of(), 2);
         createOrder(user2, shop1, completed, americano, Set.of(), 1);
         createOrder(user2, shop1, completed, latte, Set.of(vanillaSyrup), 1);
         createOrder(user1, shop1, completed, croissant, Set.of(), 2);
-        createOrder(user1, shop2, completed, cheesecake, Set.of(), 1);
-        createOrder(user2, shop2, completed, espresso, Set.of(), 1);
+        createOrder(user1, shop2, completed, cheesecakeShop2, Set.of(), 1);
+        createOrder(user2, shop2, completed, espressoShop2, Set.of(), 1);
         createOrder(user1, shop1, cancelled, latte, Set.of(vanillaSyrup, whippedCream), 1);
         createOrder(user2, shop1, cancelled, americano, Set.of(), 1);
         createOrder(user1, shop1, completed, matcha, Set.of(), 1);
-        createOrder(user2, shop2, completed, croissant, Set.of(), 3);
+        createOrder(user2, shop2, completed, croissantShop2, Set.of(), 3);
         createOrder(user1, shop1, inProgress, cheesecake, Set.of(), 1);
         createOrder(user2, shop1, newStatus, espresso, Set.of(), 1);
-        createOrder(user1, shop2, completed, latte, Set.of(cinnamon), 1);
-        createOrder(user2, shop2, ready, americano, Set.of(), 1);
+        createOrder(user1, shop2, completed, latteShop2, Set.of(cinnamon), 1);
+        createOrder(user2, shop2, ready, americanoShop2, Set.of(), 1);
         createOrder(user1, shop1, cancelled, matcha, Set.of(), 2);
     }
 

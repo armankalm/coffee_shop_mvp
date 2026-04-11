@@ -66,6 +66,28 @@ INSERT INTO toppings (name, type_id, price)
 SELECT 'Взбитые сливки', (SELECT id FROM ref_topping_types WHERE code = 'EXTRAS'), 180.00
 WHERE NOT EXISTS (SELECT 1 FROM toppings WHERE name = 'Взбитые сливки');
 
+-- Product-Topping associations (coffee products get all toppings, lemonade gets only syrups)
+INSERT INTO product_toppings (product_id, topping_id)
+SELECT p.id, t.id FROM products p, toppings t
+WHERE p.name IN ('Эспрессо', 'Капучино')
+  AND NOT EXISTS (SELECT 1 FROM product_toppings pt WHERE pt.product_id = p.id AND pt.topping_id = t.id);
+
+INSERT INTO product_toppings (product_id, topping_id)
+SELECT p.id, t.id FROM products p
+CROSS JOIN toppings t
+JOIN ref_topping_types rtt ON t.type_id = rtt.id
+WHERE p.name = 'Зелёный чай'
+  AND rtt.code IN ('SYRUP', 'TOPPING')
+  AND NOT EXISTS (SELECT 1 FROM product_toppings pt WHERE pt.product_id = p.id AND pt.topping_id = t.id);
+
+INSERT INTO product_toppings (product_id, topping_id)
+SELECT p.id, t.id FROM products p
+CROSS JOIN toppings t
+JOIN ref_topping_types rtt ON t.type_id = rtt.id
+WHERE p.name = 'Лимонад'
+  AND rtt.code IN ('SYRUP')
+  AND NOT EXISTS (SELECT 1 FROM product_toppings pt WHERE pt.product_id = p.id AND pt.topping_id = t.id);
+
 -- Users (seed only if email not already taken)
 INSERT INTO users (email, role_id, coffee_shop_id)
 SELECT

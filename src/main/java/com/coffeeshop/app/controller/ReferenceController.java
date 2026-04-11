@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/reference")
+@PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
 public class ReferenceController {
 
     private final ReferenceService referenceService;
