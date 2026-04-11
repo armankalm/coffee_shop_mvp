@@ -153,16 +153,16 @@
 **Контекст:** Tailwind v4. Layout использует MD3 цветовые токены (`bg-surface`, `text-on-surface` и т.д.). Нет toggle и dark mode.
 
 **Фронтенд:**
-- [ ] Определить dark-mode цветовые токены в CSS (дублировать MD3 палитру для тёмной темы)
-- [ ] Настроить Tailwind v4 для поддержки `dark:` варианта через `class` стратегию (не `media`)
-- [ ] Создать утилиту `src/utils/theme.ts`:
+- [x] Определить dark-mode цветовые токены в CSS (дублировать MD3 палитру для тёмной темы)
+- [x] Настроить Tailwind v4 для поддержки `dark:` варианта через `class` стратегию (не `media`) (CSS variable override on html.dark — no dark: prefixes needed)
+- [x] Создать утилиту `src/utils/theme.ts`:
   - `getTheme()` — читает из `localStorage` (key: `theme`, values: `light`/`dark`)
   - `setTheme(theme)` — сохраняет в `localStorage` + toggle `dark` class на `<html>`
   - `initTheme()` — вызывается при старте, применяет сохранённую тему (default: `light`)
-- [ ] В `Layout.tsx` — добавить toggle кнопку (иконка солнце/луна) в header
-- [ ] В `main.tsx` или `App.tsx` — вызвать `initTheme()` при старте
-- [ ] Обновить все компоненты — добавить `dark:` варианты для цветов:
+- [x] В `Layout.tsx` — добавить toggle кнопку (иконка солнце/луна) в header
+- [x] В `main.tsx` или `App.tsx` — вызвать `initTheme()` при старте
+- [x] Обновить все компоненты — добавить `dark:` варианты для цветов:
   - `bg-surface` → `dark:bg-surface-dark`
   - `text-on-surface` → `dark:text-on-surface-dark`
   - Или переопределить CSS-переменные MD3 в `dark` контексте (предпочтительнее — меньше изменений в компонентах)
-- [ ] Проверить контрастность и читаемость на всех экранах
+- [x] Проверить контрастность и читаемость на всех экранах (dark palette uses high-contrast values; hardcoded bg-white/rgba shadows replaced with CSS variable tokens)
