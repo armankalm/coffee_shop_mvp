@@ -78,7 +78,7 @@ class CoffeeShopControllerTest {
 
         mockMvc.perform(get("/api/shops/99"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Coffee shop not found: 99"));
+                .andExpect(jsonPath("$.error").value("Resource not found"));
     }
 
     @Test

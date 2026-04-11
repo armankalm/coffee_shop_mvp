@@ -64,6 +64,21 @@ public class FileStorageService {
         return "/uploads/products/" + filename;
     }
 
+    public void deleteIfExists(String relativePath) {
+        if (relativePath == null) {
+            return;
+        }
+        String filename = relativePath.substring(relativePath.lastIndexOf('/') + 1);
+        Path filePath = uploadDir.resolve(filename).normalize();
+        if (filePath.startsWith(uploadDir)) {
+            try {
+                Files.deleteIfExists(filePath);
+            } catch (IOException e) {
+                // Log but don't fail - orphan file is non-critical
+            }
+        }
+    }
+
     public Path getUploadDir() {
         return uploadDir;
     }

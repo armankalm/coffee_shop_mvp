@@ -53,9 +53,13 @@ public class ProductService {
     public ProductDto updateImage(Long productId, MultipartFile file) throws IOException {
         Product product = productRepository.findByIdWithToppings(productId)
                 .orElseThrow(() -> new NoSuchElementException("Product not found: " + productId));
+        String oldImagePath = product.getImagePath();
         String imagePath = fileStorageService.store(file);
         product.setImagePath(imagePath);
         productRepository.save(product);
+        if (oldImagePath != null) {
+            fileStorageService.deleteIfExists(oldImagePath);
+        }
         return ProductDto.from(product);
     }
 }
