@@ -79,6 +79,11 @@ public class OrderService {
                 throw new IllegalArgumentException("Product is not available: " + product.getName());
             }
 
+            if (!product.getCoffeeShop().getId().equals(shop.getId())) {
+                throw new IllegalArgumentException(
+                        "Product '" + product.getName() + "' does not belong to the selected shop");
+            }
+
             Set<Long> toppingIds = itemRequest.getToppingIds() != null ? itemRequest.getToppingIds() : new HashSet<>();
 
             Set<Topping> toppings = new HashSet<>();

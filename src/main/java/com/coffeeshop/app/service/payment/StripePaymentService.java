@@ -49,7 +49,7 @@ public class StripePaymentService implements PaymentProviderService {
     @Override
     public void verifyWebhookSignature(String rawPayload, String signatureHeader) {
         if (webhookSecret == null || webhookSecret.isBlank()) {
-            throw new IllegalArgumentException("Stripe webhook secret is not configured");
+            throw new IllegalArgumentException("Webhook verification failed");
         }
         if (signatureHeader == null || signatureHeader.isBlank()) {
             throw new IllegalArgumentException("Missing Stripe-Signature header");

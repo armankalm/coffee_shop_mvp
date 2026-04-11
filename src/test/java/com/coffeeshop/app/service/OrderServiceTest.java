@@ -73,7 +73,7 @@ class OrderServiceTest {
         shop = CoffeeShop.builder().id(1L).name("Test Shop").city(almatyCity)
                 .address("123 St").status(openStatus).build();
         product = Product.builder().id(1L).name("Latte").category(coffeeCategory)
-                .basePrice(BigDecimal.valueOf(500)).available(true).build();
+                .basePrice(BigDecimal.valueOf(500)).available(true).coffeeShop(shop).build();
     }
 
     @Test
@@ -159,12 +159,37 @@ class OrderServiceTest {
     }
 
     @Test
+    void createOrder_productFromWrongShop_throwsIllegalArgument() {
+        City otherCity = City.builder().id(2L).name("Astana").active(true).build();
+        CoffeeShop otherShop = CoffeeShop.builder().id(2L).name("Other Shop").city(otherCity)
+                .address("456 St").status(openStatus).build();
+        product.setCoffeeShop(otherShop);
+
+        OrderItemRequest itemRequest = new OrderItemRequest();
+        itemRequest.setProductId(1L);
+        itemRequest.setQuantity(1);
+
+        CreateOrderRequest request = new CreateOrderRequest();
+        request.setShopId(1L);
+        request.setItems(List.of(itemRequest));
+
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
+        when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
+        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
+
+        assertThatThrownBy(() -> orderService.createOrder("test@example.com", request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not belong to the selected shop");
+    }
+
+    @Test
     void createOrder_calculatesCorrectTotal() {
         Topping topping = Topping.builder().id(1L).name("Extra Shot")
                 .type(extrasType).price(BigDecimal.valueOf(100)).build();
         product = Product.builder().id(1L).name("Latte").category(coffeeCategory)
                 .basePrice(BigDecimal.valueOf(500)).available(true)
-                .availableToppings(Set.of(topping)).build();
+                .coffeeShop(shop).availableToppings(Set.of(topping)).build();
 
         OrderItemRequest itemRequest = new OrderItemRequest();
         itemRequest.setProductId(1L);
@@ -206,7 +231,7 @@ class OrderServiceTest {
 
         product = Product.builder().id(1L).name("Lemonade").category(coffeeCategory)
                 .basePrice(BigDecimal.valueOf(800)).available(true)
-                .availableToppings(Set.of(allowedTopping)).build();
+                .coffeeShop(shop).availableToppings(Set.of(allowedTopping)).build();
 
         OrderItemRequest itemRequest = new OrderItemRequest();
         itemRequest.setProductId(1L);

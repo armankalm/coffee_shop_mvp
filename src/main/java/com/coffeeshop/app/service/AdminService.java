@@ -195,7 +195,12 @@ public class AdminService {
                 .price(request.getPrice())
                 .incompatibleWith(incompatible)
                 .build();
-        return ToppingDto.from(toppingRepository.save(topping));
+        Topping saved = toppingRepository.save(topping);
+        for (Topping other : incompatible) {
+            other.getIncompatibleWith().add(saved);
+            toppingRepository.save(other);
+        }
+        return ToppingDto.from(saved);
     }
 
     public ToppingDto updateTopping(Long toppingId, CreateToppingRequest request) {
@@ -211,8 +216,22 @@ public class AdminService {
                 throw new IllegalArgumentException("One or more incompatible topping IDs not found");
             }
         }
+        Set<Topping> oldIncompatible = new HashSet<>(topping.getIncompatibleWith());
         topping.setIncompatibleWith(incompatible);
-        return ToppingDto.from(toppingRepository.save(topping));
+        Topping saved = toppingRepository.save(topping);
+        for (Topping old : oldIncompatible) {
+            if (!incompatible.contains(old)) {
+                old.getIncompatibleWith().remove(saved);
+                toppingRepository.save(old);
+            }
+        }
+        for (Topping other : incompatible) {
+            if (!oldIncompatible.contains(other)) {
+                other.getIncompatibleWith().add(saved);
+                toppingRepository.save(other);
+            }
+        }
+        return ToppingDto.from(saved);
     }
 
     public void deleteTopping(Long toppingId) {

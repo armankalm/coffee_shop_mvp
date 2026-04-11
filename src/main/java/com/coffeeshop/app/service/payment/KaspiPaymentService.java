@@ -48,7 +48,7 @@ public class KaspiPaymentService implements PaymentProviderService {
     @Override
     public void verifyWebhookSignature(String rawPayload, String signatureHeader) {
         if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalArgumentException("Kaspi API key is not configured");
+            throw new IllegalArgumentException("Webhook verification failed");
         }
         if (signatureHeader == null || signatureHeader.isBlank()) {
             throw new IllegalArgumentException("Missing X-Kaspi-Signature header");
