@@ -84,7 +84,7 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 Map.of("email", "user@example.com", "code", "000000"))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Invalid or expired OTP code"));
+                .andExpect(jsonPath("$.error").value("Bad request"));
     }
 
     @Test

@@ -103,9 +103,21 @@ public class AdminService {
         return OrderDto.from(order);
     }
 
-    public OrderDto updateOrderStatus(Long orderId, String newStatusCode) {
+    public OrderDto updateOrderStatus(String userEmail, Long orderId, String newStatusCode) {
+        User user = userRepository.findByEmailWithDetails(userEmail)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
         Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
+
+        // Baristas can only update orders for their assigned shop
+        if ("BARISTA".equals(user.getRole().getCode())) {
+            if (user.getCoffeeShop() == null
+                    || !user.getCoffeeShop().getId().equals(order.getShop().getId())) {
+                throw new com.coffeeshop.app.config.AccessDeniedException(
+                        "Baristas can only update orders for their assigned shop");
+            }
+        }
+
         String currentCode = order.getStatus().getCode();
         Set<String> allowed = ALLOWED_TRANSITIONS.getOrDefault(currentCode, Set.of());
         if (!allowed.contains(newStatusCode)) {

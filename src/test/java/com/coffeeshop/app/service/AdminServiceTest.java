@@ -163,11 +163,12 @@ class AdminServiceTest {
 
     @Test
     void updateOrderStatus_validOrder_updatesStatus() {
+        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
         when(refOrderStatusRepository.findByCode("IN_PROGRESS")).thenReturn(Optional.of(inProgressStatus));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        OrderDto result = adminService.updateOrderStatus(1L, "IN_PROGRESS");
+        OrderDto result = adminService.updateOrderStatus("admin@test.com", 1L, "IN_PROGRESS");
 
         assertThat(result.getStatus()).isEqualTo("IN_PROGRESS");
     }
@@ -176,9 +177,10 @@ class AdminServiceTest {
     void updateOrderStatus_invalidTransition_throwsIllegalState() {
         RefOrderStatus completedStatus = RefOrderStatus.builder().id(3L).code("COMPLETED").nameRu("Завершён").nameEn("Completed").build();
         order.setStatus(completedStatus);
+        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
 
-        assertThatThrownBy(() -> adminService.updateOrderStatus(1L, "IN_PROGRESS"))
+        assertThatThrownBy(() -> adminService.updateOrderStatus("admin@test.com", 1L, "IN_PROGRESS"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("COMPLETED")
                 .hasMessageContaining("IN_PROGRESS");
@@ -186,9 +188,10 @@ class AdminServiceTest {
 
     @Test
     void updateOrderStatus_notFound_throwsNoSuchElement() {
+        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(orderRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> adminService.updateOrderStatus(99L, "IN_PROGRESS"))
+        assertThatThrownBy(() -> adminService.updateOrderStatus("admin@test.com", 99L, "IN_PROGRESS"))
                 .isInstanceOf(NoSuchElementException.class);
     }
 

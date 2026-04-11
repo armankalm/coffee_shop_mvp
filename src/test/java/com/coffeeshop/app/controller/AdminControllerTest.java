@@ -173,7 +173,7 @@ class AdminControllerTest {
         UpdateOrderStatusRequest request = new UpdateOrderStatusRequest();
         request.setStatusCode("IN_PROGRESS");
 
-        when(adminService.updateOrderStatus(eq(1L), eq("IN_PROGRESS")))
+        when(adminService.updateOrderStatus(eq("barista@test.com"), eq(1L), eq("IN_PROGRESS")))
                 .thenReturn(buildOrderDto(1L, inProgressStatus()));
 
         mockMvc.perform(patch("/api/admin/orders/1/status")

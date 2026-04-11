@@ -1,5 +1,7 @@
 package com.coffeeshop.app.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,6 +17,8 @@ import java.util.UUID;
 
 @Service
 public class FileStorageService {
+
+    private static final Logger log = LoggerFactory.getLogger(FileStorageService.class);
 
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "image/jpeg", "image/png", "image/webp", "image/gif"
@@ -74,7 +78,7 @@ public class FileStorageService {
             try {
                 Files.deleteIfExists(filePath);
             } catch (IOException e) {
-                // Log but don't fail - orphan file is non-critical
+                log.warn("Failed to delete file: {}", filePath, e);
             }
         }
     }

@@ -45,9 +45,10 @@ public class AdminController {
 
     @PatchMapping("/orders/{id}/status")
     public ResponseEntity<OrderDto> updateOrderStatus(
+            Authentication authentication,
             @PathVariable("id") Long id,
             @Valid @RequestBody UpdateOrderStatusRequest request) {
-        return ResponseEntity.ok(adminService.updateOrderStatus(id, request.getStatusCode()));
+        return ResponseEntity.ok(adminService.updateOrderStatus(authentication.getName(), id, request.getStatusCode()));
     }
 
     @PostMapping("/shops")
