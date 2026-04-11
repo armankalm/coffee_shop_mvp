@@ -113,19 +113,19 @@
 **Контекст:** API `getUserOrders` и `getOrderById` уже есть. Фронтенд экрана нет. Нужно создать `OrdersScreen` и `OrderDetailScreen`.
 
 **Фронтенд:**
-- [ ] Добавить `'ORDERS' | 'ORDER_DETAIL'` в тип `Screen` (`types.ts`)
-- [ ] Создать `OrdersScreen.tsx` — список заказов пользователя:
+- [x] Добавить `'ORDERS' | 'ORDER_DETAIL'` в тип `Screen` (`types.ts`)
+- [x] Создать `OrdersScreen.tsx` — список заказов пользователя:
   - Загрузка через `getUserOrders()`
   - Отображение: дата, кофейня, статус (на русском из `statusNameRu`), сумма
   - Незавершённый заказ (статус NEW/IN_PROGRESS/READY) — вверху списка с выделением
   - Нажатие — переход к `ORDER_DETAIL`
-- [ ] Создать `OrderDetailScreen.tsx` — детали заказа:
+- [x] Создать `OrderDetailScreen.tsx` — детали заказа:
   - Загрузка через `getOrderById(id)`
   - Показать: кофейню, статус, список позиций с топингами, итог
   - Кнопка "Отменить заказ" (если статус NEW) через `cancelOrder(id)`
-- [ ] Добавить навигацию в `Layout.tsx` — иконка "Заказы" в нижнем баре
-- [ ] В `App.tsx` — добавить `renderScreen` кейсы для ORDERS и ORDER_DETAIL
-- [ ] После оформления заказа (CheckoutScreen `onComplete`) — перенаправлять на ORDER_DETAIL
+- [x] Добавить навигацию в `Layout.tsx` — иконка "Заказы" в нижнем баре
+- [x] В `App.tsx` — добавить `renderScreen` кейсы для ORDERS и ORDER_DETAIL
+- [x] После оформления заказа (CheckoutScreen `onComplete`) — перенаправлять на ORDER_DETAIL
 
 ---
 
