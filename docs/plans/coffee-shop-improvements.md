@@ -134,17 +134,17 @@
 **Контекст:** `SavedCombinationsScreen` и `FavoritesScreen` не имеют кнопки "Заказать"/"В корзину". API для создания заказа есть, но нужно из сохранённой комбинации сформировать CartItem.
 
 **Фронтенд:**
-- [ ] В `SavedCombinationsScreen.tsx` — добавить кнопку "В корзину" для каждой комбинации:
+- [x] В `SavedCombinationsScreen.tsx` — добавить кнопку "В корзину" для каждой комбинации:
   - Формировать `CartItem` из `SavedCombinationDto` (productId, name, basePrice, toppingIds)
   - Передать callback `onAddToCart(cartItem)` из App.tsx
   - Показать toast "Добавлено в корзину"
-- [ ] В `FavoritesScreen.tsx` — добавить кнопку "В корзину":
+- [x] В `FavoritesScreen.tsx` — добавить кнопку "В корзину":
   - Использовать `savedCombination` из `FavoriteItemDto`
   - Аналогичная логика формирования CartItem
-- [ ] В `App.tsx` — добавить обработчик `handleAddToCartFromSaved(combination)`:
+- [x] В `App.tsx` — добавить обработчик `handleAddToCartFromSaved(combination)`:
   - Преобразовать `SavedCombinationDto` → `CartItem`
   - Добавить в корзину (тот же механизм что и из CustomizationScreen)
-- [ ] При добавлении — предложить выбрать размер (S/M/L) через мини-модалку или выбирать M по умолчанию
+- [x] При добавлении — предложить выбрать размер (S/M/L) через мини-модалку или выбирать M по умолчанию
 
 ---
 
