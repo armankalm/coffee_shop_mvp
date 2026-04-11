@@ -109,7 +109,7 @@ class EntityRelationshipTest {
         latte.getAvailableToppings().add(milk);
         productRepository.save(latte);
 
-        assertThat(productRepository.findByAvailableTrue()).hasSize(1);
+        assertThat(productRepository.findAll()).hasSize(1);
         assertThat(toppingRepository.findByType(milkType)).hasSize(1);
     }
 

@@ -1,5 +1,6 @@
 package com.coffeeshop.app.service;
 
+import com.coffeeshop.app.domain.City;
 import com.coffeeshop.app.domain.CoffeeShop;
 import com.coffeeshop.app.domain.RefShopStatus;
 import com.coffeeshop.app.domain.RefUserRole;
@@ -40,8 +41,41 @@ class UserServiceTest {
         RefUserRole userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
         RefShopStatus openStatus = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
 
-        shop = CoffeeShop.builder().id(10L).name("Test Shop").address("Test Address").status(openStatus).build();
+        City city = City.builder().id(1L).name("Almaty").active(true).build();
+        shop = CoffeeShop.builder().id(10L).name("Test Shop").city(city).address("Test Address").status(openStatus).build();
         user = User.builder().id(1L).email("user@example.com").role(userRole).build();
+    }
+
+    @Test
+    void getCurrentUser_existingUser_returnsDto() {
+        user.setCoffeeShop(shop);
+        when(userRepository.findByEmailWithDetails("user@example.com")).thenReturn(Optional.of(user));
+
+        UserDto result = userService.getCurrentUser("user@example.com");
+
+        assertThat(result.getEmail()).isEqualTo("user@example.com");
+        assertThat(result.getCoffeeShopId()).isEqualTo(10L);
+        assertThat(result.getCoffeeShopName()).isEqualTo("Test Shop");
+    }
+
+    @Test
+    void getCurrentUser_noShop_returnsNullShopFields() {
+        when(userRepository.findByEmailWithDetails("user@example.com")).thenReturn(Optional.of(user));
+
+        UserDto result = userService.getCurrentUser("user@example.com");
+
+        assertThat(result.getEmail()).isEqualTo("user@example.com");
+        assertThat(result.getCoffeeShopId()).isNull();
+        assertThat(result.getCoffeeShopName()).isNull();
+    }
+
+    @Test
+    void getCurrentUser_userNotFound_throwsNoSuchElement() {
+        when(userRepository.findByEmailWithDetails("unknown@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.getCurrentUser("unknown@example.com"))
+                .isInstanceOf(NoSuchElementException.class)
+                .hasMessageContaining("unknown@example.com");
     }
 
     @Test

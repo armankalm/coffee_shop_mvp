@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -44,7 +45,32 @@ class UserControllerTest {
         RefShopStatus status = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыта").nameEn("Open").build();
         CoffeeShop shop = CoffeeShop.builder().id(shopId).name("Test Shop").city(city).address("123 St").status(status).build();
         User user = User.builder().id(1L).email("user@test.com").role(userRole).coffeeShop(shop).build();
-        return UserDto.from(user);
+        return UserDto.fromWithDetails(user);
+    }
+
+    @Test
+    @WithMockUser(username = "user@test.com", roles = "USER")
+    void getCurrentUser_authenticated_returns200() throws Exception {
+        UserDto mockDto = buildUserDto(5L);
+        when(userService.getCurrentUser("user@test.com")).thenReturn(mockDto);
+
+        mockMvc.perform(get("/api/users/me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("user@test.com"))
+                .andExpect(jsonPath("$.coffeeShopId").value(5))
+                .andExpect(jsonPath("$.coffeeShopName").value("Test Shop"))
+                .andExpect(jsonPath("$.coffeeShop.id").value(5))
+                .andExpect(jsonPath("$.coffeeShop.name").value("Test Shop"))
+                .andExpect(jsonPath("$.coffeeShop.address").value("123 St"))
+                .andExpect(jsonPath("$.coffeeShop.status").value("OPEN"));
+
+        verify(userService).getCurrentUser("user@test.com");
+    }
+
+    @Test
+    void getCurrentUser_unauthenticated_returns401() throws Exception {
+        mockMvc.perform(get("/api/users/me"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

@@ -21,6 +21,13 @@ public class UserService {
         this.coffeeShopRepository = coffeeShopRepository;
     }
 
+    @Transactional(readOnly = true)
+    public UserDto getCurrentUser(String email) {
+        User user = userRepository.findByEmailWithDetails(email)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + email));
+        return UserDto.fromWithDetails(user);
+    }
+
     @Transactional
     public UserDto updateUserShop(String email, Long shopId) {
         User user = userRepository.findByEmailWithRole(email)

@@ -19,6 +19,13 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<UserDto> getCurrentUser(Authentication authentication) {
+        UserDto user = userService.getCurrentUser(authentication.getName());
+        return ResponseEntity.ok(user);
+    }
+
     @PatchMapping("/me/shop")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserDto> updateMyShop(
