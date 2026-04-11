@@ -1,5 +1,6 @@
 package com.coffeeshop.app.dto.order;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
@@ -14,6 +15,7 @@ public class OrderItemRequest {
     private Set<Long> toppingIds = new HashSet<>();
 
     @Min(1)
+    @Max(100)
     private int quantity = 1;
 
     public Long getProductId() { return productId; }

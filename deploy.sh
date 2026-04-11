@@ -41,7 +41,7 @@ echo -e "${GREEN}✓ Директория проекта: $(pwd)${NC}"
 # Проверка .env файла
 if [ ! -f .env ]; then
     echo -e "${YELLOW}⚠ .env файл не найден. Создаю из шаблона...${NC}"
-    cp .env.production .env
+    cp .env.production.example .env
     echo -e "${RED}❗ Заполни .env файл перед запуском!${NC}"
     echo "nano .env"
     exit 1
