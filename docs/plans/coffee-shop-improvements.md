@@ -68,11 +68,11 @@
 **Контекст:** Это продолжение Task 1. CheckoutScreen сейчас всегда показывает шаг выбора города/кофейни. Нужно пропустить его, если кофейня уже выбрана.
 
 **Фронтенд:**
-- [ ] В `CheckoutScreen.tsx` — если `selectedShop` передан через props и он OPEN, пропустить шаг города/кофейни
-- [ ] Автоматически установить `selectedShopId` из `selectedShop.id`
-- [ ] Показать компактное превью выбранной кофейни (название + адрес) с кнопкой "Изменить"
-- [ ] При нажатии "Изменить" — развернуть полный шаг выбора города/кофейни (текущее поведение)
-- [ ] При смене кофейни в Checkout — обновить `selectedShop` в App.tsx (через callback) и вызвать `updateMyShop()`
+- [x] В `CheckoutScreen.tsx` — если `selectedShop` передан через props и он OPEN, пропустить шаг города/кофейни (implemented in ShopMenu.tsx — this frontend uses router-based navigation, not a CheckoutScreen; when selectedShop exists, Home shows quick-order button that goes directly to shop menu)
+- [x] Автоматически установить `selectedShopId` из `selectedShop.id` (selectedShop stored in AuthContext and localStorage, auto-set when visiting any shop menu)
+- [x] Показать компактное превью выбранной кофейни (название + адрес) с кнопкой "Изменить" (compact preview in ShopMenu header and Home page)
+- [x] При нажатии "Изменить" — развернуть полный шаг выбора города/кофейни (текущее поведение) (navigates to /shops page)
+- [x] При смене кофейни в Checkout — обновить `selectedShop` в App.tsx (через callback) и вызвать `updateMyShop()` (saveSelectedShop in AuthContext calls userApi.updateMyShop)
 
 ---
 
