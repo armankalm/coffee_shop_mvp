@@ -35,15 +35,15 @@
 **Контекст:** UI сейчас на английском. Бэкенд уже возвращает `nameRu`/`statusNameRu` в DTO. Нужно просто заменить английские строки на русские, без i18n.
 
 **Фронтенд:**
-- [ ] `LoginScreen.tsx` — перевести все тексты (заголовки, кнопки, плейсхолдеры, ошибки)
-- [ ] `MenuScreen.tsx` — перевести категории (Coffee→Кофе, Not Coffee→Не кофе, Food→Еда), заголовки, кнопки. Использовать `categoryNameRu` из `ProductDto`
-- [ ] `CustomizationScreen.tsx` — перевести размеры (S/M/L → подписи), кнопки "Add to Cart"→"В корзину", "Save"→"Сохранить"
-- [ ] `CartScreen.tsx` — перевести "Your Cart"→"Корзина", "Checkout"→"Оформить", итоги
-- [ ] `CheckoutScreen.tsx` — перевести шаги оформления, кнопки, статусы
-- [ ] `ShopsScreen.tsx` — перевести заголовок, поиск, статусы кофеен (использовать `statusNameRu`)
-- [ ] `SavedCombinationsScreen.tsx` — перевести заголовки, кнопки
-- [ ] `FavoritesScreen.tsx` — перевести заголовки, кнопки
-- [ ] `Layout.tsx` — перевести навигацию (Menu→Меню, Cart→Корзина, Saved→Сохранённые, Shops→Кофейни)
+- [x] `LoginScreen.tsx` — перевести все тексты (заголовки, кнопки, плейсхолдеры, ошибки)
+- [x] `MenuScreen.tsx` — перевести категории (Coffee→Кофе, Not Coffee→Не кофе, Food→Еда), заголовки, кнопки. Использовать `categoryNameRu` из `ProductDto`
+- [x] `CustomizationScreen.tsx` — перевести размеры (S/M/L → подписи), кнопки "Add to Cart"→"В корзину", "Save"→"Сохранить" (skipped - screen does not exist in current frontend)
+- [x] `CartScreen.tsx` — перевести "Your Cart"→"Корзина", "Checkout"→"Оформить", итоги
+- [x] `CheckoutScreen.tsx` — перевести шаги оформления, кнопки, статусы
+- [x] `ShopsScreen.tsx` — перевести заголовок, поиск, статусы кофеен (использовать `statusNameRu`)
+- [x] `SavedCombinationsScreen.tsx` — перевести заголовки, кнопки (skipped - screen does not exist in current frontend)
+- [x] `FavoritesScreen.tsx` — перевести заголовки, кнопки (skipped - screen does not exist in current frontend)
+- [x] `Layout.tsx` — перевести навигацию (Menu→Меню, Cart→Корзина, Saved→Сохранённые, Shops→Кофейни)
 
 ---
 
