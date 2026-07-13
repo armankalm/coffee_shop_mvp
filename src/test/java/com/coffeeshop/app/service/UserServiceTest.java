@@ -120,4 +120,51 @@ class UserServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("20");
     }
+
+    @Test
+    void updateProfile_setsNameAndPhone() {
+        when(userRepository.findByEmailWithDetails("user@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserDto result = userService.updateProfile("user@example.com", "Алия Садыкова", "+7 701 555 24 10");
+
+        assertThat(result.getName()).isEqualTo("Алия Садыкова");
+        assertThat(result.getPhone()).isEqualTo("+7 701 555 24 10");
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void updateProfile_blankValues_clearsFields() {
+        user.setName("Old Name");
+        user.setPhone("+1 000");
+        when(userRepository.findByEmailWithDetails("user@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserDto result = userService.updateProfile("user@example.com", "  ", "  ");
+
+        assertThat(result.getName()).isNull();
+        assertThat(result.getPhone()).isNull();
+    }
+
+    @Test
+    void updateProfile_nullValues_leavesFieldsUnchanged() {
+        user.setName("Existing Name");
+        user.setPhone("+7 000");
+        when(userRepository.findByEmailWithDetails("user@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserDto result = userService.updateProfile("user@example.com", null, null);
+
+        assertThat(result.getName()).isEqualTo("Existing Name");
+        assertThat(result.getPhone()).isEqualTo("+7 000");
+    }
+
+    @Test
+    void updateProfile_userNotFound_throwsNoSuchElement() {
+        when(userRepository.findByEmailWithDetails("unknown@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.updateProfile("unknown@example.com", "Name", "Phone"))
+                .isInstanceOf(NoSuchElementException.class)
+                .hasMessageContaining("unknown@example.com");
+    }
 }

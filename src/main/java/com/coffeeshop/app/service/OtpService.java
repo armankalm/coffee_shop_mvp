@@ -43,15 +43,35 @@ public class OtpService {
     @Value("${spring.mail.username:noreply@coffeeshop.local}")
     private String fromEmail;
 
+    // Dev-only escape hatch: when no SMTP sender address is configured, skip sending
+    // real emails and instead return the code directly to the caller (see AuthController).
+    // Never enabled implicitly in prod (spring.mail.username has no default there).
+    @Value("${spring.mail.username:}")
+    private String configuredFromEmail;
+
     public OtpService(OtpCodeRepository otpCodeRepository, JavaMailSender mailSender) {
         this.otpCodeRepository = otpCodeRepository;
         this.mailSender = mailSender;
     }
 
-    public void generateAndSend(String email) {
+    public boolean isDevMode() {
+        return configuredFromEmail.isBlank();
+    }
+
+    /**
+     * Generates and persists an OTP. In dev mode (no mail sender configured) the email
+     * is skipped and the plaintext code is returned so the caller can expose it directly
+     * instead of relying on real email delivery.
+     */
+    public String generateAndSend(String email) {
         String code = self.saveOtp(email);
+        if (isDevMode()) {
+            log.warn("OTP dev-mode active (no MAIL_USERNAME configured): returning code for {} instead of emailing it", email);
+            return code;
+        }
         sendEmail(email, code);
         log.info("OTP sent to: {}", email);
+        return null;
     }
 
     @Transactional

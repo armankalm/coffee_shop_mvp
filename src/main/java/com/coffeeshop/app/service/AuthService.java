@@ -50,14 +50,17 @@ public class AuthService {
         this.coffeeShopRepository = coffeeShopRepository;
     }
 
-    public void requestCode(String email) {
+    /**
+     * Returns the OTP code when running in dev mode (see OtpService#isDevMode), null otherwise.
+     */
+    public String requestCode(String email) {
         email = email.toLowerCase(Locale.ROOT).trim();
         // Auto-register new users in a separate transaction so that a concurrent-registration
         // DataIntegrityViolationException does not poison the transaction used by otpService.generateAndSend.
         if (!userRepository.existsByEmail(email)) {
             self.tryRegisterUser(email);
         }
-        otpService.generateAndSend(email);
+        return otpService.generateAndSend(email);
     }
 
     /**

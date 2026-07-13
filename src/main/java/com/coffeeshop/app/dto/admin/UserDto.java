@@ -9,6 +9,8 @@ public class UserDto {
 
     private Long id;
     private String email;
+    private String name;
+    private String phone;
     private String role;
     private Instant createdAt;
     private Long coffeeShopId;
@@ -19,6 +21,8 @@ public class UserDto {
         UserDto dto = new UserDto();
         dto.id = user.getId();
         dto.email = user.getEmail();
+        dto.name = user.getName();
+        dto.phone = user.getPhone();
         dto.role = user.getRole().getCode();
         dto.createdAt = user.getCreatedAt();
         dto.coffeeShopId = user.getCoffeeShop() != null ? user.getCoffeeShop().getId() : null;
@@ -36,6 +40,8 @@ public class UserDto {
 
     public Long getId() { return id; }
     public String getEmail() { return email; }
+    public String getName() { return name; }
+    public String getPhone() { return phone; }
     public String getRole() { return role; }
     public Instant getCreatedAt() { return createdAt; }
     public Long getCoffeeShopId() { return coffeeShopId; }

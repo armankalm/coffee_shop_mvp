@@ -70,7 +70,7 @@ class AuthServiceTest {
         when(refUserRoleRepository.findByCode("USER")).thenReturn(Optional.of(userRole));
         when(coffeeShopRepository.findFirstByStatusCode(eq("OPEN"), any(Pageable.class))).thenReturn(List.of());
         when(userRepository.saveAndFlush(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
-        doNothing().when(otpService).generateAndSend("new@example.com");
+        when(otpService.generateAndSend("new@example.com")).thenReturn(null);
 
         authService.requestCode("new@example.com");
 
@@ -81,7 +81,7 @@ class AuthServiceTest {
     @Test
     void requestCode_existingUser_onlySendsOtp() {
         when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
-        doNothing().when(otpService).generateAndSend("existing@example.com");
+        when(otpService.generateAndSend("existing@example.com")).thenReturn(null);
 
         authService.requestCode("existing@example.com");
 
@@ -141,7 +141,7 @@ class AuthServiceTest {
         when(refUserRoleRepository.findByCode("USER")).thenReturn(Optional.of(userRole));
         when(coffeeShopRepository.findFirstByStatusCode(eq("OPEN"), any(Pageable.class))).thenReturn(List.of(shop));
         when(userRepository.saveAndFlush(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
-        doNothing().when(otpService).generateAndSend("new@example.com");
+        when(otpService.generateAndSend("new@example.com")).thenReturn(null);
 
         authService.requestCode("new@example.com");
 
@@ -156,7 +156,7 @@ class AuthServiceTest {
         when(refUserRoleRepository.findByCode("USER")).thenReturn(Optional.of(userRole));
         when(coffeeShopRepository.findFirstByStatusCode(eq("OPEN"), any(Pageable.class))).thenReturn(List.of());
         when(userRepository.saveAndFlush(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
-        doNothing().when(otpService).generateAndSend("new@example.com");
+        when(otpService.generateAndSend("new@example.com")).thenReturn(null);
 
         authService.requestCode("new@example.com");
 

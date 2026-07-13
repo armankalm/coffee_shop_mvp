@@ -149,4 +149,38 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(Map.of("shopId", -1))))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @WithMockUser(username = "user@test.com", roles = "USER")
+    void updateMyProfile_validRequest_returns200() throws Exception {
+        UserDto mockDto = buildUserDto(5L);
+        when(userService.updateProfile("user@test.com", "Алия Садыкова", "+7 701 555 24 10")).thenReturn(mockDto);
+
+        mockMvc.perform(patch("/api/users/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                Map.of("name", "Алия Садыкова", "phone", "+7 701 555 24 10"))))
+                .andExpect(status().isOk());
+
+        verify(userService).updateProfile("user@test.com", "Алия Садыкова", "+7 701 555 24 10");
+    }
+
+    @Test
+    void updateMyProfile_unauthenticated_returns401() throws Exception {
+        mockMvc.perform(patch("/api/users/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("name", "Test"))))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "user@test.com", roles = "USER")
+    void updateMyProfile_nameTooLong_returns400() throws Exception {
+        String tooLong = "a".repeat(256);
+
+        mockMvc.perform(patch("/api/users/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("name", tooLong))))
+                .andExpect(status().isBadRequest());
+    }
 }

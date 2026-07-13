@@ -1,6 +1,7 @@
 package com.coffeeshop.app.controller;
 
 import com.coffeeshop.app.dto.admin.UserDto;
+import com.coffeeshop.app.dto.user.UpdateProfileRequest;
 import com.coffeeshop.app.dto.user.UpdateShopRequest;
 import com.coffeeshop.app.service.UserService;
 import jakarta.validation.Valid;
@@ -32,6 +33,15 @@ public class UserController {
             Authentication authentication,
             @Valid @RequestBody UpdateShopRequest body) {
         UserDto updated = userService.updateUserShop(authentication.getName(), body.getShopId());
+        return ResponseEntity.ok(updated);
+    }
+
+    @PatchMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserDto> updateMyProfile(
+            Authentication authentication,
+            @Valid @RequestBody UpdateProfileRequest body) {
+        UserDto updated = userService.updateProfile(authentication.getName(), body.getName(), body.getPhone());
         return ResponseEntity.ok(updated);
     }
 }

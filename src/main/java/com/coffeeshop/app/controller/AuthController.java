@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -23,8 +24,15 @@ public class AuthController {
 
     @PostMapping("/request-code")
     public ResponseEntity<Map<String, String>> requestCode(@Valid @RequestBody RequestCodeRequest request) {
-        authService.requestCode(request.getEmail());
-        return ResponseEntity.ok(Map.of("message", "OTP sent to " + request.getEmail()));
+        // In dev mode (no MAIL_USERNAME configured) devCode is returned instead of emailing the OTP.
+        String devCode = authService.requestCode(request.getEmail());
+
+        Map<String, String> body = new HashMap<>();
+        body.put("message", "OTP sent to " + request.getEmail());
+        if (devCode != null) {
+            body.put("devCode", devCode);
+        }
+        return ResponseEntity.ok(body);
     }
 
     @PostMapping("/verify-code")

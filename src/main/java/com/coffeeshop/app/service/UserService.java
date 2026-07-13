@@ -41,4 +41,18 @@ public class UserService {
         userRepository.save(user);
         return UserDto.fromWithDetails(user);
     }
+
+    @Transactional
+    public UserDto updateProfile(String email, String name, String phone) {
+        User user = userRepository.findByEmailWithDetails(email)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + email));
+        if (name != null) {
+            user.setName(name.isBlank() ? null : name.trim());
+        }
+        if (phone != null) {
+            user.setPhone(phone.isBlank() ? null : phone.trim());
+        }
+        userRepository.save(user);
+        return UserDto.fromWithDetails(user);
+    }
 }

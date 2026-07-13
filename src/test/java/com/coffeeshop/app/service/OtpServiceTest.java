@@ -40,6 +40,7 @@ class OtpServiceTest {
         ReflectionTestUtils.setField(otpService, "expirationMinutes", 5);
         ReflectionTestUtils.setField(otpService, "otpLength", 6);
         ReflectionTestUtils.setField(otpService, "fromEmail", "noreply@coffeeshop.local");
+        ReflectionTestUtils.setField(otpService, "configuredFromEmail", "noreply@coffeeshop.local");
         ReflectionTestUtils.setField(otpService, "self", otpService);
     }
 
@@ -50,8 +51,9 @@ class OtpServiceTest {
                 eq("user@example.com"), any(Instant.class))).thenReturn(Optional.empty());
         doNothing().when(mailSender).send(any(SimpleMailMessage.class));
 
-        otpService.generateAndSend("user@example.com");
+        String devCode = otpService.generateAndSend("user@example.com");
 
+        assertThat(devCode).isNull();
         verify(otpCodeRepository).deleteExpiredOrInvalidByEmail(eq("user@example.com"), any(Instant.class), anyInt());
         verify(otpCodeRepository).save(otpCaptor.capture());
         verify(mailSender).send(any(SimpleMailMessage.class));
@@ -103,6 +105,19 @@ class OtpServiceTest {
         verify(otpCodeRepository).deleteExpiredOrInvalidByEmail(eq("user@example.com"), any(Instant.class), anyInt());
         verify(otpCodeRepository).save(any(OtpCode.class));
         verify(mailSender).send(any(SimpleMailMessage.class));
+    }
+
+    @Test
+    void generateAndSend_devMode_skipsEmailAndReturnsCode() {
+        ReflectionTestUtils.setField(otpService, "configuredFromEmail", "");
+        when(otpCodeRepository.findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(
+                eq("user@example.com"), any(Instant.class))).thenReturn(Optional.empty());
+
+        String devCode = otpService.generateAndSend("user@example.com");
+
+        assertThat(devCode).isNotBlank();
+        assertThat(devCode).hasSize(6);
+        verify(mailSender, never()).send(any(SimpleMailMessage.class));
     }
 
     @Test

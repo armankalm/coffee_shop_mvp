@@ -37,15 +37,27 @@ class AuthControllerTest {
 
     @Test
     void requestCode_validEmail_returns200() throws Exception {
-        doNothing().when(authService).requestCode("user@example.com");
+        when(authService.requestCode("user@example.com")).thenReturn(null);
 
         mockMvc.perform(post("/api/auth/request-code")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("email", "user@example.com"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").exists());
+                .andExpect(jsonPath("$.message").exists())
+                .andExpect(jsonPath("$.devCode").doesNotExist());
 
         verify(authService).requestCode("user@example.com");
+    }
+
+    @Test
+    void requestCode_devMode_includesDevCodeInResponse() throws Exception {
+        when(authService.requestCode("user@example.com")).thenReturn("123456");
+
+        mockMvc.perform(post("/api/auth/request-code")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("email", "user@example.com"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.devCode").value("123456"));
     }
 
     @Test
