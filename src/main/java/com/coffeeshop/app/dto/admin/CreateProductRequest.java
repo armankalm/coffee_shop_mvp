@@ -24,6 +24,8 @@ public class CreateProductRequest {
 
     private boolean available = true;
 
+    private String description;
+
     private Set<Long> availableToppingIds;
 
     public Long getShopId() { return shopId; }
@@ -40,6 +42,9 @@ public class CreateProductRequest {
 
     public boolean isAvailable() { return available; }
     public void setAvailable(boolean available) { this.available = available; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
     public Set<Long> getAvailableToppingIds() { return availableToppingIds; }
     public void setAvailableToppingIds(Set<Long> availableToppingIds) { this.availableToppingIds = availableToppingIds; }

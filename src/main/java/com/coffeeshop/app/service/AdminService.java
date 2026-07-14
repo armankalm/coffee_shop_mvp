@@ -169,6 +169,7 @@ public class AdminService {
                 .category(category)
                 .basePrice(request.getBasePrice())
                 .available(request.isAvailable())
+                .description(request.getDescription())
                 .availableToppings(availableToppings)
                 .build();
         return ProductDto.from(productRepository.save(product));
@@ -184,6 +185,7 @@ public class AdminService {
         product.setCategory(resolveProductCategory(request.getCategoryCode()));
         product.setBasePrice(request.getBasePrice());
         product.setAvailable(request.isAvailable());
+        product.setDescription(request.getDescription());
         product.setAvailableToppings(resolveToppings(request.getAvailableToppingIds()));
         return ProductDto.from(productRepository.save(product));
     }
