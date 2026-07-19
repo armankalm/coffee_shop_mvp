@@ -12,6 +12,8 @@ public class OrderItemDto {
     private Long id;
     private Long productId;
     private String productName;
+    private String status;
+    private String statusNameRu;
     private Set<ToppingDto> toppings;
     private int quantity;
     private BigDecimal price;
@@ -21,6 +23,8 @@ public class OrderItemDto {
         dto.id = item.getId();
         dto.productId = item.getProduct().getId();
         dto.productName = item.getProduct().getName();
+        dto.status = item.getStatus().getCode();
+        dto.statusNameRu = item.getStatus().getNameRu();
         dto.toppings = item.getToppings().stream()
                 .map(ToppingDto::fromWithoutIncompatibilities)
                 .collect(Collectors.toSet());
@@ -32,6 +36,8 @@ public class OrderItemDto {
     public Long getId() { return id; }
     public Long getProductId() { return productId; }
     public String getProductName() { return productName; }
+    public String getStatus() { return status; }
+    public String getStatusNameRu() { return statusNameRu; }
     public Set<ToppingDto> getToppings() { return toppings; }
     public int getQuantity() { return quantity; }
     public BigDecimal getPrice() { return price; }

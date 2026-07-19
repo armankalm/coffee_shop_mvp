@@ -17,9 +17,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -30,6 +32,7 @@ import static org.mockito.Mockito.*;
 class AdminServiceTest {
 
     @Mock private OrderRepository orderRepository;
+    @Mock private OrderItemRepository orderItemRepository;
     @Mock private CoffeeShopRepository coffeeShopRepository;
     @Mock private ProductRepository productRepository;
     @Mock private ToppingRepository toppingRepository;
@@ -70,10 +73,11 @@ class AdminServiceTest {
         milkType = RefToppingType.builder().id(1L).code("MILK").nameRu("Молоко").nameEn("Milk").build();
 
         user = User.builder().id(1L).email("user@test.com").role(userRole).build();
-        adminUser = User.builder().id(2L).email("admin@test.com").role(adminRole).build();
         City almatyCity = City.builder().id(1L).name("Almaty").active(true).build();
         shop = CoffeeShop.builder().id(1L).name("Test Shop").city(almatyCity)
                 .address("123 St").status(openStatus).build();
+        adminUser = User.builder().id(2L).email("admin@test.com").role(adminRole)
+                .assignedShops(new LinkedHashSet<>(Set.of(shop))).build();
         product = Product.builder().id(1L).name("Latte").category(coffeeCategory)
                 .basePrice(BigDecimal.valueOf(500)).available(true).build();
         topping = Topping.builder().id(1L).name("Oat Milk").type(milkType)
@@ -83,9 +87,9 @@ class AdminServiceTest {
     }
 
     @Test
-    void getAllOrders_noFilters_returnsAll() {
-        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
-        when(orderRepository.findAllWithDetails()).thenReturn(List.of(order));
+    void getAllOrders_noFilters_returnsAssignedShopsOrders() {
+        when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(adminUser));
+        when(orderRepository.findByShopIdInWithDetails(Set.of(1L))).thenReturn(List.of(order));
 
         List<OrderDto> result = adminService.getAllOrders("admin@test.com", null, null);
 
@@ -94,10 +98,22 @@ class AdminServiceTest {
     }
 
     @Test
+    void getAllOrders_noAssignedShops_returnsEmpty() {
+        User unassigned = User.builder().id(9L).email("admin@test.com").role(adminRole)
+                .assignedShops(new LinkedHashSet<>()).build();
+        when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(unassigned));
+
+        List<OrderDto> result = adminService.getAllOrders("admin@test.com", null, null);
+
+        assertThat(result).isEmpty();
+        verify(orderRepository, never()).findByShopIdInWithDetails(any());
+    }
+
+    @Test
     void getAllOrders_filterByStatus_returnsMatchingOrders() {
-        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
+        when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
-        when(orderRepository.findByStatusWithDetails(newStatus)).thenReturn(List.of(order));
+        when(orderRepository.findByStatusAndShopIdInWithDetails(newStatus, Set.of(1L))).thenReturn(List.of(order));
 
         List<OrderDto> result = adminService.getAllOrders("admin@test.com", "NEW", null);
 
@@ -107,8 +123,8 @@ class AdminServiceTest {
 
     @Test
     void getAllOrders_filterByShopId_returnsMatchingOrders() {
-        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
-        when(orderRepository.findByShopIdWithDetails(1L)).thenReturn(List.of(order));
+        when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(adminUser));
+        when(orderRepository.findByShopIdInWithDetails(Set.of(1L))).thenReturn(List.of(order));
 
         List<OrderDto> result = adminService.getAllOrders("admin@test.com", null, 1L);
 
@@ -116,54 +132,74 @@ class AdminServiceTest {
     }
 
     @Test
+    void getAllOrders_filterByUnassignedShopId_throwsAccessDenied() {
+        when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(adminUser));
+
+        assertThatThrownBy(() -> adminService.getAllOrders("admin@test.com", null, 999L))
+                .isInstanceOf(com.coffeeshop.app.config.AccessDeniedException.class);
+    }
+
+    @Test
     void getAllOrders_filterByStatusAndShopId_returnsMatchingOrders() {
-        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
+        when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
-        when(orderRepository.findByStatusAndShopIdWithDetails(newStatus, 1L)).thenReturn(List.of(order));
+        when(orderRepository.findByStatusAndShopIdInWithDetails(newStatus, Set.of(1L))).thenReturn(List.of(order));
 
         List<OrderDto> result = adminService.getAllOrders("admin@test.com", "NEW", 1L);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);
-        verify(orderRepository).findByStatusAndShopIdWithDetails(newStatus, 1L);
-        verify(orderRepository, never()).findByStatusWithDetails(any());
+        verify(orderRepository).findByStatusAndShopIdInWithDetails(newStatus, Set.of(1L));
     }
 
     @Test
-    void getAllOrders_asBarista_scopedToAssignedShop() {
+    void getAllOrders_asBarista_scopedToAssignedShops() {
         RefUserRole baristaRole = RefUserRole.builder().id(3L).code("BARISTA").nameRu("Бариста").nameEn("Barista").build();
-        User baristaUser = User.builder().id(3L).email("barista@test.com").role(baristaRole).coffeeShop(shop).build();
-        when(userRepository.findByEmailWithDetails("barista@test.com")).thenReturn(Optional.of(baristaUser));
-        when(orderRepository.findByShopIdWithDetails(1L)).thenReturn(List.of(order));
+        User baristaUser = User.builder().id(3L).email("barista@test.com").role(baristaRole)
+                .assignedShops(new LinkedHashSet<>(Set.of(shop))).build();
+        when(userRepository.findByEmailWithAssignedShops("barista@test.com")).thenReturn(Optional.of(baristaUser));
+        when(orderRepository.findByShopIdInWithDetails(Set.of(1L))).thenReturn(List.of(order));
 
         List<OrderDto> result = adminService.getAllOrders("barista@test.com", null, null);
 
         assertThat(result).hasSize(1);
-        verify(orderRepository).findByShopIdWithDetails(1L);
-        verify(orderRepository, never()).findAllWithDetails();
+        verify(orderRepository).findByShopIdInWithDetails(Set.of(1L));
     }
 
     @Test
     void getOrderById_existingOrder_returnsDto() {
         when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(adminUser));
 
-        OrderDto result = adminService.getOrderById(1L);
+        OrderDto result = adminService.getOrderById("admin@test.com", 1L);
 
         assertThat(result.getId()).isEqualTo(1L);
+    }
+
+    @Test
+    void getOrderById_notAssignedToShop_throwsAccessDenied() {
+        RefUserRole baristaRole = RefUserRole.builder().id(3L).code("BARISTA").nameRu("Бариста").nameEn("Barista").build();
+        User baristaUser = User.builder().id(3L).email("barista@test.com").role(baristaRole)
+                .assignedShops(new LinkedHashSet<>()).build();
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByEmailWithAssignedShops("barista@test.com")).thenReturn(Optional.of(baristaUser));
+
+        assertThatThrownBy(() -> adminService.getOrderById("barista@test.com", 1L))
+                .isInstanceOf(com.coffeeshop.app.config.AccessDeniedException.class);
     }
 
     @Test
     void getOrderById_notFound_throwsNoSuchElement() {
         when(orderRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> adminService.getOrderById(99L))
+        assertThatThrownBy(() -> adminService.getOrderById("admin@test.com", 99L))
                 .isInstanceOf(NoSuchElementException.class)
                 .hasMessageContaining("99");
     }
 
     @Test
     void updateOrderStatus_validOrder_updatesStatus() {
-        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
+        when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
         when(refOrderStatusRepository.findByCode("IN_PROGRESS")).thenReturn(Optional.of(inProgressStatus));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -174,10 +210,22 @@ class AdminServiceTest {
     }
 
     @Test
+    void updateOrderStatus_notAssignedToShop_throwsAccessDenied() {
+        RefUserRole baristaRole = RefUserRole.builder().id(3L).code("BARISTA").nameRu("Бариста").nameEn("Barista").build();
+        User baristaUser = User.builder().id(3L).email("barista@test.com").role(baristaRole)
+                .assignedShops(new LinkedHashSet<>()).build();
+        when(userRepository.findByEmailWithAssignedShops("barista@test.com")).thenReturn(Optional.of(baristaUser));
+        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> adminService.updateOrderStatus("barista@test.com", 1L, "IN_PROGRESS"))
+                .isInstanceOf(com.coffeeshop.app.config.AccessDeniedException.class);
+    }
+
+    @Test
     void updateOrderStatus_invalidTransition_throwsIllegalState() {
         RefOrderStatus completedStatus = RefOrderStatus.builder().id(3L).code("COMPLETED").nameRu("Завершён").nameEn("Completed").build();
         order.setStatus(completedStatus);
-        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
+        when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(order));
 
         assertThatThrownBy(() -> adminService.updateOrderStatus("admin@test.com", 1L, "IN_PROGRESS"))
@@ -188,10 +236,46 @@ class AdminServiceTest {
 
     @Test
     void updateOrderStatus_notFound_throwsNoSuchElement() {
-        when(userRepository.findByEmailWithDetails("admin@test.com")).thenReturn(Optional.of(adminUser));
+        when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(adminUser));
         when(orderRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> adminService.updateOrderStatus("admin@test.com", 99L, "IN_PROGRESS"))
+                .isInstanceOf(NoSuchElementException.class);
+    }
+
+    @Test
+    void assignShop_validStaff_addsShop() {
+        RefUserRole baristaRole = RefUserRole.builder().id(3L).code("BARISTA").nameRu("Бариста").nameEn("Barista").build();
+        User baristaUser = User.builder().id(3L).email("barista@test.com").role(baristaRole)
+                .assignedShops(new LinkedHashSet<>()).build();
+        when(userRepository.findByIdWithAssignedShops(3L)).thenReturn(Optional.of(baristaUser));
+        when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserDto result = adminService.assignShop(3L, 1L);
+
+        assertThat(result.getAssignedShops()).hasSize(1);
+        assertThat(baristaUser.getAssignedShops()).contains(shop);
+    }
+
+    @Test
+    void assignShop_toRegularUser_throwsIllegalArgument() {
+        User regular = User.builder().id(1L).email("user@test.com").role(userRole)
+                .assignedShops(new LinkedHashSet<>()).build();
+        when(userRepository.findByIdWithAssignedShops(1L)).thenReturn(Optional.of(regular));
+
+        assertThatThrownBy(() -> adminService.assignShop(1L, 1L))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void unassignShop_notAssigned_throwsNoSuchElement() {
+        RefUserRole baristaRole = RefUserRole.builder().id(3L).code("BARISTA").nameRu("Бариста").nameEn("Barista").build();
+        User baristaUser = User.builder().id(3L).email("barista@test.com").role(baristaRole)
+                .assignedShops(new LinkedHashSet<>()).build();
+        when(userRepository.findByIdWithAssignedShops(3L)).thenReturn(Optional.of(baristaUser));
+
+        assertThatThrownBy(() -> adminService.unassignShop(3L, 1L))
                 .isInstanceOf(NoSuchElementException.class);
     }
 

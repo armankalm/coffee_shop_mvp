@@ -2,6 +2,7 @@ package com.coffeeshop.app.controller;
 
 import com.coffeeshop.app.dto.admin.*;
 import com.coffeeshop.app.dto.order.OrderDto;
+import com.coffeeshop.app.dto.order.OrderItemBoardDto;
 import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.dto.shop.CityDto;
@@ -39,8 +40,10 @@ public class AdminController {
     }
 
     @GetMapping("/orders/{id}")
-    public ResponseEntity<OrderDto> getOrderById(@PathVariable("id") Long id) {
-        return ResponseEntity.ok(adminService.getOrderById(id));
+    public ResponseEntity<OrderDto> getOrderById(
+            Authentication authentication,
+            @PathVariable("id") Long id) {
+        return ResponseEntity.ok(adminService.getOrderById(authentication.getName(), id));
     }
 
     @PatchMapping("/orders/{id}/status")
@@ -49,6 +52,23 @@ public class AdminController {
             @PathVariable("id") Long id,
             @Valid @RequestBody UpdateOrderStatusRequest request) {
         return ResponseEntity.ok(adminService.updateOrderStatus(authentication.getName(), id, request.getStatusCode()));
+    }
+
+    @GetMapping("/order-items")
+    public ResponseEntity<List<OrderItemBoardDto>> getOrderItems(
+            Authentication authentication,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "shopId", required = false) Long shopId) {
+        return ResponseEntity.ok(adminService.getOrderItems(authentication.getName(), status, shopId));
+    }
+
+    @PatchMapping("/order-items/{id}/status")
+    public ResponseEntity<OrderItemBoardDto> updateOrderItemStatus(
+            Authentication authentication,
+            @PathVariable("id") Long id,
+            @Valid @RequestBody UpdateOrderItemStatusRequest request) {
+        return ResponseEntity.ok(
+                adminService.updateOrderItemStatus(authentication.getName(), id, request.getStatusCode()));
     }
 
     @PostMapping("/shops")
@@ -118,6 +138,28 @@ public class AdminController {
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<List<UserDto>> getAllUsers() {
         return ResponseEntity.ok(adminService.getAllUsers());
+    }
+
+    @GetMapping("/users/{userId}/shops")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<List<CoffeeShopDto>> getAssignedShops(@PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(adminService.getAssignedShops(userId));
+    }
+
+    @PostMapping("/users/{userId}/shops/{shopId}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<UserDto> assignShop(
+            @PathVariable("userId") Long userId,
+            @PathVariable("shopId") Long shopId) {
+        return ResponseEntity.ok(adminService.assignShop(userId, shopId));
+    }
+
+    @DeleteMapping("/users/{userId}/shops/{shopId}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<UserDto> unassignShop(
+            @PathVariable("userId") Long userId,
+            @PathVariable("shopId") Long shopId) {
+        return ResponseEntity.ok(adminService.unassignShop(userId, shopId));
     }
 
     @PostMapping("/orders/{id}/print")

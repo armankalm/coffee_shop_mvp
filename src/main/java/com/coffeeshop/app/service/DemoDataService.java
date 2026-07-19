@@ -109,7 +109,7 @@ public class DemoDataService {
         List<CoffeeShop> shops = seedShops(cities);
         List<Topping> toppings = seedToppings();
         List<Product> products = seedProducts(shops, toppings);
-        List<User> users = seedUsers();
+        List<User> users = seedUsers(shops);
         seedOrders(users, shops, products, toppings);
         seedSavedCombinations(users, products, toppings);
     }
@@ -317,7 +317,7 @@ public class DemoDataService {
         return products;
     }
 
-    private List<User> seedUsers() {
+    private List<User> seedUsers(List<CoffeeShop> shops) {
         RefUserRole userRole = refUserRoleRepository.findByCode("USER")
                 .orElseThrow(() -> new NoSuchElementException("Role USER not found"));
         RefUserRole baristaRole = refUserRoleRepository.findByCode("BARISTA")
@@ -327,12 +327,20 @@ public class DemoDataService {
         RefUserRole adminRole = refUserRoleRepository.findByCode("ADMIN")
                 .orElseThrow(() -> new NoSuchElementException("Role ADMIN not found"));
 
+        // Shops where demo orders are created (see seedOrders) — assign staff there so they see orders.
+        Set<CoffeeShop> orderShops = new LinkedHashSet<>(List.of(shops.get(0), shops.get(2)));
+        // The demo barista only covers one of the two shops, to show scoped access.
+        Set<CoffeeShop> baristaShops = new LinkedHashSet<>(List.of(shops.get(0)));
+
         List<User> users = new ArrayList<>();
         users.add(userRepository.save(User.builder().email("user@demo.kz").role(userRole).build()));
         users.add(userRepository.save(User.builder().email("user2@demo.kz").role(userRole).build()));
-        users.add(userRepository.save(User.builder().email("barista@demo.kz").role(baristaRole).build()));
-        users.add(userRepository.save(User.builder().email("manager@demo.kz").role(managerRole).build()));
-        users.add(userRepository.save(User.builder().email("admin@demo.kz").role(adminRole).build()));
+        users.add(userRepository.save(User.builder().email("barista@demo.kz").role(baristaRole)
+                .assignedShops(baristaShops).build()));
+        users.add(userRepository.save(User.builder().email("manager@demo.kz").role(managerRole)
+                .assignedShops(new LinkedHashSet<>(orderShops)).build()));
+        users.add(userRepository.save(User.builder().email("admin@demo.kz").role(adminRole)
+                .assignedShops(new LinkedHashSet<>(orderShops)).build()));
         return users;
     }
 

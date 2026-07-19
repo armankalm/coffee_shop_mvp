@@ -3,6 +3,7 @@ package com.coffeeshop.app.service;
 import com.coffeeshop.app.domain.*;
 import com.coffeeshop.app.dto.admin.*;
 import com.coffeeshop.app.dto.order.OrderDto;
+import com.coffeeshop.app.dto.order.OrderItemBoardDto;
 import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
@@ -33,6 +34,7 @@ public class AdminService {
     );
 
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final CoffeeShopRepository coffeeShopRepository;
     private final ProductRepository productRepository;
     private final ToppingRepository toppingRepository;
@@ -45,6 +47,7 @@ public class AdminService {
     private final CityRepository cityRepository;
 
     public AdminService(OrderRepository orderRepository,
+                        OrderItemRepository orderItemRepository,
                         CoffeeShopRepository coffeeShopRepository,
                         ProductRepository productRepository,
                         ToppingRepository toppingRepository,
@@ -56,6 +59,7 @@ public class AdminService {
                         RefToppingTypeRepository refToppingTypeRepository,
                         CityRepository cityRepository) {
         this.orderRepository = orderRepository;
+        this.orderItemRepository = orderItemRepository;
         this.coffeeShopRepository = coffeeShopRepository;
         this.productRepository = productRepository;
         this.toppingRepository = toppingRepository;
@@ -70,53 +74,56 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public List<OrderDto> getAllOrders(String userEmail, String statusCode, Long shopId) {
-        // Baristas can only see orders for their assigned shop
-        User user = userRepository.findByEmailWithDetails(userEmail)
+        // Staff (BARISTA/MANAGER/ADMIN) can only see orders for shops they are assigned to.
+        User user = userRepository.findByEmailWithAssignedShops(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
-        if ("BARISTA".equals(user.getRole().getCode())) {
-            if (user.getCoffeeShop() != null) {
-                shopId = user.getCoffeeShop().getId();
-            } else {
-                return List.of();
+        Set<Long> assignedShopIds = user.getAssignedShops().stream()
+                .map(CoffeeShop::getId)
+                .collect(Collectors.toSet());
+        if (assignedShopIds.isEmpty()) {
+            return List.of();
+        }
+
+        // If a specific shop is requested it must be one the user is assigned to.
+        Set<Long> scopeShopIds;
+        if (shopId != null) {
+            if (!assignedShopIds.contains(shopId)) {
+                throw new com.coffeeshop.app.config.AccessDeniedException(
+                        "You are not assigned to shop: " + shopId);
             }
+            scopeShopIds = Set.of(shopId);
+        } else {
+            scopeShopIds = assignedShopIds;
         }
 
         List<Order> orders;
-        if (statusCode != null && shopId != null) {
+        if (statusCode != null) {
             RefOrderStatus status = resolveOrderStatus(statusCode);
-            orders = orderRepository.findByStatusAndShopIdWithDetails(status, shopId);
-        } else if (statusCode != null) {
-            RefOrderStatus status = resolveOrderStatus(statusCode);
-            orders = orderRepository.findByStatusWithDetails(status);
-        } else if (shopId != null) {
-            orders = orderRepository.findByShopIdWithDetails(shopId);
+            orders = orderRepository.findByStatusAndShopIdInWithDetails(status, scopeShopIds);
         } else {
-            orders = orderRepository.findAllWithDetails();
+            orders = orderRepository.findByShopIdInWithDetails(scopeShopIds);
         }
         return orders.stream().map(OrderDto::from).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public OrderDto getOrderById(Long orderId) {
+    public OrderDto getOrderById(String userEmail, Long orderId) {
         Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
+        User user = userRepository.findByEmailWithAssignedShops(userEmail)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
+        requireAssignedToShop(user, order.getShop().getId());
         return OrderDto.from(order);
     }
 
     public OrderDto updateOrderStatus(String userEmail, Long orderId, String newStatusCode) {
-        User user = userRepository.findByEmailWithDetails(userEmail)
+        User user = userRepository.findByEmailWithAssignedShops(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
         Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderId));
 
-        // Baristas can only update orders for their assigned shop
-        if ("BARISTA".equals(user.getRole().getCode())) {
-            if (user.getCoffeeShop() == null
-                    || !user.getCoffeeShop().getId().equals(order.getShop().getId())) {
-                throw new com.coffeeshop.app.config.AccessDeniedException(
-                        "Baristas can only update orders for their assigned shop");
-            }
-        }
+        // Staff can only update orders for shops they are assigned to.
+        requireAssignedToShop(user, order.getShop().getId());
 
         String currentCode = order.getStatus().getCode();
         Set<String> allowed = ALLOWED_TRANSITIONS.getOrDefault(currentCode, Set.of());
@@ -127,6 +134,82 @@ public class AdminService {
         RefOrderStatus newStatus = resolveOrderStatus(newStatusCode);
         order.setStatus(newStatus);
         return OrderDto.from(orderRepository.save(order));
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderItemBoardDto> getOrderItems(String userEmail, String statusCode, Long shopId) {
+        // Staff (BARISTA/MANAGER/ADMIN) can only see items for shops they are assigned to.
+        User user = userRepository.findByEmailWithAssignedShops(userEmail)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
+        Set<Long> assignedShopIds = user.getAssignedShops().stream()
+                .map(CoffeeShop::getId)
+                .collect(Collectors.toSet());
+        if (assignedShopIds.isEmpty()) {
+            return List.of();
+        }
+
+        Set<Long> scopeShopIds;
+        if (shopId != null) {
+            if (!assignedShopIds.contains(shopId)) {
+                throw new com.coffeeshop.app.config.AccessDeniedException(
+                        "You are not assigned to shop: " + shopId);
+            }
+            scopeShopIds = Set.of(shopId);
+        } else {
+            scopeShopIds = assignedShopIds;
+        }
+
+        List<OrderItem> items;
+        if (statusCode != null) {
+            RefOrderStatus status = resolveOrderStatus(statusCode);
+            items = orderItemRepository.findByStatusAndShopIdInWithDetails(status, scopeShopIds);
+        } else {
+            items = orderItemRepository.findByShopIdInWithDetails(scopeShopIds);
+        }
+        return items.stream().map(OrderItemBoardDto::from).collect(Collectors.toList());
+    }
+
+    public OrderItemBoardDto updateOrderItemStatus(String userEmail, Long itemId, String newStatusCode) {
+        User user = userRepository.findByEmailWithAssignedShops(userEmail)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
+        OrderItem item = orderItemRepository.findByIdWithDetails(itemId)
+                .orElseThrow(() -> new NoSuchElementException("Order item not found: " + itemId));
+
+        // Staff can only update items for shops they are assigned to.
+        requireAssignedToShop(user, item.getOrder().getShop().getId());
+
+        String currentCode = item.getStatus().getCode();
+        Set<String> allowed = ALLOWED_TRANSITIONS.getOrDefault(currentCode, Set.of());
+        if (!allowed.contains(newStatusCode)) {
+            throw new IllegalStateException(
+                    "Cannot transition order item from " + currentCode + " to " + newStatusCode);
+        }
+
+        RefOrderStatus newStatus = resolveOrderStatus(newStatusCode);
+        item.setStatus(newStatus);
+        orderItemRepository.save(item);
+
+        // The parent order only advances to a status once every one of its items
+        // has reached (or passed) that status. This keeps the order-level status
+        // meaningful while items are tracked independently on the board.
+        syncOrderStatusFromItems(item.getOrder(), newStatusCode);
+
+        return OrderItemBoardDto.from(item);
+    }
+
+    /**
+     * Advances the parent order to {@code candidateCode} only if all of its items
+     * are at that status. Never moves the order backwards.
+     */
+    private void syncOrderStatusFromItems(Order order, String candidateCode) {
+        List<OrderItem> siblings = orderItemRepository.findByOrderIdWithStatus(order.getId());
+        boolean allAtCandidate = siblings.stream()
+                .allMatch(sibling -> candidateCode.equals(sibling.getStatus().getCode()));
+
+        if (allAtCandidate && !candidateCode.equals(order.getStatus().getCode())) {
+            order.setStatus(resolveOrderStatus(candidateCode));
+            orderRepository.save(order);
+        }
     }
 
     public CoffeeShopDto createShop(CreateShopRequest request) {
@@ -274,6 +357,48 @@ public class AdminService {
         return userRepository.findAllWithRole().stream()
                 .map(UserDto::from)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CoffeeShopDto> getAssignedShops(Long userId) {
+        User user = userRepository.findByIdWithAssignedShops(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + userId));
+        return user.getAssignedShops().stream()
+                .map(CoffeeShopDto::from)
+                .collect(Collectors.toList());
+    }
+
+    public UserDto assignShop(Long userId, Long shopId) {
+        User user = userRepository.findByIdWithAssignedShops(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + userId));
+        if ("USER".equals(user.getRole().getCode())) {
+            throw new IllegalArgumentException("Cannot assign shops to a regular USER account");
+        }
+        CoffeeShop shop = coffeeShopRepository.findByIdWithDetails(shopId)
+                .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + shopId));
+        user.getAssignedShops().add(shop);
+        return UserDto.fromWithAssignedShops(userRepository.save(user));
+    }
+
+    public UserDto unassignShop(Long userId, Long shopId) {
+        User user = userRepository.findByIdWithAssignedShops(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + userId));
+        boolean removed = user.getAssignedShops().removeIf(s -> s.getId().equals(shopId));
+        if (!removed) {
+            throw new NoSuchElementException(
+                    "User " + userId + " is not assigned to shop " + shopId);
+        }
+        return UserDto.fromWithAssignedShops(userRepository.save(user));
+    }
+
+    /** Throws AccessDeniedException unless the staff user is assigned to the given shop. */
+    private void requireAssignedToShop(User user, Long shopId) {
+        boolean assigned = user.getAssignedShops().stream()
+                .anyMatch(s -> s.getId().equals(shopId));
+        if (!assigned) {
+            throw new com.coffeeshop.app.config.AccessDeniedException(
+                    "You are not assigned to the shop for this order");
+        }
     }
 
     public void printOrder(Long orderId) {

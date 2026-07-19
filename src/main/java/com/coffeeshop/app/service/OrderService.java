@@ -114,6 +114,7 @@ public class OrderService {
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .product(product)
+                    .status(newStatus)
                     .toppings(toppings)
                     .quantity(itemRequest.getQuantity())
                     .price(itemPrice)

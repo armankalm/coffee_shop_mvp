@@ -4,6 +4,8 @@ import com.coffeeshop.app.domain.User;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class UserDto {
 
@@ -16,6 +18,7 @@ public class UserDto {
     private Long coffeeShopId;
     private String coffeeShopName;
     private CoffeeShopDto coffeeShop;
+    private List<CoffeeShopDto> assignedShops;
 
     public static UserDto from(User user) {
         UserDto dto = new UserDto();
@@ -38,6 +41,14 @@ public class UserDto {
         return dto;
     }
 
+    public static UserDto fromWithAssignedShops(User user) {
+        UserDto dto = from(user);
+        dto.assignedShops = user.getAssignedShops().stream()
+                .map(CoffeeShopDto::from)
+                .collect(Collectors.toList());
+        return dto;
+    }
+
     public Long getId() { return id; }
     public String getEmail() { return email; }
     public String getName() { return name; }
@@ -47,4 +58,5 @@ public class UserDto {
     public Long getCoffeeShopId() { return coffeeShopId; }
     public String getCoffeeShopName() { return coffeeShopName; }
     public CoffeeShopDto getCoffeeShop() { return coffeeShop; }
+    public List<CoffeeShopDto> getAssignedShops() { return assignedShops; }
 }

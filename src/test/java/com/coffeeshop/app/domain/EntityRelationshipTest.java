@@ -129,6 +129,7 @@ class EntityRelationshipTest {
 
         OrderItem item = OrderItem.builder()
                 .product(product)
+                .status(newStatus)
                 .quantity(2)
                 .price(new BigDecimal("1600.00"))
                 .build();

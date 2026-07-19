@@ -56,6 +56,7 @@ class PrintServiceTest {
         OrderItem item = OrderItem.builder()
                 .id(1L)
                 .product(product)
+                .status(newStatus())
                 .toppings(Set.of(topping))
                 .quantity(2)
                 .price(BigDecimal.valueOf(1200))

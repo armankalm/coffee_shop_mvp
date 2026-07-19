@@ -151,7 +151,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin@test.com", roles = "ADMIN")
     void getOrderById_existingOrder_returnsOrder() throws Exception {
-        when(adminService.getOrderById(1L)).thenReturn(buildOrderDto(1L, newStatus()));
+        when(adminService.getOrderById("admin@test.com", 1L)).thenReturn(buildOrderDto(1L, newStatus()));
 
         mockMvc.perform(get("/api/admin/orders/1"))
                 .andExpect(status().isOk())
@@ -161,7 +161,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin@test.com", roles = "ADMIN")
     void getOrderById_notFound_returns404() throws Exception {
-        when(adminService.getOrderById(99L)).thenThrow(new NoSuchElementException("Order not found: 99"));
+        when(adminService.getOrderById("admin@test.com", 99L)).thenThrow(new NoSuchElementException("Order not found: 99"));
 
         mockMvc.perform(get("/api/admin/orders/99"))
                 .andExpect(status().isNotFound());

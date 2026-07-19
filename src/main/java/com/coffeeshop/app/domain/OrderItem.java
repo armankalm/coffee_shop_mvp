@@ -28,6 +28,10 @@ public class OrderItem {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "status_id", nullable = false)
+    private RefOrderStatus status;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "order_item_toppings",
