@@ -28,7 +28,9 @@ public class OrderBoardSseService {
 
     private static final Logger log = LoggerFactory.getLogger(OrderBoardSseService.class);
     private static final long SSE_TIMEOUT_MS = 30 * 60 * 1000L; // 30 min
-    private static final Set<String> BOARD_STATUSES = Set.of("IN_PROGRESS", "READY");
+    // "В работе" on the board covers freshly placed (NEW) and in-progress orders,
+    // so a guest sees their order the moment it is accepted. "Готовы" is READY.
+    private static final Set<String> BOARD_STATUSES = Set.of("NEW", "IN_PROGRESS", "READY");
 
     private final Map<Long, CopyOnWriteArrayList<SseEmitter>> emittersByShop = new ConcurrentHashMap<>();
     private final OrderRepository orderRepository;

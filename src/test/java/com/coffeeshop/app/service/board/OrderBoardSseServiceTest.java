@@ -46,7 +46,7 @@ class OrderBoardSseServiceTest {
     }
 
     @Test
-    void currentBoard_keepsOnlyInProgressAndReady_sortedOldestFirst() {
+    void currentBoard_keepsActiveOrders_sortedOldestFirst() {
         Order ready = order(2L, "READY", "Анна", Instant.parse("2026-07-19T08:05:00Z"));
         Order inProgress = order(1L, "IN_PROGRESS", "Гость", Instant.parse("2026-07-19T08:00:00Z"));
         Order newOrder = order(3L, "NEW", "Иван", Instant.parse("2026-07-19T08:01:00Z"));
@@ -57,9 +57,10 @@ class OrderBoardSseServiceTest {
 
         List<OrderBoardEntryDto> board = service.currentBoard(7L);
 
-        // NEW and COMPLETED are excluded; remaining sorted oldest-first.
-        assertThat(board).extracting(OrderBoardEntryDto::getOrderId).containsExactly(1L, 2L);
-        assertThat(board).extracting(OrderBoardEntryDto::getStatus).containsExactly("IN_PROGRESS", "READY");
+        // NEW, IN_PROGRESS and READY are shown; COMPLETED excluded; sorted oldest-first.
+        assertThat(board).extracting(OrderBoardEntryDto::getOrderId).containsExactly(1L, 3L, 2L);
+        assertThat(board).extracting(OrderBoardEntryDto::getStatus)
+                .containsExactly("IN_PROGRESS", "NEW", "READY");
         assertThat(board.get(0).getCustomerName()).isEqualTo("Гость");
     }
 
