@@ -49,7 +49,7 @@ class UserServiceTest {
     @Test
     void getCurrentUser_existingUser_returnsDto() {
         user.setCoffeeShop(shop);
-        when(userRepository.findByEmailWithDetails("user@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailWithDetailsAndAssignedShops("user@example.com")).thenReturn(Optional.of(user));
 
         UserDto result = userService.getCurrentUser("user@example.com");
 
@@ -60,7 +60,7 @@ class UserServiceTest {
 
     @Test
     void getCurrentUser_noShop_returnsNullShopFields() {
-        when(userRepository.findByEmailWithDetails("user@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailWithDetailsAndAssignedShops("user@example.com")).thenReturn(Optional.of(user));
 
         UserDto result = userService.getCurrentUser("user@example.com");
 
@@ -71,7 +71,7 @@ class UserServiceTest {
 
     @Test
     void getCurrentUser_userNotFound_throwsNoSuchElement() {
-        when(userRepository.findByEmailWithDetails("unknown@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailWithDetailsAndAssignedShops("unknown@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.getCurrentUser("unknown@example.com"))
                 .isInstanceOf(NoSuchElementException.class)

@@ -23,9 +23,9 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserDto getCurrentUser(String email) {
-        User user = userRepository.findByEmailWithDetails(email)
+        User user = userRepository.findByEmailWithDetailsAndAssignedShops(email)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + email));
-        return UserDto.fromWithDetails(user);
+        return UserDto.fromWithDetailsAndAssignedShops(user);
     }
 
     @Transactional

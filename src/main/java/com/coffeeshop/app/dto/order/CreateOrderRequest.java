@@ -12,6 +12,9 @@ public class CreateOrderRequest {
     @NotNull
     private Long shopId;
 
+    @Size(max = 255)
+    private String customerName;
+
     @NotEmpty
     @Valid
     @Size(max = 50, message = "Order cannot contain more than 50 items")
@@ -19,6 +22,9 @@ public class CreateOrderRequest {
 
     public Long getShopId() { return shopId; }
     public void setShopId(Long shopId) { this.shopId = shopId; }
+
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
 
     public List<OrderItemRequest> getItems() { return items; }
     public void setItems(List<OrderItemRequest> items) { this.items = items; }

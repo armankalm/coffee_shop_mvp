@@ -8,6 +8,7 @@ import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.service.AdminService;
 import com.coffeeshop.app.service.CityService;
+import com.coffeeshop.app.service.board.OrderBoardSseService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,9 @@ class AdminControllerTest {
 
     @MockBean
     private CityService cityService;
+
+    @MockBean
+    private OrderBoardSseService orderBoardSseService;
 
     private City almaty() {
         return City.builder().id(1L).name("Almaty").region("Almaty").country("KZ").active(true).build();
@@ -192,6 +196,26 @@ class AdminControllerTest {
         mockMvc.perform(patch("/api/admin/orders/1/status")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "barista@test.com", roles = "BARISTA")
+    void streamOrderBoard_asBarista_subscribes() throws Exception {
+        when(orderBoardSseService.subscribe(eq(1L)))
+                .thenReturn(new org.springframework.web.servlet.mvc.method.annotation.SseEmitter());
+
+        mockMvc.perform(get("/api/admin/orders/board/stream").param("shopId", "1"))
+                .andExpect(request().asyncStarted());
+
+        verify(adminService).assertAssignedToShop("barista@test.com", 1L);
+        verify(orderBoardSseService).subscribe(1L);
+    }
+
+    @Test
+    @WithMockUser(username = "user@test.com", roles = "USER")
+    void streamOrderBoard_asUser_returns403() throws Exception {
+        mockMvc.perform(get("/api/admin/orders/board/stream").param("shopId", "1"))
                 .andExpect(status().isForbidden());
     }
 

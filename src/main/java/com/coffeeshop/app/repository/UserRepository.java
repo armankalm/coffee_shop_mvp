@@ -32,6 +32,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmailWithAssignedShops(@Param("email") String email);
 
     @Query("SELECT u FROM User u JOIN FETCH u.role " +
+           "LEFT JOIN FETCH u.coffeeShop cs " +
+           "LEFT JOIN FETCH cs.city " +
+           "LEFT JOIN FETCH cs.status " +
+           "LEFT JOIN FETCH u.assignedShops s " +
+           "LEFT JOIN FETCH s.city " +
+           "LEFT JOIN FETCH s.status " +
+           "WHERE u.email = :email")
+    Optional<User> findByEmailWithDetailsAndAssignedShops(@Param("email") String email);
+
+    @Query("SELECT u FROM User u JOIN FETCH u.role " +
            "LEFT JOIN FETCH u.assignedShops s " +
            "LEFT JOIN FETCH s.city " +
            "LEFT JOIN FETCH s.status " +

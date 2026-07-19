@@ -9,6 +9,9 @@ import com.coffeeshop.app.dto.shop.CityDto;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.service.AdminService;
 import com.coffeeshop.app.service.CityService;
+import com.coffeeshop.app.service.board.OrderBoardSseService;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +28,14 @@ public class AdminController {
 
     private final AdminService adminService;
     private final CityService cityService;
+    private final OrderBoardSseService orderBoardSseService;
 
-    public AdminController(AdminService adminService, CityService cityService) {
+    public AdminController(AdminService adminService,
+                           CityService cityService,
+                           OrderBoardSseService orderBoardSseService) {
         this.adminService = adminService;
         this.cityService = cityService;
+        this.orderBoardSseService = orderBoardSseService;
     }
 
     @GetMapping("/orders")
@@ -69,6 +76,20 @@ public class AdminController {
             @Valid @RequestBody UpdateOrderItemStatusRequest request) {
         return ResponseEntity.ok(
                 adminService.updateOrderItemStatus(authentication.getName(), id, request.getStatusCode()));
+    }
+
+    /**
+     * Live pickup board (SSE). Emits a "board" event with the current
+     * IN_PROGRESS + READY orders on subscribe and on every status change.
+     * The access token is passed as a query parameter because the browser
+     * EventSource API cannot send an Authorization header.
+     */
+    @GetMapping(value = "/orders/board/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamOrderBoard(
+            Authentication authentication,
+            @RequestParam(name = "shopId") Long shopId) {
+        adminService.assertAssignedToShop(authentication.getName(), shopId);
+        return orderBoardSseService.subscribe(shopId);
     }
 
     @PostMapping("/shops")

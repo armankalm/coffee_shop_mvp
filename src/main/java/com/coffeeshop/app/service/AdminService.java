@@ -4,6 +4,8 @@ import com.coffeeshop.app.domain.*;
 import com.coffeeshop.app.dto.admin.*;
 import com.coffeeshop.app.dto.order.OrderDto;
 import com.coffeeshop.app.dto.order.OrderItemBoardDto;
+import com.coffeeshop.app.service.board.OrderStatusChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
@@ -45,6 +47,7 @@ public class AdminService {
     private final RefProductCategoryRepository refProductCategoryRepository;
     private final RefToppingTypeRepository refToppingTypeRepository;
     private final CityRepository cityRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public AdminService(OrderRepository orderRepository,
                         OrderItemRepository orderItemRepository,
@@ -57,7 +60,8 @@ public class AdminService {
                         RefShopStatusRepository refShopStatusRepository,
                         RefProductCategoryRepository refProductCategoryRepository,
                         RefToppingTypeRepository refToppingTypeRepository,
-                        CityRepository cityRepository) {
+                        CityRepository cityRepository,
+                        ApplicationEventPublisher eventPublisher) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.coffeeShopRepository = coffeeShopRepository;
@@ -70,6 +74,7 @@ public class AdminService {
         this.refProductCategoryRepository = refProductCategoryRepository;
         this.refToppingTypeRepository = refToppingTypeRepository;
         this.cityRepository = cityRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional(readOnly = true)
@@ -133,7 +138,17 @@ public class AdminService {
         }
         RefOrderStatus newStatus = resolveOrderStatus(newStatusCode);
         order.setStatus(newStatus);
-        return OrderDto.from(orderRepository.save(order));
+        OrderDto result = OrderDto.from(orderRepository.save(order));
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order.getShop().getId()));
+        return result;
+    }
+
+    /** Verifies the staff member may view the given shop's board (SSE subscription). */
+    @Transactional(readOnly = true)
+    public void assertAssignedToShop(String userEmail, Long shopId) {
+        User user = userRepository.findByEmailWithAssignedShops(userEmail)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
+        requireAssignedToShop(user, shopId);
     }
 
     @Transactional(readOnly = true)
@@ -209,6 +224,7 @@ public class AdminService {
         if (allAtCandidate && !candidateCode.equals(order.getStatus().getCode())) {
             order.setStatus(resolveOrderStatus(candidateCode));
             orderRepository.save(order);
+            eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order.getShop().getId()));
         }
     }
 

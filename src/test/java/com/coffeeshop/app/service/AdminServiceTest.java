@@ -10,6 +10,7 @@ import com.coffeeshop.app.repository.*;
 import com.coffeeshop.app.repository.CityRepository;
 import com.coffeeshop.app.service.print.PrintService;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,6 +44,7 @@ class AdminServiceTest {
     @Mock private RefProductCategoryRepository refProductCategoryRepository;
     @Mock private RefToppingTypeRepository refToppingTypeRepository;
     @Mock private CityRepository cityRepository;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private AdminService adminService;

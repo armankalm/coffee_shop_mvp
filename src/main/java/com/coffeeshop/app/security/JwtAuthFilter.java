@@ -52,6 +52,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(header) && header.startsWith(BEARER_PREFIX)) {
             return header.substring(BEARER_PREFIX.length());
         }
+        // SSE fallback: the browser EventSource API cannot send custom headers,
+        // so streaming endpoints pass the access token as a query parameter.
+        String queryToken = request.getParameter("access_token");
+        if (StringUtils.hasText(queryToken)) {
+            return queryToken;
+        }
         return null;
     }
 }

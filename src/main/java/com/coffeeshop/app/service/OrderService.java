@@ -63,10 +63,12 @@ public class OrderService {
         RefOrderStatus newStatus = refOrderStatusRepository.findByCode("NEW")
                 .orElseThrow(() -> new NoSuchElementException("Order status NEW not found in reference table"));
 
+        String customerName = request.getCustomerName();
         Order order = Order.builder()
                 .user(user)
                 .shop(shop)
                 .status(newStatus)
+                .customerName(customerName != null && !customerName.isBlank() ? customerName.trim() : null)
                 .total(BigDecimal.ZERO)
                 .build();
 

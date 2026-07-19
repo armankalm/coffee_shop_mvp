@@ -11,6 +11,7 @@ public class OrderDto {
 
     private Long id;
     private Long userId;
+    private String customerName;
     private Long shopId;
     private String shopName;
     private String status;
@@ -23,6 +24,7 @@ public class OrderDto {
         OrderDto dto = new OrderDto();
         dto.id = order.getId();
         dto.userId = order.getUser().getId();
+        dto.customerName = resolveCustomerName(order);
         dto.shopId = order.getShop().getId();
         dto.shopName = order.getShop().getName();
         dto.status = order.getStatus().getCode();
@@ -35,8 +37,22 @@ public class OrderDto {
         return dto;
     }
 
+    /**
+     * Display name for the order: the walk-in guest name entered at the POS,
+     * else the account holder's name, else "Гость".
+     */
+    public static String resolveCustomerName(Order order) {
+        String guest = order.getCustomerName();
+        if (guest != null && !guest.isBlank()) {
+            return guest;
+        }
+        String accountName = order.getUser().getName();
+        return (accountName != null && !accountName.isBlank()) ? accountName : "Гость";
+    }
+
     public Long getId() { return id; }
     public Long getUserId() { return userId; }
+    public String getCustomerName() { return customerName; }
     public Long getShopId() { return shopId; }
     public String getShopName() { return shopName; }
     public String getStatus() { return status; }

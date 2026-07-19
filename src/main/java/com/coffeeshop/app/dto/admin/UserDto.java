@@ -49,6 +49,14 @@ public class UserDto {
         return dto;
     }
 
+    public static UserDto fromWithDetailsAndAssignedShops(User user) {
+        UserDto dto = fromWithDetails(user);
+        dto.assignedShops = user.getAssignedShops().stream()
+                .map(CoffeeShopDto::from)
+                .collect(Collectors.toList());
+        return dto;
+    }
+
     public Long getId() { return id; }
     public String getEmail() { return email; }
     public String getName() { return name; }

@@ -33,6 +33,9 @@ public class Order {
     @JoinColumn(name = "status_id", nullable = false)
     private RefOrderStatus status;
 
+    @Column(name = "customer_name")
+    private String customerName;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal total;
 
