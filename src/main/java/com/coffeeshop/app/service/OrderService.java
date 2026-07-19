@@ -6,6 +6,7 @@ import com.coffeeshop.app.dto.order.CreateOrderRequest;
 import com.coffeeshop.app.dto.order.OrderDto;
 import com.coffeeshop.app.dto.order.OrderItemRequest;
 import com.coffeeshop.app.repository.*;
+import com.coffeeshop.app.service.board.OrderStatusChangedEvent;
 import com.coffeeshop.app.service.print.NewOrderEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -144,6 +145,9 @@ public class OrderService {
         order.setTotal(total);
         Order saved = orderRepository.save(order);
         eventPublisher.publishEvent(new NewOrderEvent(this, saved.getId()));
+        // Notify the shop's live pickup board and any customer tracking this order.
+        // Covers both POS (/staff/pos) and customer-placed orders — the path is shared.
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(this, shop.getId(), saved.getId()));
         Order withDetails = orderRepository.findByIdWithDetails(saved.getId())
                 .orElseThrow(() -> new NoSuchElementException("Order not found after save: " + saved.getId()));
         return OrderDto.from(withDetails);

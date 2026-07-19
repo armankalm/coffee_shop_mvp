@@ -8,6 +8,7 @@ import com.coffeeshop.app.dto.product.ToppingDto;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.service.AdminService;
 import com.coffeeshop.app.service.CityService;
+import com.coffeeshop.app.service.board.KitchenBoardSseService;
 import com.coffeeshop.app.service.board.OrderBoardSseService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -51,6 +52,9 @@ class AdminControllerTest {
 
     @MockBean
     private OrderBoardSseService orderBoardSseService;
+
+    @MockBean
+    private KitchenBoardSseService kitchenBoardSseService;
 
     private City almaty() {
         return City.builder().id(1L).name("Almaty").region("Almaty").country("KZ").active(true).build();

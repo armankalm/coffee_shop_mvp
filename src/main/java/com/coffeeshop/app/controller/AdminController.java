@@ -9,6 +9,7 @@ import com.coffeeshop.app.dto.shop.CityDto;
 import com.coffeeshop.app.dto.shop.CoffeeShopDto;
 import com.coffeeshop.app.service.AdminService;
 import com.coffeeshop.app.service.CityService;
+import com.coffeeshop.app.service.board.KitchenBoardSseService;
 import com.coffeeshop.app.service.board.OrderBoardSseService;
 import org.springframework.http.MediaType;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -29,13 +30,16 @@ public class AdminController {
     private final AdminService adminService;
     private final CityService cityService;
     private final OrderBoardSseService orderBoardSseService;
+    private final KitchenBoardSseService kitchenBoardSseService;
 
     public AdminController(AdminService adminService,
                            CityService cityService,
-                           OrderBoardSseService orderBoardSseService) {
+                           OrderBoardSseService orderBoardSseService,
+                           KitchenBoardSseService kitchenBoardSseService) {
         this.adminService = adminService;
         this.cityService = cityService;
         this.orderBoardSseService = orderBoardSseService;
+        this.kitchenBoardSseService = kitchenBoardSseService;
     }
 
     @GetMapping("/orders")
@@ -90,6 +94,19 @@ public class AdminController {
             @RequestParam(name = "shopId") Long shopId) {
         adminService.assertAssignedToShop(authentication.getName(), shopId);
         return orderBoardSseService.subscribe(shopId);
+    }
+
+    /**
+     * Live kitchen board (SSE): streams the shop's order items and re-pushes the
+     * full list on every status change, so staff see new POS/customer orders
+     * appear without reloading.
+     */
+    @GetMapping(value = "/order-items/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamKitchenBoard(
+            Authentication authentication,
+            @RequestParam(name = "shopId") Long shopId) {
+        adminService.assertAssignedToShop(authentication.getName(), shopId);
+        return kitchenBoardSseService.subscribe(shopId);
     }
 
     @PostMapping("/shops")

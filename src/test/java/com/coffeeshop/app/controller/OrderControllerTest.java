@@ -42,6 +42,9 @@ class OrderControllerTest {
     @MockBean
     private OrderService orderService;
 
+    @MockBean
+    private com.coffeeshop.app.service.board.OrderTrackingSseService orderTrackingSseService;
+
     private RefUserRole userRole() {
         return RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
     }
@@ -153,6 +156,45 @@ class OrderControllerTest {
         mockMvc.perform(post("/api/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "user@test.com")
+    void streamOrder_authorizedOrder_subscribes() throws Exception {
+        when(orderService.getOrderById("user@test.com", 1L))
+                .thenReturn(buildDto(1L, orderStatus(1L, "NEW", "New")));
+        when(orderTrackingSseService.subscribe(1L))
+                .thenReturn(new org.springframework.web.servlet.mvc.method.annotation.SseEmitter());
+
+        mockMvc.perform(get("/api/orders/1/stream").accept(MediaType.TEXT_EVENT_STREAM))
+                .andExpect(status().isOk());
+
+        verify(orderService).getOrderById("user@test.com", 1L);
+        verify(orderTrackingSseService).subscribe(1L);
+    }
+
+    @Test
+    @WithMockUser(username = "user@test.com")
+    void streamOrder_foreignOrder_deniedAndDoesNotSubscribe() throws Exception {
+        when(orderService.getOrderById("user@test.com", 2L))
+                .thenThrow(new com.coffeeshop.app.config.AccessDeniedException("Access denied to order: 2"));
+
+        // Access is checked before subscribing; the denial propagates and no emitter is created.
+        try {
+            mockMvc.perform(get("/api/orders/2/stream").accept(MediaType.TEXT_EVENT_STREAM));
+        } catch (Exception ignored) {
+            // MockMvc surfaces the pre-subscribe denial as a servlet processing failure for
+            // streaming endpoints; the security contract we assert is that subscribe never ran.
+        }
+
+        verify(orderService).getOrderById("user@test.com", 2L);
+        verify(orderTrackingSseService, never()).subscribe(any());
+    }
+
+    @Test
+    void streamOrder_unauthenticated_returns401() throws Exception {
+        mockMvc.perform(get("/api/orders/1/stream").accept(MediaType.TEXT_EVENT_STREAM))
                 .andExpect(status().isUnauthorized());
     }
 }

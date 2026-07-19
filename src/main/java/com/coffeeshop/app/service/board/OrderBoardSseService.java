@@ -5,9 +5,10 @@ import com.coffeeshop.app.dto.order.OrderBoardEntryDto;
 import com.coffeeshop.app.repository.OrderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -57,7 +58,11 @@ public class OrderBoardSseService {
         return emitter;
     }
 
-    @EventListener
+    // Fire AFTER_COMMIT so the board query sees the just-created/updated order.
+    // With a plain @EventListener the listener runs inside the still-open
+    // transaction, before commit, so a freshly created order would be invisible
+    // to the board snapshot and the SSE push would miss it.
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onOrderStatusChanged(OrderStatusChangedEvent event) {
         broadcast(event.getShopId());
     }

@@ -115,6 +115,13 @@ class OrderServiceTest {
         assertThat(orderCaptor.getValue().getDailyNumber()).isEqualTo(7);
         assertThat(orderCaptor.getValue().getOrderDate()).isNotNull();
         verify(eventPublisher).publishEvent(any(com.coffeeshop.app.service.print.NewOrderEvent.class));
+
+        // Creating an order must notify the live board / order tracking with the shop and order ids.
+        ArgumentCaptor<com.coffeeshop.app.service.board.OrderStatusChangedEvent> boardEvent =
+                ArgumentCaptor.forClass(com.coffeeshop.app.service.board.OrderStatusChangedEvent.class);
+        verify(eventPublisher).publishEvent(boardEvent.capture());
+        assertThat(boardEvent.getValue().getShopId()).isEqualTo(1L);
+        assertThat(boardEvent.getValue().getOrderId()).isEqualTo(1L);
     }
 
     @Test

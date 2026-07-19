@@ -139,7 +139,7 @@ public class AdminService {
         RefOrderStatus newStatus = resolveOrderStatus(newStatusCode);
         order.setStatus(newStatus);
         OrderDto result = OrderDto.from(orderRepository.save(order));
-        eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order.getShop().getId()));
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order.getShop().getId(), order.getId()));
         return result;
     }
 
@@ -224,7 +224,7 @@ public class AdminService {
         if (allAtCandidate && !candidateCode.equals(order.getStatus().getCode())) {
             order.setStatus(resolveOrderStatus(candidateCode));
             orderRepository.save(order);
-            eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order.getShop().getId()));
+            eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order.getShop().getId(), order.getId()));
         }
     }
 
