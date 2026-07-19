@@ -38,8 +38,8 @@ class OrderServiceTest {
     @Mock private ToppingService toppingService;
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private RefOrderStatusRepository refOrderStatusRepository;
+    @Mock private OrderDailyCounterRepository orderDailyCounterRepository;
 
-    @InjectMocks
     private OrderService orderService;
 
     private RefUserRole userRole;
@@ -74,6 +74,10 @@ class OrderServiceTest {
                 .address("123 St").status(openStatus).build();
         product = Product.builder().id(1L).name("Latte").category(coffeeCategory)
                 .basePrice(BigDecimal.valueOf(500)).available(true).coffeeShop(shop).build();
+
+        orderService = new OrderService(orderRepository, userRepository, coffeeShopRepository,
+                productRepository, toppingRepository, toppingService, eventPublisher,
+                refOrderStatusRepository, orderDailyCounterRepository, "Asia/Almaty");
     }
 
     @Test
@@ -90,6 +94,7 @@ class OrderServiceTest {
         when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
         when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
         when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
+        when(orderDailyCounterRepository.nextNumber(eq(1L), any())).thenReturn(7);
 
         Order savedOrder = Order.builder()
                 .id(1L).user(user).shop(shop)
@@ -103,7 +108,12 @@ class OrderServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo("NEW");
-        verify(orderRepository).save(any(Order.class));
+
+        // The order persisted must carry the per-shop daily number and its local date.
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+        verify(orderRepository).save(orderCaptor.capture());
+        assertThat(orderCaptor.getValue().getDailyNumber()).isEqualTo(7);
+        assertThat(orderCaptor.getValue().getOrderDate()).isNotNull();
         verify(eventPublisher).publishEvent(any(com.coffeeshop.app.service.print.NewOrderEvent.class));
     }
 

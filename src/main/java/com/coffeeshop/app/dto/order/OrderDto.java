@@ -4,6 +4,7 @@ import com.coffeeshop.app.domain.Order;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,8 @@ public class OrderDto {
     private String customerName;
     private Long shopId;
     private String shopName;
+    private Integer dailyNumber;
+    private LocalDate orderDate;
     private String status;
     private String statusNameRu;
     private BigDecimal total;
@@ -27,6 +30,8 @@ public class OrderDto {
         dto.customerName = resolveCustomerName(order);
         dto.shopId = order.getShop().getId();
         dto.shopName = order.getShop().getName();
+        dto.dailyNumber = order.getDailyNumber();
+        dto.orderDate = order.getOrderDate();
         dto.status = order.getStatus().getCode();
         dto.statusNameRu = order.getStatus().getNameRu();
         dto.total = order.getTotal();
@@ -55,6 +60,8 @@ public class OrderDto {
     public String getCustomerName() { return customerName; }
     public Long getShopId() { return shopId; }
     public String getShopName() { return shopName; }
+    public Integer getDailyNumber() { return dailyNumber; }
+    public LocalDate getOrderDate() { return orderDate; }
     public String getStatus() { return status; }
     public String getStatusNameRu() { return statusNameRu; }
     public BigDecimal getTotal() { return total; }

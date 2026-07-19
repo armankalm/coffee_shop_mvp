@@ -56,6 +56,9 @@ app:
     refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
   upload:
     dir: ${UPLOAD_DIR:./uploads/products}
+  order:
+    # Business timezone used to compute the per-shop daily order number reset (at local midnight).
+    timezone: ${ORDER_TIMEZONE:Asia/Almaty}
   otp:
     expiration-minutes: ${OTP_EXPIRATION_MINUTES:5}
     length: 6

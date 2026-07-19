@@ -7,11 +7,14 @@ import com.coffeeshop.app.dto.order.OrderDto;
 import com.coffeeshop.app.dto.order.OrderItemRequest;
 import com.coffeeshop.app.repository.*;
 import com.coffeeshop.app.service.print.NewOrderEvent;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -30,6 +33,8 @@ public class OrderService {
     private final ToppingService toppingService;
     private final ApplicationEventPublisher eventPublisher;
     private final RefOrderStatusRepository refOrderStatusRepository;
+    private final OrderDailyCounterRepository orderDailyCounterRepository;
+    private final ZoneId businessZone;
 
     public OrderService(OrderRepository orderRepository,
                         UserRepository userRepository,
@@ -38,7 +43,9 @@ public class OrderService {
                         ToppingRepository toppingRepository,
                         ToppingService toppingService,
                         ApplicationEventPublisher eventPublisher,
-                        RefOrderStatusRepository refOrderStatusRepository) {
+                        RefOrderStatusRepository refOrderStatusRepository,
+                        OrderDailyCounterRepository orderDailyCounterRepository,
+                        @Value("${app.order.timezone:Asia/Almaty}") String businessZoneId) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.coffeeShopRepository = coffeeShopRepository;
@@ -47,6 +54,8 @@ public class OrderService {
         this.toppingService = toppingService;
         this.eventPublisher = eventPublisher;
         this.refOrderStatusRepository = refOrderStatusRepository;
+        this.orderDailyCounterRepository = orderDailyCounterRepository;
+        this.businessZone = ZoneId.of(businessZoneId);
     }
 
     public OrderDto createOrder(String userEmail, CreateOrderRequest request) {
@@ -63,12 +72,18 @@ public class OrderService {
         RefOrderStatus newStatus = refOrderStatusRepository.findByCode("NEW")
                 .orElseThrow(() -> new NoSuchElementException("Order status NEW not found in reference table"));
 
+        // Per-shop daily order number, reset at local midnight (app.order.timezone).
+        LocalDate orderDate = LocalDate.now(businessZone);
+        int dailyNumber = orderDailyCounterRepository.nextNumber(shop.getId(), orderDate);
+
         String customerName = request.getCustomerName();
         Order order = Order.builder()
                 .user(user)
                 .shop(shop)
                 .status(newStatus)
                 .customerName(customerName != null && !customerName.isBlank() ? customerName.trim() : null)
+                .dailyNumber(dailyNumber)
+                .orderDate(orderDate)
                 .total(BigDecimal.ZERO)
                 .build();
 

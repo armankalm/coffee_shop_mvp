@@ -15,6 +15,7 @@ public class OrderItemBoardDto {
     private Long id;
     private Long orderId;
     private Long shopId;
+    private Integer dailyNumber;
     private String orderNumber;
     private String title;
     private int quantity;
@@ -28,7 +29,10 @@ public class OrderItemBoardDto {
         dto.id = item.getId();
         dto.orderId = item.getOrder().getId();
         dto.shopId = item.getOrder().getShop().getId();
-        dto.orderNumber = "№" + item.getOrder().getId();
+        // Prefer the per-shop daily number; fall back to the global id for legacy orders.
+        Integer daily = item.getOrder().getDailyNumber();
+        dto.dailyNumber = daily;
+        dto.orderNumber = String.valueOf(daily != null ? daily : item.getOrder().getId());
         dto.title = item.getProduct().getName();
         dto.quantity = item.getQuantity();
         dto.status = item.getStatus().getCode();
@@ -47,6 +51,7 @@ public class OrderItemBoardDto {
     public Long getId() { return id; }
     public Long getOrderId() { return orderId; }
     public Long getShopId() { return shopId; }
+    public Integer getDailyNumber() { return dailyNumber; }
     public String getOrderNumber() { return orderNumber; }
     public String getTitle() { return title; }
     public int getQuantity() { return quantity; }
