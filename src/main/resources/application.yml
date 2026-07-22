@@ -63,7 +63,12 @@ app:
     expiration-minutes: ${OTP_EXPIRATION_MINUTES:5}
     length: 6
   payment:
+    # ISO currency for Stripe charges. KZT is a 2-decimal currency, so amounts are sent as total * 100.
+    currency: ${PAYMENT_CURRENCY:kzt}
+    # Minutes an unpaid PENDING_PAYMENT draft may live before it is auto-cancelled.
+    draft-ttl-minutes: ${PAYMENT_DRAFT_TTL_MINUTES:30}
     stripe:
+      secret-key: ${STRIPE_SECRET_KEY:}
       webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
     kaspi:
       api-key: ${KASPI_API_KEY:}
@@ -146,7 +151,10 @@ app:
     expiration-minutes: ${OTP_EXPIRATION_MINUTES:5}
     length: 6
   payment:
+    currency: ${PAYMENT_CURRENCY:kzt}
+    draft-ttl-minutes: ${PAYMENT_DRAFT_TTL_MINUTES:30}
     stripe:
+      secret-key: ${STRIPE_SECRET_KEY}
       webhook-secret: ${STRIPE_WEBHOOK_SECRET}
     kaspi:
       api-key: ${KASPI_API_KEY}

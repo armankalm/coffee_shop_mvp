@@ -5,6 +5,8 @@ import com.coffeeshop.app.dto.payment.PaymentRequest;
 import com.coffeeshop.app.dto.payment.PaymentTransactionDto;
 import com.coffeeshop.app.dto.payment.WebhookPayload;
 import com.coffeeshop.app.service.PaymentService;
+import com.coffeeshop.app.service.payment.StripePaymentService;
+import com.coffeeshop.app.service.payment.StripeWebhookEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,9 @@ class PaymentControllerTest {
     @MockBean
     private PaymentService paymentService;
 
+    @MockBean
+    private StripePaymentService stripePaymentService;
+
     private PaymentTransactionDto buildTx(PaymentProvider provider, PaymentStatus status) {
         RefUserRole userRole = RefUserRole.builder().id(1L).code("USER").nameRu("Пользователь").nameEn("User").build();
         RefShopStatus openStatus = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
@@ -68,7 +73,7 @@ class PaymentControllerTest {
     @WithMockUser(username = "user@test.com")
     void pay_validRequest_returns200WithPendingTx() throws Exception {
         PaymentTransactionDto txDto = buildTx(PaymentProvider.KASPI, PaymentStatus.PENDING);
-        when(paymentService.initiatePayment(eq("user@test.com"), eq(1L), eq(PaymentProvider.KASPI)))
+        when(paymentService.initiatePayment(eq("user@test.com"), eq(1L), eq(PaymentProvider.KASPI), any()))
                 .thenReturn(txDto);
 
         PaymentRequest req = new PaymentRequest();
@@ -106,15 +111,34 @@ class PaymentControllerTest {
     }
 
     @Test
-    void stripeWebhook_validPayload_returns200() throws Exception {
-        WebhookPayload payload = new WebhookPayload();
-        payload.setTransactionId("pi_001");
-        payload.setStatus("succeeded");
+    void stripeWebhook_validEvent_returns200AndHandlesPayment() throws Exception {
+        // The controller delegates verification + parsing to StripePaymentService.
+        when(stripePaymentService.parseWebhookEvent(any(), any()))
+                .thenReturn(new StripeWebhookEvent("pi_001", "succeeded", true));
 
         mockMvc.perform(post("/api/payments/webhook/stripe")
+                        .header("Stripe-Signature", "t=123,v1=abc")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(payload)))
+                        .content("{\"type\":\"payment_intent.succeeded\"}"))
                 .andExpect(status().isOk());
+
+        org.mockito.Mockito.verify(paymentService)
+                .handleWebhook(PaymentProvider.STRIPE, "pi_001", "succeeded");
+    }
+
+    @Test
+    void stripeWebhook_irrelevantEvent_returns200WithoutHandling() throws Exception {
+        when(stripePaymentService.parseWebhookEvent(any(), any()))
+                .thenReturn(new StripeWebhookEvent(null, null, false));
+
+        mockMvc.perform(post("/api/payments/webhook/stripe")
+                        .header("Stripe-Signature", "t=123,v1=abc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"charge.refunded\"}"))
+                .andExpect(status().isOk());
+
+        org.mockito.Mockito.verify(paymentService, org.mockito.Mockito.never())
+                .handleWebhook(any(), any(), any());
     }
 
     @Test

@@ -60,7 +60,7 @@ public class OrderService {
     }
 
     public OrderDto createOrder(String userEmail, CreateOrderRequest request) {
-        User user = userRepository.findByEmail(userEmail)
+        User user = userRepository.findByEmailWithRole(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
 
         CoffeeShop shop = coffeeShopRepository.findByIdWithDetails(request.getShopId())
@@ -70,8 +70,15 @@ public class OrderService {
             throw new IllegalStateException("Coffee shop is not accepting orders: " + shop.getName());
         }
 
-        RefOrderStatus newStatus = refOrderStatusRepository.findByCode("NEW")
-                .orElseThrow(() -> new NoSuchElementException("Order status NEW not found in reference table"));
+        // Customer (USER) orders start as an unpaid draft: a successful payment webhook promotes
+        // them to NEW and only then fires kitchen/print/board notifications (see PaymentService).
+        // Staff POS orders (BARISTA/MANAGER/ADMIN) are paid at the counter, so they go straight
+        // to NEW and notify immediately, as before.
+        boolean isCustomer = "USER".equals(user.getRole().getCode());
+        String initialStatusCode = isCustomer ? "PENDING_PAYMENT" : "NEW";
+        RefOrderStatus initialStatus = refOrderStatusRepository.findByCode(initialStatusCode)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Order status " + initialStatusCode + " not found in reference table"));
 
         // Per-shop daily order number, reset at local midnight (app.order.timezone).
         LocalDate orderDate = LocalDate.now(businessZone);
@@ -81,7 +88,7 @@ public class OrderService {
         Order order = Order.builder()
                 .user(user)
                 .shop(shop)
-                .status(newStatus)
+                .status(initialStatus)
                 .customerName(customerName != null && !customerName.isBlank() ? customerName.trim() : null)
                 .dailyNumber(dailyNumber)
                 .orderDate(orderDate)
@@ -132,7 +139,7 @@ public class OrderService {
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .product(product)
-                    .status(newStatus)
+                    .status(initialStatus)
                     .toppings(toppings)
                     .quantity(itemRequest.getQuantity())
                     .price(itemPrice)
@@ -144,10 +151,12 @@ public class OrderService {
 
         order.setTotal(total);
         Order saved = orderRepository.save(order);
-        eventPublisher.publishEvent(new NewOrderEvent(this, saved.getId()));
-        // Notify the shop's live pickup board and any customer tracking this order.
-        // Covers both POS (/staff/pos) and customer-placed orders — the path is shared.
-        eventPublisher.publishEvent(new OrderStatusChangedEvent(this, shop.getId(), saved.getId()));
+        // For staff POS orders (created directly as NEW) notify kitchen/print/board immediately.
+        // Customer drafts stay silent until the payment webhook promotes them (see PaymentService).
+        if (!isCustomer) {
+            eventPublisher.publishEvent(new NewOrderEvent(this, saved.getId()));
+            eventPublisher.publishEvent(new OrderStatusChangedEvent(this, shop.getId(), saved.getId()));
+        }
         Order withDetails = orderRepository.findByIdWithDetails(saved.getId())
                 .orElseThrow(() -> new NoSuchElementException("Order not found after save: " + saved.getId()));
         return OrderDto.from(withDetails);
@@ -158,6 +167,8 @@ public class OrderService {
         User user = userRepository.findByEmailWithRole(userEmail)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userEmail));
         return orderRepository.findByUserIdWithDetailsOrderByCreatedAtDesc(user.getId()).stream()
+                // Unpaid drafts are not real orders yet — keep them out of the customer's history.
+                .filter(o -> !"PENDING_PAYMENT".equals(o.getStatus().getCode()))
                 .map(OrderDto::from)
                 .collect(Collectors.toList());
     }
