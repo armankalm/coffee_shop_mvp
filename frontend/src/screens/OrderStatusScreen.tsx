@@ -6,6 +6,7 @@ import type { OrderDto } from '../api/orders'
 import { cancelOrder, getOrderById } from '../api/orders'
 import type { BadgeTone } from '../components'
 import { Badge, Skeleton, SkeletonStatus } from '../components'
+import { ReadyNotificationCard } from '../push/ReadyNotificationCard'
 import styles from './Screens.module.css'
 
 const POLL_INTERVAL_MS = 30_000
@@ -71,9 +72,17 @@ export function OrderStatusScreen() {
     void poll()
     const intervalId = window.setInterval(poll, POLL_INTERVAL_MS)
 
+    // A push for this order ("ready") refreshes the status immediately.
+    function handlePushMessage(event: MessageEvent) {
+      const message = event.data as { type?: string; url?: string } | null
+      if (message?.type === 'push' && message.url === `/order/${id}`) void poll()
+    }
+    navigator.serviceWorker?.addEventListener('message', handlePushMessage)
+
     return () => {
       cancelled = true
       window.clearInterval(intervalId)
+      navigator.serviceWorker?.removeEventListener('message', handlePushMessage)
     }
   }, [orderId])
 
@@ -129,6 +138,8 @@ export function OrderStatusScreen() {
               <p className={styles.muted}>Статус обновлён в {formatTime(lastCheckedAt.toISOString())}</p>
             ) : null}
           </article>
+
+          {state.order.status === 'NEW' || state.order.status === 'IN_PROGRESS' ? <ReadyNotificationCard /> : null}
 
           <div className={styles.list}>
             {state.order.items.map((item) => (

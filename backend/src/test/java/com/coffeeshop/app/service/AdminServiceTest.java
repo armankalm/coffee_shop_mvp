@@ -237,6 +237,51 @@ class AdminServiceTest {
                 .hasMessageContaining("IN_PROGRESS");
     }
 
+    // ---- Item status -> order status ----
+
+    private RefOrderStatus status(long id, String code) {
+        return RefOrderStatus.builder().id(id).code(code).nameRu(code).nameEn(code).build();
+    }
+
+    private OrderItem item(long id, RefOrderStatus itemStatus) {
+        return OrderItem.builder().id(id).order(order).product(product).status(itemStatus).quantity(1).build();
+    }
+
+    @Test
+    void updateOrderItemStatus_lastItemReadyAfterAnotherWasHandedOut_marksOrderReady() {
+        RefOrderStatus ready = status(3L, "READY");
+        RefOrderStatus completed = status(4L, "COMPLETED");
+        order.setStatus(inProgressStatus);
+        OrderItem handedOut = item(10L, completed);
+        OrderItem last = item(11L, inProgressStatus);
+        when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(adminUser));
+        when(orderItemRepository.findByIdWithDetails(11L)).thenReturn(Optional.of(last));
+        when(refOrderStatusRepository.findByCode("READY")).thenReturn(Optional.of(ready));
+        when(orderItemRepository.findByOrderIdWithStatus(order.getId())).thenReturn(List.of(handedOut, last));
+
+        adminService.updateOrderItemStatus("admin@test.com", 11L, "READY");
+
+        assertThat(order.getStatus().getCode()).isEqualTo("READY");
+        verify(eventPublisher).publishEvent(any(com.coffeeshop.app.service.board.OrderStatusChangedEvent.class));
+    }
+
+    @Test
+    void updateOrderItemStatus_otherItemStillInProgress_keepsOrderInProgress() {
+        RefOrderStatus ready = status(3L, "READY");
+        order.setStatus(inProgressStatus);
+        OrderItem cooking = item(10L, inProgressStatus);
+        OrderItem done = item(11L, inProgressStatus);
+        when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(adminUser));
+        when(orderItemRepository.findByIdWithDetails(11L)).thenReturn(Optional.of(done));
+        when(refOrderStatusRepository.findByCode("READY")).thenReturn(Optional.of(ready));
+        when(orderItemRepository.findByOrderIdWithStatus(order.getId())).thenReturn(List.of(cooking, done));
+
+        adminService.updateOrderItemStatus("admin@test.com", 11L, "READY");
+
+        assertThat(order.getStatus().getCode()).isEqualTo("IN_PROGRESS");
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
     @Test
     void updateOrderStatus_notFound_throwsNoSuchElement() {
         when(userRepository.findByEmailWithAssignedShops("admin@test.com")).thenReturn(Optional.of(adminUser));

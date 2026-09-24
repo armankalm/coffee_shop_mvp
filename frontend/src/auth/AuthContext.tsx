@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 
 import type { AuthResponse } from '../api/auth'
+import { disablePush } from '../push/push'
 
 const STORAGE_KEY = 'drinkit.auth'
 
@@ -74,6 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(nextSession)
       },
       logout: () => {
+        // Stop order pushes on this device so the next account signed in here doesn't get them.
+        void disablePush().catch(() => undefined)
         localStorage.removeItem(STORAGE_KEY)
         setSession(null)
       },

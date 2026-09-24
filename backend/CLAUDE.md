@@ -69,6 +69,7 @@ See `.env.example` for the full list. Key groups:
 | Mail (OTP) | `BREVO_API_KEY`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` (Brevo HTTP API; empty key = dev-mode, code returned in response) |
 | Google sign-in | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BACKEND_URL`, `FRONTEND_URL` |
 | Image storage | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_STORAGE_BUCKET` (empty URL = local disk) |
+| Web Push | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` ("order is ready" notifications; empty keys = disabled, never rotate in prod) |
 | Printer | `PRINTER_HOST`, `PRINTER_PORT`, `PRINTER_ENABLED`, `PRINTER_TIMEOUT_MS`, `AUTO_PRINT_ENABLED` |
 | Kaspi | `KASPI_API_KEY`, `KASPI_MERCHANT_ID` |
 

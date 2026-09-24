@@ -5,8 +5,11 @@ import App from './App.tsx'
 import { AuthProvider } from './auth/AuthContext'
 import { CartProvider } from './cart/CartContext'
 import { FavoritesProvider } from './favorites/FavoritesContext'
+import { registerServiceWorker } from './push/push'
 import { ShopProvider } from './shop/ShopContext'
 import './styles/global.css'
+
+registerServiceWorker()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

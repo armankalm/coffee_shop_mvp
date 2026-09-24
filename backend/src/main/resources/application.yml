@@ -27,6 +27,13 @@ app:
     supabase-url: ${SUPABASE_URL:}
     supabase-key: ${SUPABASE_SERVICE_KEY:}
     bucket: ${SUPABASE_STORAGE_BUCKET:products}
+  push:
+    # Web Push (VAPID) keys, base64url: public = uncompressed P-256 point, private = 32-byte scalar.
+    # Empty -> push notifications are disabled.
+    vapid-public-key: ${VAPID_PUBLIC_KEY:}
+    vapid-private-key: ${VAPID_PRIVATE_KEY:}
+    # Contact for push services, e.g. mailto:you@example.com
+    vapid-subject: ${VAPID_SUBJECT:}
 
 ---
 spring:

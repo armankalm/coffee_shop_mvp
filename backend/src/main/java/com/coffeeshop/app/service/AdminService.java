@@ -36,6 +36,9 @@ public class AdminService {
             "CANCELLED",   Set.of()
     );
 
+    /** Forward progress of orders and items; CANCELLED is outside this chain. */
+    private static final List<String> ITEM_PROGRESS = List.of("NEW", "IN_PROGRESS", "READY", "COMPLETED");
+
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final CoffeeShopRepository coffeeShopRepository;
@@ -208,25 +211,44 @@ public class AdminService {
         // The parent order only advances to a status once every one of its items
         // has reached (or passed) that status. This keeps the order-level status
         // meaningful while items are tracked independently on the board.
-        syncOrderStatusFromItems(item.getOrder(), newStatusCode);
+        syncOrderStatusFromItems(item.getOrder());
 
         return OrderItemBoardDto.from(item);
     }
 
     /**
-     * Advances the parent order to {@code candidateCode} only if all of its items
-     * are at that status. Never moves the order backwards.
+     * Moves the parent order to the least advanced status among its (non-cancelled) items,
+     * so the order is READY as soon as every item is READY or already handed out. Checking
+     * for an exact match instead skipped READY whenever one item was handed out before the
+     * last one was ready, and the customer never got the "ready" notification.
+     * Never moves the order backwards; an order whose items are all cancelled is cancelled.
      */
-    private void syncOrderStatusFromItems(Order order, String candidateCode) {
+    private void syncOrderStatusFromItems(Order order) {
         List<OrderItem> siblings = orderItemRepository.findByOrderIdWithStatus(order.getId());
-        boolean allAtCandidate = siblings.stream()
-                .allMatch(sibling -> candidateCode.equals(sibling.getStatus().getCode()));
-
-        if (allAtCandidate && !candidateCode.equals(order.getStatus().getCode())) {
-            order.setStatus(resolveOrderStatus(candidateCode));
-            orderRepository.save(order);
-            eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order.getShop().getId(), order.getId()));
+        String currentCode = order.getStatus().getCode();
+        int currentRank = ITEM_PROGRESS.indexOf(currentCode);
+        if (currentRank < 0) {
+            return; // the order is already cancelled
         }
+
+        String targetCode;
+        if (!siblings.isEmpty() && siblings.stream().allMatch(sibling -> "CANCELLED".equals(sibling.getStatus().getCode()))) {
+            targetCode = "CANCELLED";
+        } else {
+            int leastRank = siblings.stream()
+                    .mapToInt(sibling -> ITEM_PROGRESS.indexOf(sibling.getStatus().getCode()))
+                    .filter(rank -> rank >= 0)
+                    .min()
+                    .orElse(-1);
+            if (leastRank <= currentRank) {
+                return;
+            }
+            targetCode = ITEM_PROGRESS.get(leastRank);
+        }
+
+        order.setStatus(resolveOrderStatus(targetCode));
+        orderRepository.save(order);
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(this, order.getShop().getId(), order.getId()));
     }
 
     public CoffeeShopDto createShop(CreateShopRequest request) {

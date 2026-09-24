@@ -1,0 +1,62 @@
+.progress {
+  --progress-color: var(--accent);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ready {
+  --progress-color: rgb(47, 151, 99);
+}
+
+.step {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: background 240ms ease;
+}
+
+.done .bar {
+  background: var(--progress-color);
+}
+
+/* The active stage pulses gently until the order is ready. */
+.progress:not(.ready) .current .bar {
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .current .bar {
+    animation: none;
+  }
+}
+
+.label {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.current .label {
+  color: var(--text);
+  font-weight: 800;
+}

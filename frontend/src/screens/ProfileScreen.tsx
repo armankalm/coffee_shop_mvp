@@ -9,12 +9,16 @@ import type { UserDto } from '../api/user'
 import { getCurrentUser } from '../api/user'
 import { useAuth } from '../auth/AuthContext'
 import { useCart } from '../cart/CartContext'
-import { SkeletonRows } from '../components'
+import { OrderProgress, SkeletonRows } from '../components'
 import { showFallbackImage } from '../components/imageFallback'
 import { useShop } from '../shop/ShopContext'
 import heroFallback from '../assets/hero.png'
 import loginStyles from './LoginScreen.module.css'
 import styles from './Screens.module.css'
+
+/** Orders the customer is still waiting for (or can pick up right now). */
+const ACTIVE_STATUSES = new Set(['NEW', 'IN_PROGRESS', 'READY'])
+const ACTIVE_POLL_INTERVAL_MS = 30_000
 
 type LoadState =
   | { status: 'loading' }
@@ -80,6 +84,38 @@ export function ProfileScreen() {
       cancelled = true
     }
   }, [])
+
+  const hasActiveOrders = state.status === 'ready' && state.orders.some((order) => ACTIVE_STATUSES.has(order.status))
+
+  // While something is still being prepared, keep the statuses fresh: poll, and refresh
+  // at once when a push ("order is ready") arrives.
+  useEffect(() => {
+    if (!hasActiveOrders) return
+    let cancelled = false
+
+    function refresh() {
+      getUserOrders()
+        .then((orders) => {
+          if (!cancelled) setState((current) => (current.status === 'ready' ? { ...current, orders } : current))
+        })
+        .catch(() => {
+          // Keep showing the last known statuses; the next tick retries.
+        })
+    }
+
+    function handlePushMessage(event: MessageEvent) {
+      if ((event.data as { type?: string } | null)?.type === 'push') refresh()
+    }
+
+    const intervalId = window.setInterval(refresh, ACTIVE_POLL_INTERVAL_MS)
+    navigator.serviceWorker?.addEventListener('message', handlePushMessage)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(intervalId)
+      navigator.serviceWorker?.removeEventListener('message', handlePushMessage)
+    }
+  }, [hasActiveOrders])
 
   function handleLogout() {
     logout()
@@ -165,6 +201,30 @@ export function ProfileScreen() {
             </span>
           </Link>
 
+          {hasActiveOrders ? (
+            <section className={styles.section} aria-labelledby="active-orders-title">
+              <h2 className={styles.sectionTitle} id="active-orders-title">
+                Текущие заказы
+              </h2>
+              <div className={styles.list}>
+                {state.orders
+                  .filter((order) => ACTIVE_STATUSES.has(order.status))
+                  .map((order) => (
+                    <Link className={styles.activeOrderCard} key={order.id} to={`/order/${order.id}`}>
+                      <div className={styles.activeOrderHeader}>
+                        <p className={styles.cardTitle}>Заказ №{order.dailyNumber ?? order.id}</p>
+                        <span className={styles.price}>{formatMoney(order.total)}</span>
+                      </div>
+                      <p className={styles.orderMeta}>
+                        {order.shopName} · {order.items.map((item) => item.productName).join(', ')}
+                      </p>
+                      <OrderProgress status={order.status} />
+                    </Link>
+                  ))}
+              </div>
+            </section>
+          ) : null}
+
           <section className={styles.section} aria-labelledby="orders-title">
             <h2 className={styles.sectionTitle} id="orders-title">
               История заказов
@@ -172,9 +232,11 @@ export function ProfileScreen() {
 
             {state.orders.length === 0 ? (
               <p className={styles.muted}>Заказов пока нет.</p>
+            ) : state.orders.every((order) => ACTIVE_STATUSES.has(order.status)) ? (
+              <p className={styles.muted}>Завершённых заказов пока нет.</p>
             ) : (
               <div className={styles.list}>
-                {state.orders.map((order) => (
+                {state.orders.filter((order) => !ACTIVE_STATUSES.has(order.status)).map((order) => (
                   <article className={styles.orderCard} key={order.id}>
                     <Link className={styles.orderInfo} to={`/order/${order.id}`}>
                       <p className={styles.price}>{formatMoney(order.total)}</p>

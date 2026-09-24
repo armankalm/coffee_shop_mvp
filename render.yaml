@@ -59,6 +59,18 @@ services:
       - key: MAIL_FROM_NAME
         value: Coffee Shop
 
+      # --- Web Push: "order is ready" notifications ---
+      # Generate once, never rotate (rotating invalidates every browser subscription):
+      #   node -e "const k=require('crypto').generateKeyPairSync('ec',{namedCurve:'prime256v1'}).privateKey.export({format:'jwk'});const b=s=>Buffer.from(s,'base64url');console.log('VAPID_PUBLIC_KEY='+Buffer.concat([Buffer.from([4]),b(k.x),b(k.y)]).toString('base64url')+'
+VAPID_PRIVATE_KEY='+k.d)"
+      # Empty keys -> push is disabled and the UI hides the notification offer.
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false            # contact for push services: https://<service>.onrender.com or mailto:you@...
+
       # --- Google sign-in ---
       # Authorized redirect URI in Google Cloud Console:
       #   https://<service>.onrender.com/api/auth/oauth/google/callback
