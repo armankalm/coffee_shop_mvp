@@ -1,0 +1,55 @@
+# Local run of the production image: docker compose up --build
+# App (frontend + API): http://localhost:8080
+# Swagger:              http://localhost:8080/swagger-ui.html
+#
+# Optional secrets (Brevo, Google, Supabase Storage) are read from a root .env file.
+# Without BREVO_API_KEY the OTP code is not emailed: it is returned by
+# POST /api/auth/request-code as "devCode" (the production UI does not show it).
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: coffeeshop
+      POSTGRES_USER: coffeeshop
+      POSTGRES_PASSWORD: coffeeshop
+    ports:
+      # 5433 so it doesn't clash with a Postgres already running on the host.
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coffeeshop -d coffeeshop"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/prod.Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: db
+      DB_NAME: coffeeshop
+      DB_USERNAME: coffeeshop
+      DB_PASSWORD: coffeeshop
+      # Local Postgres has no TLS; Supabase needs the default "require".
+      DB_SSLMODE: disable
+      FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/seed
+      JWT_SECRET: local-docker-only-secret-key-that-is-long-enough-for-hs256-signing
+      BACKEND_URL: http://localhost:8080
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY:-}
+
+volumes:
+  db_data:

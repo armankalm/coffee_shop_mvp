@@ -69,7 +69,7 @@ export function LoginScreen() {
   return (
     <section className={`${styles.screen} ${loginStyles.loginScreen}`} aria-labelledby="login-title">
       <div className={loginStyles.header}>
-        <p className={styles.eyebrow}>drinkit</p>
+        <p className={styles.eyebrow}>Coffee Shop</p>
         <h1 className={styles.title} id="login-title">
           Вход по почте
         </h1>

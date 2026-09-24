@@ -127,6 +127,10 @@ class OtpServiceTest {
         assertThatThrownBy(() -> otpService.generateAndSend("user@example.com"))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Failed to send OTP email");
+
+        ArgumentCaptor<OtpCode> saved = ArgumentCaptor.forClass(OtpCode.class);
+        verify(otpCodeRepository).save(saved.capture());
+        verify(otpCodeRepository).delete(saved.getValue());
     }
 
     @Test

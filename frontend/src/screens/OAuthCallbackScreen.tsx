@@ -50,7 +50,7 @@ export function OAuthCallbackScreen() {
   return (
     <section className={`${styles.screen} ${loginStyles.loginScreen}`} aria-labelledby="oauth-title">
       <div className={loginStyles.header}>
-        <p className={styles.eyebrow}>drinkit</p>
+        <p className={styles.eyebrow}>Coffee Shop</p>
         <h1 className={styles.title} id="oauth-title">
           {error ? 'Вход не выполнен' : 'Завершаем вход…'}
         </h1>

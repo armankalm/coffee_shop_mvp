@@ -23,18 +23,18 @@ RUN npm run build
 # ---------------------------------------------------------------------
 # Stage 2: backend (the SPA is packed into the jar as classpath:/static)
 # ---------------------------------------------------------------------
-FROM eclipse-temurin:17-jdk-alpine AS backend-build
+# backend/mvnw only delegates to a Maven install on the dev machine, so the image
+# brings its own Maven.
+FROM maven:3.9-eclipse-temurin-17-alpine AS backend-build
 
 WORKDIR /build
 
-COPY backend/.mvn/ .mvn/
-COPY backend/mvnw backend/pom.xml ./
-# mvnw is committed without the exec bit (Windows checkout)
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -q
+COPY backend/pom.xml ./
+RUN mvn dependency:go-offline -q
 
 COPY backend/src/ src/
 COPY --from=frontend-build /build/dist/ src/main/resources/static/
-RUN ./mvnw clean package -DskipTests -q
+RUN mvn clean package -DskipTests -q
 
 # ---------------------------------------------------------------------
 # Stage 3: runtime

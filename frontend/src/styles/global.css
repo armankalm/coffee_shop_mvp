@@ -37,6 +37,13 @@ select {
   font: inherit;
 }
 
+/* Selects use a translucent background, so the native dropdown falls back to a
+   white popup while options inherit white text. Give options explicit colors. */
+option {
+  background: var(--surface);
+  color: var(--text);
+}
+
 button {
   border: 0;
 }

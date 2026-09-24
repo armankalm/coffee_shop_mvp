@@ -56,18 +56,24 @@ public class OtpService {
      * instead of relying on real email delivery.
      */
     public String generateAndSend(String email) {
-        String code = self.saveOtp(email);
+        IssuedOtp issued = self.saveOtp(email);
         if (isDevMode()) {
             log.warn("OTP dev-mode active (no MAIL_USERNAME configured): returning code for {} instead of emailing it", email);
-            return code;
+            return issued.code();
         }
-        sendEmail(email, code);
+        try {
+            sendEmail(email, issued.code());
+        } catch (RuntimeException e) {
+            // The user never got this code: drop it, otherwise it blocks re-requests until it expires.
+            otpCodeRepository.delete(issued.otp());
+            throw e;
+        }
         log.info("OTP sent to: {}", email);
         return null;
     }
 
     @Transactional
-    public String saveOtp(String email) {
+    public IssuedOtp saveOtp(String email) {
         Instant now = Instant.now();
 
         // If a valid, non-exhausted OTP already exists, reject the re-request.
@@ -92,7 +98,7 @@ public class OtpService {
         otpCode.setUsed(false);
         otpCodeRepository.save(otpCode);
 
-        return code;
+        return new IssuedOtp(otpCode, code);
     }
 
     @Transactional
@@ -121,6 +127,10 @@ public class OtpService {
         otp.setUsed(true);
         otpCodeRepository.save(otp);
         return true;
+    }
+
+    /** A persisted OTP together with its plaintext code, which is stored only as a hash. */
+    public record IssuedOtp(OtpCode otp, String code) {
     }
 
     private String generateCode() {
