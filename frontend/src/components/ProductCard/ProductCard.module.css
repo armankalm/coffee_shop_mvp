@@ -1,0 +1,136 @@
+.card {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.card:active {
+  transform: scale(0.985);
+}
+
+.card:hover {
+  background: #20262c;
+}
+
+.openButton {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-rows: 122px minmax(40px, auto) auto auto;
+  gap: 11px;
+  border: 0;
+  padding: 10px 10px 12px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+}
+
+.openButton:focus-visible,
+.favoriteButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.imageFrame {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 56%),
+    #151a1f;
+}
+
+.image {
+  max-width: 92%;
+  max-height: 112px;
+  object-fit: contain;
+}
+
+.badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+
+.favoriteButton {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(18, 22, 26, 0.58);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.favoriteButton:active {
+  transform: scale(0.92);
+}
+
+.favoriteActive {
+  color: #ff5470;
+}
+
+.title {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.28;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.description {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.price {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}

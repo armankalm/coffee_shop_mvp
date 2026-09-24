@@ -1,0 +1,71 @@
+.card {
+  display: grid;
+  width: 136px;
+  flex: 0 0 136px;
+  grid-template-rows: 92px auto;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+
+.imageFrame {
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 62%),
+    #14191e;
+}
+
+.image {
+  max-width: 92%;
+  max-height: 82px;
+  object-fit: contain;
+}
+
+.body {
+  display: grid;
+  gap: 10px;
+  padding: 11px;
+}
+
+.title {
+  min-height: 34px;
+  margin: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.price {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.addButton {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.addButton:active {
+  transform: scale(0.96);
+}

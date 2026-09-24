@@ -1,0 +1,13 @@
+.hScroll {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hScroll > * {
+  scroll-snap-align: start;
+}

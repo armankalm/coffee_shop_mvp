@@ -1,0 +1,31 @@
+.screen {
+  min-width: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.actionError {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  border: 1px solid rgba(255, 176, 32, 0.28);
+  border-radius: var(--r-xs);
+  padding: 12px 14px;
+  background: rgba(255, 176, 32, 0.1);
+  color: #ffd28a;
+}
+
+.actionTitle {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.actionDescription {
+  color: #ffd28a;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
