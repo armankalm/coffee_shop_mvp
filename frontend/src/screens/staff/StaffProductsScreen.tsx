@@ -5,6 +5,7 @@ import { getShopProducts } from '../../api/adminProducts'
 import { resolveAssetUrl } from '../../api/client'
 import type { ProductDto } from '../../api/products'
 import { SkeletonRows } from '../../components'
+import { showFallbackImage } from '../../components/imageFallback'
 import { formatMoney } from '../../mocks'
 import { useStaffShops } from '../../staff/useStaffShops'
 import styles from './StaffProducts.module.css'
@@ -139,7 +140,7 @@ export function StaffProductsScreen() {
                     <li key={product.id}>
                       <Link className={styles.row} to={`/staff/products/${product.id}`}>
                         {image ? (
-                          <img className={styles.thumb} src={image} alt="" loading="lazy" />
+                          <img className={styles.thumb} src={image} alt="" loading="lazy" onError={showFallbackImage} />
                         ) : (
                           <span className={styles.thumbEmpty} aria-hidden="true">
                             ☕

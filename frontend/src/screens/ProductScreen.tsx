@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { ApiError, resolveAssetUrl } from '../api/client'
 import type { ProductDto } from '../api/products'
 import { getProductById } from '../api/products'
 import { useCart } from '../cart/CartContext'
 import { HScroll, Skeleton, SkeletonStatus } from '../components'
+import { showFallbackImage } from '../components/imageFallback'
 import { useFavorites } from '../favorites/FavoritesContext'
 import { useShop } from '../shop/ShopContext'
 import heroFallback from '../assets/hero.png'
@@ -23,14 +24,19 @@ function formatMoney(amount: number) {
 export function ProductScreen() {
   const { productId } = useParams()
   const navigate = useNavigate()
-  const { addItem } = useCart()
+  const { addItem, replaceItem, lines } = useCart()
+  const [searchParams] = useSearchParams()
+  // Opened from the cart (?line=<cart line id>): edit that line instead of adding a new one.
+  const editingLine = lines.find(
+    (line) => line.id === searchParams.get('line') && String(line.productId) === productId,
+  )
   const { isFavorite, toggleFavorite } = useFavorites()
   const { shop } = useShop()
 
   const [state, setState] = useState<LoadState>(() => ({ status: 'loading', productId }))
   const [selectedToppings, setSelectedToppings] = useState<{ productId: string | undefined; ids: number[] }>(() => ({
     productId,
-    ids: [],
+    ids: editingLine?.toppingIds ?? [],
   }))
   const selectedToppingIds = useMemo(
     () => (selectedToppings.productId === productId ? selectedToppings.ids : []),
@@ -122,6 +128,11 @@ export function ProductScreen() {
 
   function handleAddToCart() {
     if (!product || !product.available) return
+    if (editingLine) {
+      replaceItem(editingLine.id, product, validSelectedToppingIds)
+      navigate('/cart')
+      return
+    }
     if (!shop) {
       navigate('/locations')
       return
@@ -145,6 +156,7 @@ export function ProductScreen() {
           src={resolveAssetUrl(product.imagePath) ?? heroFallback}
           alt={product.name}
           draggable={false}
+          onError={showFallbackImage}
         />
         <div className={styles.productHeroShade} aria-hidden="true" />
 
@@ -161,7 +173,11 @@ export function ProductScreen() {
           <h1 className={styles.productTopTitle} id="product-title">
             {product.name}
           </h1>
-          <Link className={styles.productIconButton} to="/catalog" aria-label="Закрыть карточку товара">
+          <Link
+            className={styles.productIconButton}
+            to={editingLine ? '/cart' : '/catalog'}
+            aria-label="Закрыть карточку товара"
+          >
             ×
           </Link>
         </div>
@@ -206,9 +222,13 @@ export function ProductScreen() {
           onClick={handleAddToCart}
           type="button"
           disabled={!product.available}
-          aria-label={`Добавить ${product.name} в корзину`}
+          aria-label={editingLine ? `Сохранить ${product.name} в корзине` : `Добавить ${product.name} в корзину`}
         >
-          {product.available ? `+ ${formatMoney(totalPrice)}` : 'Unavailable'}
+          {!product.available
+            ? 'Unavailable'
+            : editingLine
+              ? `Сохранить · ${formatMoney(totalPrice)}`
+              : `+ ${formatMoney(totalPrice)}`}
         </button>
       </div>
     </section>

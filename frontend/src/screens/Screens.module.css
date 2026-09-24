@@ -336,6 +336,15 @@
   line-height: 1.25;
 }
 
+.cartTitleLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.cartTitleLink:hover {
+  text-decoration: underline;
+}
+
 .stories {
   display: grid;
   grid-auto-flow: column;
@@ -945,6 +954,7 @@
 }
 
 .cartImageFrame {
+  display: block;
   position: relative;
   min-width: 0;
 }

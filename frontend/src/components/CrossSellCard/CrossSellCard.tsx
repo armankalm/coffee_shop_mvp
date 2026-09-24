@@ -1,6 +1,7 @@
 import type { HTMLAttributes } from 'react'
 
 import { classNames } from '../classNames'
+import { showFallbackImage } from '../imageFallback'
 import styles from './CrossSellCard.module.css'
 
 export type CrossSellCardProps = HTMLAttributes<HTMLElement> & {
@@ -25,7 +26,7 @@ export function CrossSellCard({
   return (
     <article className={classNames(styles.card, className)} {...props}>
       <div className={styles.imageFrame}>
-        <img className={styles.image} src={imageSrc} alt={imageAlt} draggable={false} />
+        <img className={styles.image} src={imageSrc} alt={imageAlt} draggable={false} onError={showFallbackImage} />
       </div>
       <div className={styles.body}>
         <p className={styles.title}>{title}</p>

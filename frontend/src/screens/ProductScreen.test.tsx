@@ -13,6 +13,8 @@ const mockProductsApi = vi.hoisted(() => ({
 
 const mockCart = vi.hoisted(() => ({
   addItem: vi.fn(),
+  replaceItem: vi.fn(),
+  lines: [] as Array<{ id: string; productId: number; toppingIds: number[] }>,
 }))
 
 vi.mock('../api/products', () => mockProductsApi)
@@ -62,6 +64,8 @@ function NextProductButton() {
 describe('ProductScreen', () => {
   beforeEach(() => {
     mockCart.addItem.mockReset()
+    mockCart.replaceItem.mockReset()
+    mockCart.lines = []
     mockProductsApi.getProductById.mockReset()
     mockProductsApi.getProductById.mockResolvedValue(productFixture())
   })
@@ -95,6 +99,40 @@ describe('ProductScreen', () => {
       1,
       7,
     )
+  })
+
+  it('saves changes to the cart line it was opened from', async () => {
+    mockProductsApi.getProductById.mockResolvedValue(
+      productFixture({
+        availableToppings: [
+          { id: 1, name: 'Vanilla', type: 'SYRUP', typeNameRu: 'Syrup', price: 200, incompatibleWithIds: [] },
+        ],
+      }),
+    )
+    mockCart.lines = [{ id: '7:10:', productId: 10, toppingIds: [] }]
+
+    const { container } = await renderIntoDocument(
+      <MemoryRouter initialEntries={[`/product/10?line=${encodeURIComponent('7:10:')}`]}>
+        <Routes>
+          <Route path="/product/:productId" element={<ProductScreen />} />
+          <Route path="/cart" element={<span>cart</span>} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => {
+      expect(container.textContent).toContain('Сохранить')
+    })
+
+    const vanilla = Array.from(container.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Vanilla'),
+    )
+    await clickElement(vanilla!)
+    const buttons = Array.from(container.querySelectorAll('button'))
+    await clickElement(buttons[buttons.length - 1]!)
+
+    expect(mockCart.replaceItem).toHaveBeenCalledWith('7:10:', expect.objectContaining({ id: 10 }), [1])
+    expect(mockCart.addItem).not.toHaveBeenCalled()
   })
 
   it('does not add unavailable products to the cart', async () => {

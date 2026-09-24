@@ -42,7 +42,7 @@ const toppingProduct: ProductDto = {
 }
 
 function CartProbe() {
-  const { addItem, clearShop, lines } = useCart()
+  const { addItem, clearShop, replaceItem, lines } = useCart()
 
   return (
     <div>
@@ -77,6 +77,23 @@ function CartProbe() {
       </button>
       <button type="button" onClick={() => clearShop(1)}>
         clear shop
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          addItem(toppingProduct, [], 3, 1)
+        }}
+      >
+        plain mocha
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          const line = lines.find((entry) => entry.productId === 12 && entry.toppingIds.length === 0)
+          if (line) replaceItem(line.id, toppingProduct, [1])
+        }}
+      >
+        add vanilla to plain mocha
       </button>
     </div>
   )
@@ -153,6 +170,40 @@ describe('CartProvider', () => {
       expect(container.textContent).toContain('2:10:1:none')
       expect(container.textContent).not.toContain('1:10')
       expect(container.textContent).not.toContain('1:11')
+    })
+  })
+
+  it('replaces the toppings of an edited line and keeps its quantity', async () => {
+    const { container } = await renderIntoDocument(
+      <CartProvider>
+        <CartProbe />
+      </CartProvider>,
+    )
+    const buttons = container.querySelectorAll('button')
+
+    await clickElement(buttons[4]!)
+    await clickElement(buttons[5]!)
+
+    await waitFor(() => {
+      expect(container.textContent).toContain('1:12:3:1')
+      expect(container.textContent).not.toContain('1:12:3:none')
+    })
+  })
+
+  it('merges an edited line into an identical existing line', async () => {
+    const { container } = await renderIntoDocument(
+      <CartProvider>
+        <CartProbe />
+      </CartProvider>,
+    )
+    const buttons = container.querySelectorAll('button')
+
+    await clickElement(buttons[2]!)
+    await clickElement(buttons[4]!)
+    await clickElement(buttons[5]!)
+
+    await waitFor(() => {
+      expect(container.querySelector('output')?.textContent).toBe('1:12:4:1')
     })
   })
 

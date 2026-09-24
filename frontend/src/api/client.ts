@@ -54,14 +54,21 @@ function clearSessionAndRedirectToLogin() {
   }
 }
 
-let refreshPromise: Promise<string | null> | null = null
+/**
+ * `rejected`: the server refused the refresh token, the session is really over.
+ * `unavailable`: network error or 5xx, e.g. while the server redeploys or wakes up;
+ * the session is kept so the user stays signed in once the server is back.
+ */
+type RefreshResult = { status: 'ok'; accessToken: string } | { status: 'rejected' } | { status: 'unavailable' }
 
-async function refreshAccessToken(): Promise<string | null> {
+let refreshPromise: Promise<RefreshResult> | null = null
+
+async function refreshAccessToken(): Promise<RefreshResult> {
   if (refreshPromise) return refreshPromise
 
-  refreshPromise = (async () => {
+  refreshPromise = (async (): Promise<RefreshResult> => {
     const session = readSession()
-    if (!session?.refreshToken) return null
+    if (!session?.refreshToken) return { status: 'rejected' }
 
     try {
       const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
@@ -69,7 +76,9 @@ async function refreshAccessToken(): Promise<string | null> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken: session.refreshToken }),
       })
-      if (!response.ok) return null
+      if (!response.ok) {
+        return response.status >= 500 ? { status: 'unavailable' } : { status: 'rejected' }
+      }
 
       const auth = (await response.json()) as {
         accessToken: string
@@ -79,9 +88,9 @@ async function refreshAccessToken(): Promise<string | null> {
         permissions?: string[]
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(auth))
-      return auth.accessToken
+      return { status: 'ok', accessToken: auth.accessToken }
     } catch {
-      return null
+      return { status: 'unavailable' }
     }
   })()
 
@@ -113,12 +122,15 @@ export async function request<T>(path: string, options: RequestInit = {}, auth =
   let response = await performRequest(path, options, auth, auth ? readAccessToken() : null)
 
   if (auth && response.status === 401) {
-    const newToken = await refreshAccessToken()
-    if (!newToken) {
+    const refreshed = await refreshAccessToken()
+    if (refreshed.status === 'unavailable') {
+      throw new ApiError(503, 'Сервер временно недоступен, попробуйте ещё раз')
+    }
+    if (refreshed.status === 'rejected') {
       clearSessionAndRedirectToLogin()
       throw new ApiError(401, 'Сессия истекла, войдите снова')
     }
-    response = await performRequest(path, options, auth, newToken)
+    response = await performRequest(path, options, auth, refreshed.accessToken)
   }
 
   const contentType = response.headers.get('content-type') ?? ''

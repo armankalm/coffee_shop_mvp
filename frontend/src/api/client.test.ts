@@ -107,6 +107,30 @@ describe('api client', () => {
     expect(localStorage.getItem('drinkit.auth')).toBeNull()
   })
 
+  it('keeps the session when the server is unavailable during refresh', async () => {
+    storeSession()
+    const fetchMock = vi.mocked(fetch)
+    fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'expired' }, 401))
+    fetchMock.mockResolvedValueOnce(new Response('Bad Gateway', { status: 502 }))
+    const { apiGet, ApiError } = await loadClient()
+
+    await expect(apiGet('/orders')).rejects.toBeInstanceOf(ApiError)
+
+    expect(localStorage.getItem('drinkit.auth')).not.toBeNull()
+  })
+
+  it('keeps the session when the refresh request fails on the network', async () => {
+    storeSession()
+    const fetchMock = vi.mocked(fetch)
+    fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'expired' }, 401))
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    const { apiGet } = await loadClient()
+
+    await expect(apiGet('/orders')).rejects.toThrow('Сервер временно недоступен')
+
+    expect(localStorage.getItem('drinkit.auth')).not.toBeNull()
+  })
+
   it('uses backend JSON error messages and non-JSON fallback messages', async () => {
     storeSession()
     const fetchMock = vi.mocked(fetch)

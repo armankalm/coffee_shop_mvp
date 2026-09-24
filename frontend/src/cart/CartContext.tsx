@@ -20,6 +20,8 @@ export type CartLine = {
 type CartContextValue = {
   lines: CartLine[]
   addItem: (product: ProductDto, toppingIds: number[], quantity: number, shopId: number) => void
+  /** Replaces the toppings of an existing line in place, keeping its quantity. */
+  replaceItem: (lineId: string, product: ProductDto, toppingIds: number[]) => void
   updateQuantity: (lineId: string, quantity: number) => void
   removeItem: (lineId: string) => void
   clearShop: (shopId: number) => void
@@ -80,6 +82,25 @@ function lineKey(shopId: number, productId: number, toppingIds: number[]) {
   return `${shopId}:${productId}:${[...toppingIds].sort((a, b) => a - b).join(',')}`
 }
 
+function buildLine(product: ProductDto, toppingIds: number[], quantity: number, shopId: number): CartLine {
+  const requestedToppingIds = new Set(toppingIds)
+  const toppings = product.availableToppings.filter((topping) => requestedToppingIds.has(topping.id))
+  const validToppingIds = toppings.map((topping) => topping.id)
+
+  return {
+    id: lineKey(shopId, product.id, validToppingIds),
+    shopId,
+    productId: product.id,
+    productName: product.name,
+    imagePath: product.imagePath,
+    basePrice: product.basePrice,
+    toppingIds: validToppingIds,
+    toppingsLabel: toppings.map((topping) => topping.name).join(', '),
+    toppingsPrice: toppings.reduce((sum, topping) => sum + topping.price, 0),
+    quantity,
+  }
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>(() => readStoredLines())
 
@@ -93,33 +114,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
       addItem: (product, toppingIds, quantity, shopId) => {
         if (!product.available || !isPositiveInteger(quantity) || !isPositiveInteger(shopId)) return
 
-        const requestedToppingIds = new Set(toppingIds)
-        const toppings = product.availableToppings.filter((topping) => requestedToppingIds.has(topping.id))
-        const validToppingIds = toppings.map((topping) => topping.id)
-        const id = lineKey(shopId, product.id, validToppingIds)
-        const toppingsPrice = toppings.reduce((sum, topping) => sum + topping.price, 0)
-        const toppingsLabel = toppings.map((topping) => topping.name).join(', ')
+        const newLine = buildLine(product, toppingIds, quantity, shopId)
 
         setLines((currentLines) => {
-          const existing = currentLines.find((line) => line.id === id)
+          const existing = currentLines.find((line) => line.id === newLine.id)
 
           return existing
-            ? currentLines.map((line) => (line.id === id ? { ...line, quantity: line.quantity + quantity } : line))
-            : [
-                ...currentLines,
-                {
-                  id,
-                  shopId,
-                  productId: product.id,
-                  productName: product.name,
-                  imagePath: product.imagePath,
-                  basePrice: product.basePrice,
-                  toppingIds: validToppingIds,
-                  toppingsLabel,
-                  toppingsPrice,
-                  quantity,
-                },
-              ]
+            ? currentLines.map((line) =>
+                line.id === newLine.id ? { ...line, quantity: line.quantity + quantity } : line,
+              )
+            : [...currentLines, newLine]
+        })
+      },
+      replaceItem: (lineId, product, toppingIds) => {
+        if (!product.available) return
+
+        setLines((currentLines) => {
+          const original = currentLines.find((line) => line.id === lineId)
+          if (!original || original.productId !== product.id) return currentLines
+
+          const edited = buildLine(product, toppingIds, original.quantity, original.shopId)
+          if (edited.id === lineId) {
+            return currentLines.map((line) => (line.id === lineId ? edited : line))
+          }
+
+          // The new toppings match another line: merge into it instead of keeping two identical lines.
+          const duplicate = currentLines.find((line) => line.id === edited.id)
+          if (duplicate) {
+            return currentLines
+              .filter((line) => line.id !== lineId)
+              .map((line) => (line.id === edited.id ? { ...line, quantity: line.quantity + original.quantity } : line))
+          }
+          return currentLines.map((line) => (line.id === lineId ? edited : line))
         })
       },
       updateQuantity: (lineId, quantity) => {

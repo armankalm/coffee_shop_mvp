@@ -6,6 +6,7 @@ import { createOrder } from '../api/orders'
 import { useCart } from '../cart/CartContext'
 import { useShop } from '../shop/ShopContext'
 import { Stepper } from '../components'
+import { showFallbackImage } from '../components/imageFallback'
 import heroFallback from '../assets/hero.png'
 import styles from './Screens.module.css'
 
@@ -80,17 +81,27 @@ export function CartScreen() {
         <div className={styles.list}>
           {shopLines.map((line) => (
             <article className={styles.cartCard} key={line.id}>
-              <div className={styles.cartImageFrame}>
+              <Link
+                className={styles.cartImageFrame}
+                to={`/product/${line.productId}?line=${encodeURIComponent(line.id)}`}
+                aria-label={`Изменить ${line.productName}`}
+              >
                 <img
                   className={styles.cartImage}
                   src={resolveAssetUrl(line.imagePath) ?? heroFallback}
                   alt={line.productName}
                   draggable={false}
+                  onError={showFallbackImage}
                 />
-              </div>
+              </Link>
               <div className={styles.cartBody}>
                 {line.toppingsLabel ? <p className={styles.muted}>{line.toppingsLabel}</p> : null}
-                <p className={styles.cardTitle}>{line.productName}</p>
+                <Link
+                  className={`${styles.cardTitle} ${styles.cartTitleLink}`}
+                  to={`/product/${line.productId}?line=${encodeURIComponent(line.id)}`}
+                >
+                  {line.productName}
+                </Link>
                 <div className={styles.cartFooter}>
                   <span className={styles.price}>
                     {formatMoney((line.basePrice + line.toppingsPrice) * line.quantity)}

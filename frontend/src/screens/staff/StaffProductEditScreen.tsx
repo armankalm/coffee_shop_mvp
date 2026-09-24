@@ -14,6 +14,7 @@ import {
 import { resolveAssetUrl } from '../../api/client'
 import { getProductById, type ToppingDto } from '../../api/products'
 import { SkeletonForm } from '../../components'
+import { showFallbackImage } from '../../components/imageFallback'
 import styles from './StaffProducts.module.css'
 
 const ACCEPTED_IMAGES = 'image/jpeg,image/png,image/webp,image/gif'
@@ -240,7 +241,7 @@ export function StaffProductEditScreen() {
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <section className={styles.imageBlock}>
             {preview ? (
-              <img className={styles.imagePreview} src={preview} alt="" />
+              <img className={styles.imagePreview} src={preview} alt="" onError={showFallbackImage} />
             ) : (
               <span className={styles.imageEmpty} aria-hidden="true">
                 ☕

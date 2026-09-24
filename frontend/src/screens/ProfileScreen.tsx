@@ -10,6 +10,7 @@ import { getCurrentUser } from '../api/user'
 import { useAuth } from '../auth/AuthContext'
 import { useCart } from '../cart/CartContext'
 import { SkeletonRows } from '../components'
+import { showFallbackImage } from '../components/imageFallback'
 import { useShop } from '../shop/ShopContext'
 import heroFallback from '../assets/hero.png'
 import loginStyles from './LoginScreen.module.css'
@@ -186,6 +187,7 @@ export function ProfileScreen() {
                             alt=""
                             className={styles.orderThumb}
                             key={item.id}
+                            onError={showFallbackImage}
                             src={
                               resolveAssetUrl(state.productImages.get(item.productId) ?? undefined) ?? heroFallback
                             }

@@ -2,6 +2,7 @@ import type { ButtonHTMLAttributes } from 'react'
 
 import { Badge } from '../Badge'
 import { classNames } from '../classNames'
+import { showFallbackImage } from '../imageFallback'
 import type { ProductBadge } from '../../types'
 import styles from './ProductCard.module.css'
 
@@ -33,7 +34,7 @@ export function ProductCard({
     <article className={classNames(styles.card, className)}>
       <button className={styles.openButton} type={type} {...props}>
         <span className={styles.imageFrame}>
-          <img className={styles.image} src={imageSrc} alt={imageAlt} draggable={false} />
+          <img className={styles.image} src={imageSrc} alt={imageAlt} draggable={false} onError={showFallbackImage} />
           {badge ? (
             <Badge className={styles.badge} tone={badge.tone}>
               {badge.label}

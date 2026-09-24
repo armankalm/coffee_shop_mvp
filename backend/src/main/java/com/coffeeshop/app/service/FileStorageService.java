@@ -40,6 +40,11 @@ public class FileStorageService {
                               SupabaseStorageClient supabase) {
         this.uploadDir = Paths.get(uploadDir).toAbsolutePath().normalize();
         this.supabase = supabase;
+        if (!useSupabase()) {
+            // On Render the disk is wiped on every deploy, so these images would 404 afterwards.
+            log.warn("Supabase Storage is not configured (SUPABASE_URL / SUPABASE_SERVICE_KEY): product images "
+                    + "are stored on local disk at {} and will be lost if the disk is not persistent", this.uploadDir);
+        }
     }
 
     /** Local-disk only storage. */
