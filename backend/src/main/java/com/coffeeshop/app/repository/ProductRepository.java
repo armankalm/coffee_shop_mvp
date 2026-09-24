@@ -30,6 +30,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCategoryAndAvailableTrueWithToppingsByShop(@Param("category") RefProductCategory category,
                                                                    @Param("shopId") Long shopId);
 
+    // Staff catalog: unavailable products included, soft-deleted ones excluded.
+    @Query("SELECT DISTINCT p FROM Product p " +
+           "LEFT JOIN FETCH p.availableToppings t " +
+           "LEFT JOIN FETCH t.type " +
+           "LEFT JOIN FETCH t.incompatibleWith " +
+           "JOIN FETCH p.category " +
+           "WHERE p.deletedAt IS NULL AND p.coffeeShop.id = :shopId " +
+           "ORDER BY p.name")
+    List<Product> findAllNotDeletedWithToppingsByShop(@Param("shopId") Long shopId);
+
     @Query("SELECT DISTINCT p FROM Product p " +
            "LEFT JOIN FETCH p.availableToppings t " +
            "LEFT JOIN FETCH t.type " +

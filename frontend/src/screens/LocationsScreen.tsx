@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import type { CoffeeShopDto } from '../api/shops'
 import { getShopsGroupedByCity } from '../api/shops'
 import { ApiError } from '../api/client'
-import { Button, ListItem } from '../components'
+import { Button, ListItem, SkeletonRows } from '../components'
 import { useShop } from '../shop/ShopContext'
 import styles from './Screens.module.css'
 
@@ -96,7 +96,7 @@ export function LocationsScreen() {
         </button>
       </header>
 
-      {isLoading ? <p className={styles.muted}>Загружаем кофейни…</p> : null}
+      {isLoading ? <SkeletonRows label="Загружаем кофейни…" count={4} trailing={false} /> : null}
       {error ? <p className={styles.muted}>{error}</p> : null}
 
       {filteredShopsByCity &&

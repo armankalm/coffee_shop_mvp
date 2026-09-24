@@ -2,6 +2,7 @@ package com.coffeeshop.app.controller;
 
 import com.coffeeshop.app.dto.product.ProductDto;
 import com.coffeeshop.app.service.ProductService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class ProductImageController {
         this.productService = productService;
     }
 
-    @PostMapping("/{id}/image")
+    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ProductDto> uploadImage(
             @PathVariable Long id,

@@ -5,7 +5,7 @@ import { ApiError } from '../api/client'
 import type { OrderDto } from '../api/orders'
 import { cancelOrder, getOrderById } from '../api/orders'
 import type { BadgeTone } from '../components'
-import { Badge } from '../components'
+import { Badge, Skeleton, SkeletonStatus } from '../components'
 import styles from './Screens.module.css'
 
 const POLL_INTERVAL_MS = 30_000
@@ -106,7 +106,14 @@ export function OrderStatusScreen() {
         <span className={styles.roundIconButton} aria-hidden="true" />
       </header>
 
-      {state.status === 'loading' ? <p className={styles.muted}>Загружаем заказ…</p> : null}
+      {state.status === 'loading' ? (
+        <SkeletonStatus label="Загружаем заказ…">
+          <Skeleton height={140} radius={24} />
+          <Skeleton height={64} radius={16} />
+          <Skeleton height={64} radius={16} />
+          <Skeleton height={64} radius={16} />
+        </SkeletonStatus>
+      ) : null}
       {state.status === 'error' ? <p className={styles.muted}>{state.message}</p> : null}
 
       {state.status === 'ready' ? (

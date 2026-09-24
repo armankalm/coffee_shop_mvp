@@ -15,6 +15,7 @@ import com.coffeeshop.app.service.print.PrintService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -257,6 +258,13 @@ public class AdminService {
         coffeeShopRepository.deleteById(shopId);
     }
 
+    @Transactional(readOnly = true)
+    public List<ProductDto> getProducts(Long shopId) {
+        return productRepository.findAllNotDeletedWithToppingsByShop(shopId).stream()
+                .map(ProductDto::from)
+                .collect(Collectors.toList());
+    }
+
     public ProductDto createProduct(CreateProductRequest request) {
         Set<Topping> availableToppings = resolveToppings(request.getAvailableToppingIds());
         RefProductCategory category = resolveProductCategory(request.getCategoryCode());
@@ -276,6 +284,7 @@ public class AdminService {
 
     public ProductDto updateProduct(Long productId, CreateProductRequest request) {
         Product product = productRepository.findByIdWithToppings(productId)
+                .filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> new NoSuchElementException("Product not found: " + productId));
         CoffeeShop shop = coffeeShopRepository.findById(request.getShopId())
                 .orElseThrow(() -> new NoSuchElementException("Coffee shop not found: " + request.getShopId()));
@@ -300,11 +309,18 @@ public class AdminService {
         return toppings;
     }
 
+    /**
+     * Soft delete: orders, favorites and saved combinations still reference the product,
+     * so it is only hidden. Marking it unavailable also blocks new orders for it, since
+     * menus and order creation already check availability.
+     */
     public void deleteProduct(Long productId) {
-        if (!productRepository.existsById(productId)) {
-            throw new NoSuchElementException("Product not found: " + productId);
-        }
-        productRepository.deleteById(productId);
+        Product product = productRepository.findById(productId)
+                .filter(p -> p.getDeletedAt() == null)
+                .orElseThrow(() -> new NoSuchElementException("Product not found: " + productId));
+        product.setDeletedAt(Instant.now());
+        product.setAvailable(false);
+        productRepository.save(product);
     }
 
     public ToppingDto createTopping(CreateToppingRequest request) {

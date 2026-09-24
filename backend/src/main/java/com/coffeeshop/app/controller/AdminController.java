@@ -130,6 +130,12 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/products")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<List<ProductDto>> getProducts(@RequestParam("shopId") Long shopId) {
+        return ResponseEntity.ok(adminService.getProducts(shopId));
+    }
+
     @PostMapping("/products")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody CreateProductRequest request) {

@@ -9,6 +9,7 @@ import type { UserDto } from '../api/user'
 import { getCurrentUser } from '../api/user'
 import { useAuth } from '../auth/AuthContext'
 import { useCart } from '../cart/CartContext'
+import { SkeletonRows } from '../components'
 import { useShop } from '../shop/ShopContext'
 import heroFallback from '../assets/hero.png'
 import loginStyles from './LoginScreen.module.css'
@@ -147,7 +148,7 @@ export function ProfileScreen() {
         </button>
       </header>
 
-      {state.status === 'loading' ? <p className={styles.muted}>Загружаем профиль…</p> : null}
+      {state.status === 'loading' ? <SkeletonRows label="Загружаем профиль…" count={4} trailing={false} /> : null}
       {state.status === 'error' ? <p className={styles.muted}>{state.message}</p> : null}
 
       {state.status === 'ready' ? (

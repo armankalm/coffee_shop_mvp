@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -371,12 +372,25 @@ class AdminServiceTest {
     }
 
     @Test
-    void deleteProduct_existingProduct_deletesIt() {
-        when(productRepository.existsById(1L)).thenReturn(true);
+    void deleteProduct_existingProduct_softDeletesIt() {
+        Product product = Product.builder().id(1L).name("Latte").available(true).build();
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
         adminService.deleteProduct(1L);
 
-        verify(productRepository).deleteById(1L);
+        assertThat(product.getDeletedAt()).isNotNull();
+        assertThat(product.isAvailable()).isFalse();
+        verify(productRepository).save(product);
+        verify(productRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void deleteProduct_alreadyDeleted_throwsNoSuchElement() {
+        Product product = Product.builder().id(1L).name("Latte").deletedAt(Instant.now()).build();
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        assertThatThrownBy(() -> adminService.deleteProduct(1L))
+                .isInstanceOf(NoSuchElementException.class);
     }
 
     @Test

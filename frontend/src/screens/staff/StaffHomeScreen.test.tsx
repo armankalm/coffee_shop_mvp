@@ -61,6 +61,20 @@ describe('StaffHomeScreen', () => {
     expect(markup).toContain('Вам не назначена')
   })
 
+  it('shows the menu editor only to roles that manage products', () => {
+    mockState.shops = [shop]
+    mockState.selectedShopId = 5
+    const session = { accessToken: 'a', refreshToken: 'r', email: 'staff@example.com' }
+
+    localStorage.setItem('drinkit.auth', JSON.stringify({ ...session, role: 'MANAGER' }))
+    expect(render()).toContain('href="/staff/products"')
+
+    localStorage.setItem('drinkit.auth', JSON.stringify({ ...session, role: 'BARISTA' }))
+    expect(render()).not.toContain('href="/staff/products"')
+
+    localStorage.removeItem('drinkit.auth')
+  })
+
   it('renders a logout control', () => {
     mockState.shops = [shop]
     mockState.selectedShopId = 5

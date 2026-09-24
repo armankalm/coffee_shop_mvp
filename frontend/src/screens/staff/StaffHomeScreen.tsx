@@ -1,6 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../auth/AuthContext'
+import { Skeleton, SkeletonStatus } from '../../components'
+import { hasPermission, PRODUCTS_MANAGE_PERMISSION } from '../../auth/permissions'
 import { useStaffShops } from '../../staff/useStaffShops'
 import styles from './StaffHomeScreen.module.css'
 
@@ -9,6 +11,7 @@ export function StaffHomeScreen() {
   const { session, logout } = useAuth()
   const navigate = useNavigate()
 
+  const canManageProducts = hasPermission(session?.role, PRODUCTS_MANAGE_PERMISSION, session?.permissions)
   const boardTo = selectedShopId != null ? `/board/${selectedShopId}` : null
 
   function handleLogout() {
@@ -37,7 +40,9 @@ export function StaffHomeScreen() {
           Кофейня
         </label>
         {loading ? (
-          <p className={styles.hint}>Загрузка кофеен…</p>
+          <SkeletonStatus label="Загрузка кофеен…">
+            <Skeleton width="100%" height={46} radius={12} className={styles.select} />
+          </SkeletonStatus>
         ) : error ? (
           <p className={styles.error} role="alert">
             {error}
@@ -91,6 +96,16 @@ export function StaffHomeScreen() {
           <span className={styles.cardTitle}>Создать заказ</span>
           <span className={styles.cardText}>Оформить заказ на кассе</span>
         </Link>
+
+        {canManageProducts ? (
+          <Link className={styles.card} to="/staff/products">
+            <span className={styles.cardIcon} aria-hidden="true">
+              📋
+            </span>
+            <span className={styles.cardTitle}>Меню</span>
+            <span className={styles.cardText}>Товары, цены и фото</span>
+          </Link>
+        ) : null}
       </nav>
     </main>
   )

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { ApiError } from '../api/client'
 import { getCurrentUser, updateProfile } from '../api/user'
-import { Button } from '../components'
+import { Button, SkeletonForm } from '../components'
 import loginStyles from './LoginScreen.module.css'
 import styles from './Screens.module.css'
 
@@ -65,7 +65,7 @@ export function EditProfileScreen() {
       </header>
 
       {isLoading ? (
-        <p className={styles.muted}>Загружаем данные…</p>
+        <SkeletonForm label="Загружаем данные…" fields={2} />
       ) : (
         <form className={loginStyles.form} onSubmit={handleSubmit}>
           <label className={loginStyles.field}>

@@ -4,7 +4,7 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { ApiError, resolveAssetUrl } from '../api/client'
 import type { ProductDto } from '../api/products'
 import { getProducts } from '../api/products'
-import { HScroll, ProductCard } from '../components'
+import { HScroll, ProductCard, SkeletonCards } from '../components'
 import { useFavorites } from '../favorites/FavoritesContext'
 import { useShop } from '../shop/ShopContext'
 import heroFallback from '../assets/hero.png'
@@ -99,7 +99,7 @@ export function CatalogScreen() {
         </h1>
       </header>
 
-      {state.status === 'loading' ? <p className={styles.muted}>Загружаем меню…</p> : null}
+      {state.status === 'loading' ? <SkeletonCards label="Загружаем меню…" gridClassName={styles.grid} /> : null}
       {state.status === 'error' ? <p className={styles.muted}>{state.message}</p> : null}
 
       {state.status === 'ready' ? (

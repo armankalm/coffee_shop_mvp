@@ -10,6 +10,7 @@ export const ROLE_PERMISSIONS = {
 export type KnownRole = keyof typeof ROLE_PERMISSIONS
 
 export const KITCHEN_BOARD_PERMISSION = 'orders:update-status'
+export const PRODUCTS_MANAGE_PERMISSION = 'products:update'
 
 export function getRolePermissions(role: string | null | undefined): readonly Permission[] {
   if (!role) return []

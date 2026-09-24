@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 import { createOrder } from '../../api/orders'
 import { getProducts, type ProductDto } from '../../api/products'
-import { Button, Stepper } from '../../components'
+import { Button, SkeletonRows, Stepper } from '../../components'
 import { classNames } from '../../components/classNames'
 import { formatMoney } from '../../mocks'
 import { useStaffShops } from '../../staff/useStaffShops'
@@ -180,7 +180,7 @@ export function PosOrderScreen() {
 
       <section className={styles.menu} aria-label="Меню">
         {productsLoading ? (
-          <p className={styles.hint}>Загрузка меню…</p>
+          <SkeletonRows label="Загрузка меню…" count={6} thumb={false} />
         ) : products.length === 0 ? (
           <p className={styles.hint}>В этой кофейне нет доступных товаров.</p>
         ) : (

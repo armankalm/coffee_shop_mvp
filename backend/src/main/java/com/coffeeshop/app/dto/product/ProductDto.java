@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 public class ProductDto {
     private Long id;
+    private Long shopId;
     private String name;
     private String category;
     private String categoryNameRu;
@@ -22,6 +23,8 @@ public class ProductDto {
     public static ProductDto from(Product product) {
         ProductDto dto = new ProductDto();
         dto.id = product.getId();
+        // getId() on a lazy proxy does not initialize it, so this costs no extra query.
+        dto.shopId = product.getCoffeeShop() != null ? product.getCoffeeShop().getId() : null;
         dto.name = product.getName();
         dto.category = product.getCategory().getCode();
         dto.categoryNameRu = product.getCategory().getNameRu();
@@ -36,6 +39,7 @@ public class ProductDto {
     }
 
     public Long getId() { return id; }
+    public Long getShopId() { return shopId; }
     public String getName() { return name; }
     public String getCategory() { return category; }
     public String getCategoryNameRu() { return categoryNameRu; }

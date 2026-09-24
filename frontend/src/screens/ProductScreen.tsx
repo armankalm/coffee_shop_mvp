@@ -5,7 +5,7 @@ import { ApiError, resolveAssetUrl } from '../api/client'
 import type { ProductDto } from '../api/products'
 import { getProductById } from '../api/products'
 import { useCart } from '../cart/CartContext'
-import { HScroll } from '../components'
+import { HScroll, Skeleton, SkeletonStatus } from '../components'
 import { useFavorites } from '../favorites/FavoritesContext'
 import { useShop } from '../shop/ShopContext'
 import heroFallback from '../assets/hero.png'
@@ -82,7 +82,13 @@ export function ProductScreen() {
   if (state.status === 'loading' || state.productId !== productId) {
     return (
       <section className={`${styles.screen} ${styles.productScreen}`}>
-        <p className={styles.productDescription}>Загружаем товар…</p>
+        <SkeletonStatus label="Загружаем товар…">
+          <Skeleton height={280} radius={24} />
+          <Skeleton width="60%" height={26} />
+          <Skeleton width="90%" height={14} />
+          <Skeleton width="70%" height={14} />
+          <Skeleton width={120} height={20} />
+        </SkeletonStatus>
       </section>
     )
   }

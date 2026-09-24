@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,6 +43,10 @@ public class Product {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    /** Set when the product is soft-deleted; such products are hidden from menus and staff lists. */
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

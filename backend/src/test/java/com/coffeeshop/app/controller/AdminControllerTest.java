@@ -326,6 +326,23 @@ class AdminControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager@test.com", roles = "MANAGER")
+    void getProducts_asManager_returnsShopProducts() throws Exception {
+        when(adminService.getProducts(1L)).thenReturn(List.of(buildProductDto(1L, "Latte")));
+
+        mockMvc.perform(get("/api/admin/products").param("shopId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Latte"));
+    }
+
+    @Test
+    @WithMockUser(username = "barista@test.com", roles = "BARISTA")
+    void getProducts_asBarista_returns403() throws Exception {
+        mockMvc.perform(get("/api/admin/products").param("shopId", "1"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @WithMockUser(username = "admin@test.com", roles = "ADMIN")
     void deleteProduct_existingProduct_returns204() throws Exception {
         doNothing().when(adminService).deleteProduct(1L);

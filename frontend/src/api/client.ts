@@ -94,7 +94,8 @@ async function refreshAccessToken(): Promise<string | null> {
 
 async function performRequest(path: string, options: RequestInit, auth: boolean, token: string | null): Promise<Response> {
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    // FormData needs the browser-generated multipart boundary, so no explicit type.
+    ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers as Record<string, string> | undefined),
   }
 
@@ -158,6 +159,21 @@ export function apiPatch<T>(path: string, data: unknown): Promise<T> {
     },
     true,
   )
+}
+
+export function apiPut<T>(path: string, data: unknown): Promise<T> {
+  return request<T>(
+    path,
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    },
+    true,
+  )
+}
+
+export function apiUpload<T>(path: string, data: FormData): Promise<T> {
+  return request<T>(path, { method: 'POST', body: data }, true)
 }
 
 export function apiDelete<T>(path: string): Promise<T> {

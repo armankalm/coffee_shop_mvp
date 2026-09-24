@@ -11,6 +11,7 @@ export type ToppingDto = {
 
 export type ProductDto = {
   id: number
+  shopId?: number | null
   name: string
   category: string
   categoryNameRu: string
