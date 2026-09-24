@@ -40,7 +40,7 @@ export function CartScreen() {
         })),
       })
       clearShop(shop.id)
-      navigate(`/order/${order.id}/pay`)
+      navigate(`/order/${order.id}`)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Не удалось оформить заказ. Попробуйте ещё раз.')
     } finally {

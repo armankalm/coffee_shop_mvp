@@ -12,7 +12,6 @@ import {
   LocationsScreen,
   LoginScreen,
   OrderStatusScreen,
-  PaymentScreen,
   ProductScreen,
   ProfileScreen,
   KitchenOrdersScreen,
@@ -34,7 +33,6 @@ function App() {
           <Route path="catalog" element={<CatalogScreen />} />
           <Route path="product/:productId" element={<ProductScreen />} />
           <Route path="cart" element={<CartScreen />} />
-          <Route path="order/:orderId/pay" element={<PaymentScreen />} />
           <Route path="order/:orderId" element={<OrderStatusScreen />} />
           <Route path="*" element={<LocationsScreen />} />
         </Route>
