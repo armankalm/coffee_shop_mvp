@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.List;
 import java.util.Map;
@@ -31,12 +32,29 @@ public class BrevoEmailSender {
                             @Value("${app.mail.from-address:}") String fromAddress,
                             @Value("${app.mail.from-name:Coffee Shop}") String fromName) {
         this.restClient = restClientBuilder.baseUrl(API_URL).build();
-        this.apiKey = apiKey;
+        this.apiKey = extractApiKey(apiKey);
         this.fromAddress = fromAddress;
         this.fromName = fromName;
         if (isConfigured() && fromAddress.isBlank()) {
             throw new IllegalStateException("MAIL_FROM_ADDRESS must be set when BREVO_API_KEY is configured");
         }
+    }
+
+    /**
+     * Accepts either the bare key (xkeysib-...) or a Symfony Mailer DSN such as
+     * brevo+api://xkeysib-...@default, so the same value can be shared between projects.
+     */
+    static String extractApiKey(String value) {
+        String key = value == null ? "" : value.trim();
+        int scheme = key.indexOf("://");
+        if (scheme >= 0) {
+            key = key.substring(scheme + 3);
+            int at = key.lastIndexOf('@');
+            if (at >= 0) {
+                key = key.substring(0, at);
+            }
+        }
+        return key;
     }
 
     public boolean isConfigured() {
@@ -50,13 +68,19 @@ public class BrevoEmailSender {
                 "subject", subject,
                 "textContent", text
         );
-        restClient.post()
-                .header("api-key", apiKey)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .toBodilessEntity();
+        try {
+            restClient.post()
+                    .header("api-key", apiKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientResponseException e) {
+            // Brevo explains 401s in the body (bad key vs. unauthorized IP); keep it in the log.
+            throw new IllegalStateException("Brevo responded " + e.getStatusCode().value()
+                    + ": " + e.getResponseBodyAsString(), e);
+        }
         log.debug("Brevo accepted email to {}", to);
     }
 }
