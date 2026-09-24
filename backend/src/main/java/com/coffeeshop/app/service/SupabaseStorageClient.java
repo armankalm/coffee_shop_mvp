@@ -22,11 +22,15 @@ public class SupabaseStorageClient {
                                  @Value("${app.storage.bucket:products}") String bucket) {
         this.baseUrl = supabaseUrl.replaceAll("/+$", "");
         this.bucket = bucket;
-        this.restClient = restClientBuilder
+        RestClient.Builder builder = restClientBuilder
                 .baseUrl(this.baseUrl + "/storage/v1")
-                .defaultHeader("apikey", serviceKey)
-                .defaultHeader("Authorization", "Bearer " + serviceKey)
-                .build();
+                .defaultHeader("apikey", serviceKey);
+        // Legacy service_role keys are JWTs and also go in Authorization. New secret keys
+        // (sb_secret_...) are not JWTs: sending them as a Bearer token is rejected.
+        if (!serviceKey.startsWith("sb_")) {
+            builder.defaultHeader("Authorization", "Bearer " + serviceKey);
+        }
+        this.restClient = builder.build();
         if (!this.baseUrl.isBlank() && serviceKey.isBlank()) {
             throw new IllegalStateException("SUPABASE_SERVICE_KEY must be set when SUPABASE_URL is configured");
         }
