@@ -11,7 +11,8 @@ services:
     # Build context is the repo root: the Dockerfile copies both backend/ and frontend/.
     dockerfilePath: ./docker/prod.Dockerfile
     dockerContext: .
-    healthCheckPath: /v3/api-docs
+    # The bundled index.html: instant, no DB or springdoc warm-up (api-docs takes ~15s on first call).
+    healthCheckPath: /
     autoDeploy: true
 
     envVars:
