@@ -2,13 +2,12 @@ package com.coffeeshop.app.service;
 
 import com.coffeeshop.app.domain.OtpCode;
 import com.coffeeshop.app.repository.OtpCodeRepository;
+import com.coffeeshop.app.service.mail.BrevoEmailSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +25,7 @@ public class OtpService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final OtpCodeRepository otpCodeRepository;
-    private final JavaMailSender mailSender;
+    private final BrevoEmailSender emailSender;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // Self-reference to allow @Transactional on saveOtp to be applied via the proxy.
@@ -40,22 +39,15 @@ public class OtpService {
     @Value("${app.otp.length:6}")
     private int otpLength;
 
-    @Value("${spring.mail.username:noreply@coffeeshop.local}")
-    private String fromEmail;
-
-    // Dev-only escape hatch: when no SMTP sender address is configured, skip sending
-    // real emails and instead return the code directly to the caller (see AuthController).
-    // Never enabled implicitly in prod (spring.mail.username has no default there).
-    @Value("${spring.mail.username:}")
-    private String configuredFromEmail;
-
-    public OtpService(OtpCodeRepository otpCodeRepository, JavaMailSender mailSender) {
+    public OtpService(OtpCodeRepository otpCodeRepository, BrevoEmailSender emailSender) {
         this.otpCodeRepository = otpCodeRepository;
-        this.mailSender = mailSender;
+        this.emailSender = emailSender;
     }
 
+    // Dev-only escape hatch: when no BREVO_API_KEY is configured, skip sending
+    // real emails and instead return the code directly to the caller (see AuthController).
     public boolean isDevMode() {
-        return configuredFromEmail.isBlank();
+        return !emailSender.isConfigured();
     }
 
     /**
@@ -139,12 +131,8 @@ public class OtpService {
 
     private void sendEmail(String to, String code) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(to);
-            message.setSubject("Your Coffee Shop login code");
-            message.setText("Your login code is: " + code + "\n\nThis code expires in " + expirationMinutes + " minutes.");
-            mailSender.send(message);
+            emailSender.send(to, "Your Coffee Shop login code",
+                    "Your login code is: " + code + "\n\nThis code expires in " + expirationMinutes + " minutes.");
         } catch (Exception e) {
             log.error("Failed to send OTP email to {}: {}", to, e.getMessage());
             throw new RuntimeException("Failed to send OTP email", e);

@@ -1,0 +1,60 @@
+# Render Blueprint: backend web service (Docker). DB and image storage live in Supabase.
+services:
+  - type: web
+    name: coffee-shop-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+
+      # --- Database: Supabase -> Connect -> Session pooler (the direct host is IPv6-only) ---
+      - key: DB_HOST
+        sync: false            # aws-0-<region>.pooler.supabase.com
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: postgres
+      - key: DB_USERNAME
+        sync: false            # postgres.<project-ref>
+      - key: DB_PASSWORD
+        sync: false
+      # Test data. Once applied keep it here: Flyway validates the migration history.
+      - key: FLYWAY_LOCATIONS
+        value: classpath:db/migration,classpath:db/seed
+
+      # --- Images: Supabase -> Storage, public bucket "products" ---
+      - key: SUPABASE_URL
+        sync: false            # https://<project-ref>.supabase.co
+      - key: SUPABASE_SERVICE_KEY
+        sync: false            # Project Settings -> API Keys -> secret / service_role
+      - key: SUPABASE_STORAGE_BUCKET
+        value: products
+
+      - key: JWT_SECRET
+        generateValue: true
+      # Frontend URL: CORS and the redirect after Google sign-in.
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false            # https://<frontend>.onrender.com
+      - key: FRONTEND_URL
+        sync: false            # https://<frontend>.onrender.com
+      # BACKEND_URL is not needed: RENDER_EXTERNAL_URL is injected by Render.
+
+      # --- Mail: Brevo HTTP API (SMTP ports are blocked on Render free) ---
+      # Empty key -> OTP dev-mode: the code is returned in the API response. Never leave it empty on a public stand.
+      - key: BREVO_API_KEY
+        sync: false            # xkeysib-...
+      - key: MAIL_FROM_ADDRESS
+        sync: false            # must be a verified sender in Brevo
+      - key: MAIL_FROM_NAME
+        value: Coffee Shop
+
+      # --- Google sign-in ---
+      # Authorized redirect URI in Google Cloud Console:
+      #   https://<backend>.onrender.com/api/auth/oauth/google/callback
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false

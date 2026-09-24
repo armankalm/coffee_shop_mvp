@@ -2,6 +2,7 @@ package com.coffeeshop.app.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,9 +33,22 @@ public class FileStorageService {
     );
 
     private final Path uploadDir;
+    private final SupabaseStorageClient supabase;
 
-    public FileStorageService(@Value("${app.upload.dir:./uploads/products}") String uploadDir) {
+    @Autowired
+    public FileStorageService(@Value("${app.upload.dir:./uploads/products}") String uploadDir,
+                              SupabaseStorageClient supabase) {
         this.uploadDir = Paths.get(uploadDir).toAbsolutePath().normalize();
+        this.supabase = supabase;
+    }
+
+    /** Local-disk only storage. */
+    public FileStorageService(String uploadDir) {
+        this(uploadDir, null);
+    }
+
+    private boolean useSupabase() {
+        return supabase != null && supabase.isEnabled();
     }
 
     public String store(MultipartFile file) throws IOException {
@@ -42,8 +56,6 @@ public class FileStorageService {
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
             throw new IllegalArgumentException("Only image files are allowed (JPEG, PNG, WebP, GIF)");
         }
-
-        Files.createDirectories(uploadDir);
 
         String originalFilename = file.getOriginalFilename();
         String extension = "";
@@ -59,6 +71,12 @@ public class FileStorageService {
 
         String filename = UUID.randomUUID() + extension;
 
+        if (useSupabase()) {
+            // Returns an absolute public URL; the frontend uses absolute URLs as-is.
+            return supabase.upload(filename, file.getBytes(), contentType);
+        }
+
+        Files.createDirectories(uploadDir);
         Path target = uploadDir.resolve(filename).normalize();
         if (!target.startsWith(uploadDir)) {
             throw new IOException("Cannot store file outside upload directory");
@@ -73,6 +91,14 @@ public class FileStorageService {
             return;
         }
         String filename = relativePath.substring(relativePath.lastIndexOf('/') + 1);
+        if (useSupabase() && relativePath.startsWith(supabase.publicUrlPrefix())) {
+            try {
+                supabase.delete(filename);
+            } catch (RuntimeException e) {
+                log.warn("Failed to delete Supabase object: {}", filename, e);
+            }
+            return;
+        }
         Path filePath = uploadDir.resolve(filename).normalize();
         if (filePath.startsWith(uploadDir)) {
             try {

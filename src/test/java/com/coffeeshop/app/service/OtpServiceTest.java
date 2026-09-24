@@ -2,6 +2,7 @@ package com.coffeeshop.app.service;
 
 import com.coffeeshop.app.domain.OtpCode;
 import com.coffeeshop.app.repository.OtpCodeRepository;
+import com.coffeeshop.app.service.mail.BrevoEmailSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,8 +10,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -30,7 +29,7 @@ class OtpServiceTest {
     private OtpCodeRepository otpCodeRepository;
 
     @Mock
-    private JavaMailSender mailSender;
+    private BrevoEmailSender emailSender;
 
     @InjectMocks
     private OtpService otpService;
@@ -39,8 +38,6 @@ class OtpServiceTest {
     void setUp() {
         ReflectionTestUtils.setField(otpService, "expirationMinutes", 5);
         ReflectionTestUtils.setField(otpService, "otpLength", 6);
-        ReflectionTestUtils.setField(otpService, "fromEmail", "noreply@coffeeshop.local");
-        ReflectionTestUtils.setField(otpService, "configuredFromEmail", "noreply@coffeeshop.local");
         ReflectionTestUtils.setField(otpService, "self", otpService);
     }
 
@@ -49,14 +46,14 @@ class OtpServiceTest {
         ArgumentCaptor<OtpCode> otpCaptor = ArgumentCaptor.forClass(OtpCode.class);
         when(otpCodeRepository.findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(
                 eq("user@example.com"), any(Instant.class))).thenReturn(Optional.empty());
-        doNothing().when(mailSender).send(any(SimpleMailMessage.class));
+        when(emailSender.isConfigured()).thenReturn(true);
 
         String devCode = otpService.generateAndSend("user@example.com");
 
         assertThat(devCode).isNull();
         verify(otpCodeRepository).deleteExpiredOrInvalidByEmail(eq("user@example.com"), any(Instant.class), anyInt());
         verify(otpCodeRepository).save(otpCaptor.capture());
-        verify(mailSender).send(any(SimpleMailMessage.class));
+        verify(emailSender).send(eq("user@example.com"), anyString(), anyString());
 
         OtpCode saved = otpCaptor.getValue();
         assertThat(saved.getEmail()).isEqualTo("user@example.com");
@@ -84,7 +81,7 @@ class OtpServiceTest {
 
         // No new OTP should be saved and no email sent
         verify(otpCodeRepository, never()).save(any(OtpCode.class));
-        verify(mailSender, never()).send(any(SimpleMailMessage.class));
+        verify(emailSender, never()).send(anyString(), anyString(), anyString());
     }
 
     @Test
@@ -98,18 +95,18 @@ class OtpServiceTest {
 
         when(otpCodeRepository.findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(
                 eq("user@example.com"), any(Instant.class))).thenReturn(Optional.of(exhaustedOtp));
-        doNothing().when(mailSender).send(any(SimpleMailMessage.class));
+        when(emailSender.isConfigured()).thenReturn(true);
 
         otpService.generateAndSend("user@example.com");
 
         verify(otpCodeRepository).deleteExpiredOrInvalidByEmail(eq("user@example.com"), any(Instant.class), anyInt());
         verify(otpCodeRepository).save(any(OtpCode.class));
-        verify(mailSender).send(any(SimpleMailMessage.class));
+        verify(emailSender).send(eq("user@example.com"), anyString(), anyString());
     }
 
     @Test
     void generateAndSend_devMode_skipsEmailAndReturnsCode() {
-        ReflectionTestUtils.setField(otpService, "configuredFromEmail", "");
+        when(emailSender.isConfigured()).thenReturn(false);
         when(otpCodeRepository.findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(
                 eq("user@example.com"), any(Instant.class))).thenReturn(Optional.empty());
 
@@ -117,14 +114,15 @@ class OtpServiceTest {
 
         assertThat(devCode).isNotBlank();
         assertThat(devCode).hasSize(6);
-        verify(mailSender, never()).send(any(SimpleMailMessage.class));
+        verify(emailSender, never()).send(anyString(), anyString(), anyString());
     }
 
     @Test
     void generateAndSend_mailFailure_throwsRuntimeException() {
         when(otpCodeRepository.findTopByEmailAndUsedFalseAndExpiresAtAfterOrderByIdDesc(
                 eq("user@example.com"), any(Instant.class))).thenReturn(Optional.empty());
-        doThrow(new RuntimeException("SMTP error")).when(mailSender).send(any(SimpleMailMessage.class));
+        when(emailSender.isConfigured()).thenReturn(true);
+        doThrow(new RuntimeException("Brevo error")).when(emailSender).send(anyString(), anyString(), anyString());
 
         assertThatThrownBy(() -> otpService.generateAndSend("user@example.com"))
                 .isInstanceOf(RuntimeException.class)

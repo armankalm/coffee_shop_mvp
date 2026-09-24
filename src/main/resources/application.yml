@@ -8,6 +8,26 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
+app:
+  # Public URLs. On Render RENDER_EXTERNAL_URL is injected automatically.
+  backend-url: ${BACKEND_URL:${RENDER_EXTERNAL_URL:http://localhost:8080}}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  mail:
+    # Brevo HTTP API (SMTP is blocked on Render free). Empty key -> OTP dev-mode: code is returned in the response.
+    brevo-api-key: ${BREVO_API_KEY:}
+    # Must be a verified sender in Brevo.
+    from-address: ${MAIL_FROM_ADDRESS:}
+    from-name: ${MAIL_FROM_NAME:Coffee Shop}
+  oauth:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
+      client-secret: ${GOOGLE_CLIENT_SECRET:}
+  storage:
+    # Supabase Storage for product images. Empty url -> files are kept on local disk (app.upload.dir).
+    supabase-url: ${SUPABASE_URL:}
+    supabase-key: ${SUPABASE_SERVICE_KEY:}
+    bucket: ${SUPABASE_STORAGE_BUCKET:products}
+
 ---
 spring:
   config:
@@ -29,17 +49,6 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
 
 server:
   port: ${SERVER_PORT:8080}
@@ -63,12 +72,7 @@ app:
     expiration-minutes: ${OTP_EXPIRATION_MINUTES:5}
     length: 6
   payment:
-    # ISO currency for Stripe charges. KZT is a 2-decimal currency, so amounts are sent as total * 100.
-    currency: ${PAYMENT_CURRENCY:kzt}
-    # Minutes an unpaid PENDING_PAYMENT draft may live before it is auto-cancelled.
-    draft-ttl-minutes: ${PAYMENT_DRAFT_TTL_MINUTES:30}
     stripe:
-      secret-key: ${STRIPE_SECRET_KEY:}
       webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
     kaspi:
       api-key: ${KASPI_API_KEY:}
@@ -105,13 +109,15 @@ spring:
     activate:
       on-profile: prod
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}
+    # Supabase: use the Session pooler (port 5432) — Render has no outbound IPv6, so the direct host won't resolve.
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME:postgres}?sslmode=${DB_SSLMODE:require}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
+      # Supabase free tier caps pooler connections, keep the pool small.
+      maximum-pool-size: ${DB_POOL_SIZE:5}
+      minimum-idle: ${DB_POOL_MIN_IDLE:1}
       connection-timeout: 30000
   jpa:
     hibernate:
@@ -122,21 +128,12 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
-    locations: classpath:db/migration
-  mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+    # Add classpath:db/seed to load test data on a fresh DB.
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration}
 
 server:
-  port: ${SERVER_PORT:8080}
+  # Render injects PORT.
+  port: ${PORT:${SERVER_PORT:8080}}
   error:
     include-message: never
 
@@ -151,13 +148,14 @@ app:
     expiration-minutes: ${OTP_EXPIRATION_MINUTES:5}
     length: 6
   payment:
-    currency: ${PAYMENT_CURRENCY:kzt}
-    draft-ttl-minutes: ${PAYMENT_DRAFT_TTL_MINUTES:30}
     stripe:
-      secret-key: ${STRIPE_SECRET_KEY}
-      webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+      webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
     kaspi:
-      api-key: ${KASPI_API_KEY}
+      api-key: ${KASPI_API_KEY:}
+  upload:
+    dir: ${UPLOAD_DIR:./uploads/products}
+  order:
+    timezone: ${ORDER_TIMEZONE:Asia/Almaty}
 
 print:
   printer:

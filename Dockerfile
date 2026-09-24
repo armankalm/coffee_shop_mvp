@@ -4,7 +4,8 @@ WORKDIR /app
 
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
-RUN ./mvnw dependency:go-offline -q
+# mvnw is committed without the exec bit (Windows checkout)
+RUN chmod +x mvnw && ./mvnw dependency:go-offline -q
 
 COPY src/ src/
 RUN ./mvnw clean package -DskipTests -q
@@ -20,6 +21,9 @@ COPY --from=builder /app/target/*.jar app.jar
 RUN mkdir -p logs && chown -R appuser:appgroup /app
 
 USER appuser
+
+# Render free instances have 512MB RAM
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+UseSerialGC -Xss512k"
 
 EXPOSE 8080
 

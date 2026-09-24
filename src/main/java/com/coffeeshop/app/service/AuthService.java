@@ -104,6 +104,29 @@ public class AuthService {
         return new AuthResponse(accessToken, refreshToken, email, role);
     }
 
+    /**
+     * Signs in a user whose email was verified by Google. Unknown emails are auto-registered,
+     * the same way as the OTP flow does it.
+     */
+    @Transactional
+    public AuthResponse loginWithGoogle(String email, String name) {
+        email = email.toLowerCase(Locale.ROOT).trim();
+        if (!userRepository.existsByEmail(email)) {
+            self.tryRegisterUser(email);
+        }
+
+        User user = userRepository.findByEmailWithRole(email)
+                .orElseThrow(() -> new IllegalStateException("User not found after Google sign-in"));
+        if ((user.getName() == null || user.getName().isBlank()) && name != null && !name.isBlank()) {
+            user.setName(name);
+        }
+
+        String role = user.getRole().getCode();
+        String accessToken = tokenProvider.generateAccessToken(email, role);
+        String refreshToken = tokenProvider.generateRefreshToken(email, role);
+        return new AuthResponse(accessToken, refreshToken, email, role);
+    }
+
     @Transactional(readOnly = true)
     public AuthResponse refresh(String refreshToken) {
         if (!tokenProvider.validateToken(refreshToken) || !tokenProvider.isRefreshToken(refreshToken)) {

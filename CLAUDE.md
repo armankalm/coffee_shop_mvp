@@ -54,7 +54,8 @@ com.coffeeshop.app
 1. `POST /api/auth/request-code` — client sends email; server auto-registers unknown users, generates a 6-digit OTP, emails it, and stores it hashed with expiry.
 2. `POST /api/auth/verify-code` — client sends email + OTP; server validates, marks OTP used, returns `{ accessToken, refreshToken, email, role }`.
 3. `POST /api/auth/refresh` — client sends `refreshToken`; server validates signature/expiry and issues new token pair.
-4. All protected endpoints expect `Authorization: Bearer <accessToken>`.
+4. Google: `GET /api/auth/oauth/google` redirects to Google; `/api/auth/oauth/google/callback` checks the `oauth_state` cookie, auto-registers the verified email and redirects to `<FRONTEND_URL>/auth/callback#accessToken=...&refreshToken=...&email=...&role=...` (or `#error=<code>`).
+5. All protected endpoints expect `Authorization: Bearer <accessToken>`.
 
 ## Environment Variables
 
@@ -64,10 +65,11 @@ See `.env.example` for the full list. Key groups:
 |---|---|
 | Database | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD` |
 | JWT | `JWT_SECRET` (min 256-bit), `JWT_ACCESS_EXPIRATION`, `JWT_REFRESH_EXPIRATION` |
-| Mail (OTP) | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` |
+| Mail (OTP) | `BREVO_API_KEY`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` (Brevo HTTP API; empty key = dev-mode, code returned in response) |
+| Google sign-in | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BACKEND_URL`, `FRONTEND_URL` |
+| Image storage | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_STORAGE_BUCKET` (empty URL = local disk) |
 | Printer | `PRINTER_HOST`, `PRINTER_PORT`, `PRINTER_ENABLED`, `PRINTER_TIMEOUT_MS`, `AUTO_PRINT_ENABLED` |
 | Kaspi | `KASPI_API_KEY`, `KASPI_MERCHANT_ID` |
-| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` |
 
 ## Testing Notes
 
