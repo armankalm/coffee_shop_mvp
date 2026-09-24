@@ -1,0 +1,29 @@
+
+# ralphex progress logs
+.ralphex/progress/
+
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+logs/
+.env
+*.env.local
+.env.production
+
+# IDE
+.idea/
+*.iml
+.eclipse/
+.settings/
+.classpath
+.project
+
+# Maven
+.mvn/timing.properties
+
+# OS
+.DS_Store
+Thumbs.db

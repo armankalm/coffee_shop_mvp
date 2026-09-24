@@ -1,0 +1,94 @@
+package com.coffeeshop.app.controller;
+
+import com.coffeeshop.app.domain.Product;
+import com.coffeeshop.app.domain.RefProductCategory;
+import com.coffeeshop.app.dto.product.ProductDto;
+import com.coffeeshop.app.service.ProductService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(ProductController.class)
+@Import({com.coffeeshop.app.config.SecurityConfig.class,
+         com.coffeeshop.app.config.GlobalExceptionHandler.class,
+         com.coffeeshop.app.security.JwtAuthFilter.class,
+         com.coffeeshop.app.security.JwtTokenProvider.class,
+         com.coffeeshop.app.security.JwtProperties.class})
+class ProductControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private ProductService productService;
+
+    private static final Long SHOP_ID = 1L;
+
+    private RefProductCategory coffeeCategory() {
+        return RefProductCategory.builder().id(1L).code("COFFEE").nameRu("Кофе").nameEn("Coffee").build();
+    }
+
+    private ProductDto buildDto(Long id, String name) {
+        Product product = Product.builder()
+                .id(id).name(name).category(coffeeCategory())
+                .basePrice(BigDecimal.valueOf(500))
+                .available(true)
+                .build();
+        return ProductDto.from(product);
+    }
+
+    @Test
+    @WithMockUser
+    void getAll_noFilter_returnsAllProducts() throws Exception {
+        ProductDto dto = buildDto(1L, "Latte");
+        when(productService.getAll(SHOP_ID, null)).thenReturn(List.of(dto));
+
+        mockMvc.perform(get("/api/products").param("shopId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Latte"));
+    }
+
+    @Test
+    @WithMockUser
+    void getAll_withCategoryFilter_filtersProducts() throws Exception {
+        ProductDto dto = buildDto(1L, "Espresso");
+        when(productService.getAll(SHOP_ID, "COFFEE")).thenReturn(List.of(dto));
+
+        mockMvc.perform(get("/api/products").param("shopId", "1").param("category", "COFFEE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].category").value("COFFEE"));
+    }
+
+    @Test
+    @WithMockUser
+    void getById_existingProduct_returnsProductWithToppings() throws Exception {
+        ProductDto dto = buildDto(1L, "Cappuccino");
+        when(productService.getById(1L)).thenReturn(dto);
+
+        mockMvc.perform(get("/api/products/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.availableToppings").isArray());
+    }
+
+    @Test
+    @WithMockUser
+    void getById_notFound_returns404() throws Exception {
+        when(productService.getById(99L)).thenThrow(new NoSuchElementException("Product not found: 99"));
+
+        mockMvc.perform(get("/api/products/99"))
+                .andExpect(status().isNotFound());
+    }
+}
