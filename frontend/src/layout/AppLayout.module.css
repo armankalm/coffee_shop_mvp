@@ -1,6 +1,6 @@
 .app {
+  flex: 1 0 auto;
   width: min(100%, 430px);
-  min-height: 100svh;
   margin: 0 auto;
   display: flex;
   align-items: stretch;
@@ -9,7 +9,6 @@
 
 .shell {
   width: 100%;
-  min-height: calc(100svh - var(--safe-top) - var(--safe-bottom));
   display: grid;
   grid-template-rows: minmax(0, 1fr);
   background: var(--bg);

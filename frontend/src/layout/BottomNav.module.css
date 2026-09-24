@@ -1,8 +1,13 @@
 .nav {
   position: fixed;
-  right: max(var(--safe-right), calc((100vw - 430px) / 2));
+  right: 0;
   bottom: 0;
-  left: max(var(--safe-left), calc((100vw - 430px) / 2));
+  left: 0;
+  /* Centred with auto margins rather than 100vw math, which breaks under page zoom. */
+  width: min(100%, 430px);
+  margin: 0 auto;
+  padding-right: var(--safe-right);
+  padding-left: var(--safe-left);
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

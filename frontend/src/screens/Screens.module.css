@@ -578,12 +578,19 @@
 }
 
 .productScreen {
-  /* Exactly one viewport tall (minus the bottom nav): the hero image absorbs the
-     leftover space, so the header, toppings and add button never scroll away. */
-  position: relative;
-  height: calc(100svh - var(--safe-top) - var(--safe-bottom) - var(--nav-height));
+  /* Pinned between the top of the viewport and the bottom nav: the hero image absorbs
+     the leftover space, so the header, toppings and add button never scroll away.
+     Fixed top/bottom instead of 100svh: Safari computes viewport units without page
+     zoom, which pushed the toppings under the nav at enlarged zoom levels. */
+  position: fixed;
+  top: var(--safe-top);
+  bottom: var(--nav-height); /* the nav is border-box: its height already includes the safe area */
+  left: 0;
+  right: 0;
+  width: min(100%, 430px);
   min-height: 0;
   min-width: 0;
+  margin: 0 auto;
   gap: 0;
   overflow: hidden;
   padding: 0;
@@ -1010,9 +1017,11 @@
 
 .cartBottomBar {
   position: fixed;
-  right: max(var(--safe-right), calc((100vw - 430px) / 2));
-  bottom: calc(var(--nav-height) + var(--safe-bottom));
-  left: max(var(--safe-left), calc((100vw - 430px) / 2));
+  right: 0;
+  bottom: var(--nav-height); /* the nav is border-box: its height already includes the safe area */
+  left: 0;
+  width: min(100%, 430px);
+  margin: 0 auto;
   z-index: 4;
   display: grid;
   gap: 10px;
