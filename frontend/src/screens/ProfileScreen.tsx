@@ -8,6 +8,7 @@ import { getProductById } from '../api/products'
 import type { UserDto } from '../api/user'
 import { getCurrentUser } from '../api/user'
 import { useAuth } from '../auth/AuthContext'
+import { KITCHEN_BOARD_PERMISSION, hasPermission, staffRoleTitle } from '../auth/permissions'
 import { useCart } from '../cart/CartContext'
 import { OrderProgress, SkeletonRows } from '../components'
 import { showFallbackImage } from '../components/imageFallback'
@@ -41,7 +42,8 @@ function initialsFromEmail(email: string) {
 }
 
 export function ProfileScreen() {
-  const { logout } = useAuth()
+  const { logout, session } = useAuth()
+  const isStaff = hasPermission(session?.role, KITCHEN_BOARD_PERMISSION, session?.permissions)
   const navigate = useNavigate()
   const { addItem } = useCart()
   const { shop } = useShop()
@@ -200,6 +202,21 @@ export function ProfileScreen() {
               &gt;
             </span>
           </Link>
+
+          {isStaff ? (
+            <Link className={styles.staffSwitchCard} to="/staff">
+              <span className={styles.staffSwitchIcon} aria-hidden="true">
+                💼
+              </span>
+              <span className={styles.profileDetails}>
+                <span className={styles.profileName}>Рабочее место</span>
+                <span className={styles.muted}>{staffRoleTitle(session?.role)}: заказы, касса, меню</span>
+              </span>
+              <span className={styles.profileArrow} aria-hidden="true">
+                &gt;
+              </span>
+            </Link>
+          ) : null}
 
           {hasActiveOrders ? (
             <section className={styles.section} aria-labelledby="active-orders-title">

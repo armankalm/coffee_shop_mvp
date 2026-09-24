@@ -16,7 +16,9 @@ const mockApi = vi.hoisted(() => ({
 vi.mock('../api/user', () => ({ getCurrentUser: mockApi.getCurrentUser }))
 vi.mock('../api/orders', () => ({ getUserOrders: mockApi.getUserOrders }))
 vi.mock('../api/products', () => ({ getProductById: mockApi.getProductById }))
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ logout: vi.fn() }) }))
+const mockAuth = vi.hoisted(() => ({ session: null as { role: string } | null }))
+
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ logout: vi.fn(), session: mockAuth.session }) }))
 vi.mock('../cart/CartContext', () => ({ useCart: () => ({ addItem: vi.fn() }) }))
 vi.mock('../shop/ShopContext', () => ({ useShop: () => ({ shop: null }) }))
 
@@ -44,6 +46,7 @@ describe('ProfileScreen', () => {
   })
 
   afterEach(async () => {
+    mockAuth.session = null
     vi.clearAllMocks()
     await cleanupDocument()
   })
@@ -68,6 +71,32 @@ describe('ProfileScreen', () => {
     const history = container.querySelector('[aria-labelledby="orders-title"]')!
     expect(history.querySelector('a[href="/order/2"]')).not.toBeNull()
     expect(history.querySelector('a[href="/order/1"]')).toBeNull()
+  })
+
+  it('offers staff a way back to their workspace, but not customers', async () => {
+    mockApi.getUserOrders.mockResolvedValue([])
+
+    mockAuth.session = { role: 'BARISTA' }
+    const staff = await renderIntoDocument(
+      <MemoryRouter>
+        <ProfileScreen />
+      </MemoryRouter>,
+    )
+    await waitFor(() => {
+      expect(staff.container.querySelector('a[href="/staff"]')).not.toBeNull()
+    })
+    await cleanupDocument()
+
+    mockAuth.session = { role: 'USER' }
+    const customer = await renderIntoDocument(
+      <MemoryRouter>
+        <ProfileScreen />
+      </MemoryRouter>,
+    )
+    await waitFor(() => {
+      expect(customer.container.textContent).toContain('История заказов')
+    })
+    expect(customer.container.querySelector('a[href="/staff"]')).toBeNull()
   })
 
   it('hides the block when nothing is in progress', async () => {

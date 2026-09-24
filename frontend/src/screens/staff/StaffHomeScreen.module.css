@@ -38,6 +38,7 @@
   color: inherit;
   font-size: 14px;
   font-weight: 600;
+  text-decoration: none;
   cursor: pointer;
   transition: background 140ms ease, border-color 140ms ease;
 }

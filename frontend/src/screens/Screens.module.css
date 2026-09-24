@@ -417,6 +417,39 @@
   min-height: 128px;
 }
 
+.staffSwitchCard {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(47, 84, 235, 0.45);
+  border-radius: var(--r-md);
+  background: rgba(47, 84, 235, 0.12);
+  color: inherit;
+  text-decoration: none;
+  transition: background 160ms ease;
+}
+
+.staffSwitchCard:hover {
+  background: rgba(47, 84, 235, 0.2);
+}
+
+.staffSwitchCard:focus-visible {
+  outline: 2px solid var(--accent-alt);
+  outline-offset: 3px;
+}
+
+.staffSwitchIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(47, 84, 235, 0.25);
+  font-size: 22px;
+}
+
 .activeOrderCard {
   display: grid;
   gap: 10px;

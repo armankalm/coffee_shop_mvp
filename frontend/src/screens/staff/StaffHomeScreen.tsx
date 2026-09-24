@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../auth/AuthContext'
 import { Skeleton, SkeletonStatus } from '../../components'
-import { hasPermission, PRODUCTS_MANAGE_PERMISSION } from '../../auth/permissions'
+import { hasPermission, PRODUCTS_MANAGE_PERMISSION, staffRoleTitle } from '../../auth/permissions'
 import { useStaffShops } from '../../staff/useStaffShops'
 import styles from './StaffHomeScreen.module.css'
 
@@ -23,12 +23,15 @@ export function StaffHomeScreen() {
     <main className={styles.screen}>
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>Бариста</p>
+          <p className={styles.eyebrow}>{staffRoleTitle(session?.role)}</p>
           <h1 className={styles.title}>Рабочее место</h1>
         </div>
 
         <div className={styles.account}>
           {session?.email ? <span className={styles.email}>{session.email}</span> : null}
+          <Link className={styles.logout} to="/locations">
+            Клиентский вид
+          </Link>
           <button className={styles.logout} type="button" onClick={handleLogout}>
             Выйти
           </button>

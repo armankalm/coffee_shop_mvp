@@ -36,6 +36,17 @@ function permissionMatches(grantedPermission: Permission, requestedPermission: P
  * requested: staff (those who can advance orders) go to their workspace,
  * regular customers to the shop locations screen.
  */
+const ROLE_TITLES: Record<string, string> = {
+  BARISTA: 'Бариста',
+  MANAGER: 'Менеджер',
+  ADMIN: 'Администратор',
+}
+
+/** Russian title of a staff role, for headings in the staff workspace. */
+export function staffRoleTitle(role: string | null | undefined) {
+  return ROLE_TITLES[(role ?? '').trim().toUpperCase()] ?? 'Сотрудник'
+}
+
 export function defaultLandingPath(role: string | null | undefined) {
   return hasPermission(role, KITCHEN_BOARD_PERMISSION) ? '/staff' : '/locations'
 }

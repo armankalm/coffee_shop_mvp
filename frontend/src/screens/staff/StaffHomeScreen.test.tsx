@@ -75,6 +75,22 @@ describe('StaffHomeScreen', () => {
     localStorage.removeItem('drinkit.auth')
   })
 
+  it('links back to the customer view and shows the real role', () => {
+    mockState.shops = [shop]
+    mockState.selectedShopId = 5
+    localStorage.setItem(
+      'drinkit.auth',
+      JSON.stringify({ accessToken: 'a', refreshToken: 'r', email: 'boss@example.com', role: 'ADMIN' }),
+    )
+
+    const markup = render()
+
+    expect(markup).toContain('href="/locations"')
+    expect(markup).toContain('Клиентский вид')
+    expect(markup).toContain('Администратор')
+    localStorage.removeItem('drinkit.auth')
+  })
+
   it('renders a logout control', () => {
     mockState.shops = [shop]
     mockState.selectedShopId = 5
