@@ -1,0 +1,23 @@
+# Dependencies and builds are produced inside the image: host builds are for Windows.
+frontend/node_modules/
+frontend/dist/
+backend/target/
+
+# Local env files must not end up in the image: production values come from Render.
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.production.example
+
+# Runtime leftovers
+backend/logs/
+backend/uploads/
+
+# Not needed in the image
+.git/
+.github/
+.idea/
+.vscode/
+**/.claude/
+**/.ralphex/
+**/*.md

@@ -1,0 +1,6 @@
+# Files executed inside Linux containers must keep LF,
+# otherwise Alpine fails with "bad interpreter" / "not found".
+*.sh            text eol=lf
+mvnw            text eol=lf
+Dockerfile      text eol=lf
+*.Dockerfile    text eol=lf

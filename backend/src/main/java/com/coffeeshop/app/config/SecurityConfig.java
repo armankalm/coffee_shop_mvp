@@ -59,7 +59,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/payments/webhook/**").permitAll()
                 .requestMatchers("/uploads/products/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/api/**").authenticated()
+                // Everything else is the bundled SPA (index.html, assets, client-side routes).
+                .anyRequest().permitAll()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

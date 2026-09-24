@@ -138,8 +138,10 @@ server:
     include-message: never
 
 app:
+  # Frontend is served by this app (same origin), so both default to the app's own URL.
+  frontend-url: ${FRONTEND_URL:${app.backend-url}}
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:${app.backend-url}}
   jwt:
     secret: ${JWT_SECRET}
     access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}

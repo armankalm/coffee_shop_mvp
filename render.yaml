@@ -1,16 +1,25 @@
-# Render Blueprint: backend web service (Docker). DB and image storage live in Supabase.
+# Render Blueprint: one web service (Spring Boot API + bundled React app).
+# Database and product images live in Supabase, so nothing expires after 30 days.
+#
+# Deploy: Render Dashboard -> New -> Blueprint -> pick this repository.
+
 services:
   - type: web
-    name: coffee-shop-api
+    name: coffee-shop
     runtime: docker
     plan: free
-    dockerfilePath: ./Dockerfile
+    # Build context is the repo root: the Dockerfile copies both backend/ and frontend/.
+    dockerfilePath: ./docker/prod.Dockerfile
+    dockerContext: .
     healthCheckPath: /v3/api-docs
+    autoDeploy: true
+
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
 
-      # --- Database: Supabase -> Connect -> Session pooler (the direct host is IPv6-only) ---
+      # --- Database: Supabase -> Connect -> Session pooler ---
+      # Not the direct connection: db.<ref>.supabase.co is IPv6-only and Render has no IPv6.
       - key: DB_HOST
         sync: false            # aws-0-<region>.pooler.supabase.com
       - key: DB_PORT
@@ -25,25 +34,23 @@ services:
       - key: FLYWAY_LOCATIONS
         value: classpath:db/migration,classpath:db/seed
 
-      # --- Images: Supabase -> Storage, public bucket "products" ---
+      # --- Product images: Supabase -> Storage, public bucket ---
       - key: SUPABASE_URL
         sync: false            # https://<project-ref>.supabase.co
       - key: SUPABASE_SERVICE_KEY
-        sync: false            # Project Settings -> API Keys -> secret / service_role
+        sync: false            # API Keys -> Legacy -> service_role
       - key: SUPABASE_STORAGE_BUCKET
         value: products
 
       - key: JWT_SECRET
         generateValue: true
-      # Frontend URL: CORS and the redirect after Google sign-in.
-      - key: CORS_ALLOWED_ORIGINS
-        sync: false            # https://<frontend>.onrender.com
-      - key: FRONTEND_URL
-        sync: false            # https://<frontend>.onrender.com
-      # BACKEND_URL is not needed: RENDER_EXTERNAL_URL is injected by Render.
 
-      # --- Mail: Brevo HTTP API (SMTP ports are blocked on Render free) ---
-      # Empty key -> OTP dev-mode: the code is returned in the API response. Never leave it empty on a public stand.
+      # FRONTEND_URL / CORS_ALLOWED_ORIGINS / BACKEND_URL are not needed: the frontend is
+      # served by this same service and RENDER_EXTERNAL_URL is injected by Render.
+
+      # --- Mail: Brevo HTTP API (SMTP ports 25/465/587 are blocked on Render free) ---
+      # Empty key -> OTP dev-mode: the code is returned in the API response.
+      # Never leave it empty on a public stand.
       - key: BREVO_API_KEY
         sync: false            # xkeysib-...
       - key: MAIL_FROM_ADDRESS
@@ -53,7 +60,7 @@ services:
 
       # --- Google sign-in ---
       # Authorized redirect URI in Google Cloud Console:
-      #   https://<backend>.onrender.com/api/auth/oauth/google/callback
+      #   https://<service>.onrender.com/api/auth/oauth/google/callback
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
