@@ -108,11 +108,7 @@ public class AdminService {
         } else {
             orders = orderRepository.findByShopIdInWithDetails(scopeShopIds);
         }
-        return orders.stream()
-                // Hide unpaid drafts unless a caller explicitly asks for PENDING_PAYMENT.
-                .filter(o -> statusCode != null || !"PENDING_PAYMENT".equals(o.getStatus().getCode()))
-                .map(OrderDto::from)
-                .collect(Collectors.toList());
+        return orders.stream().map(OrderDto::from).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

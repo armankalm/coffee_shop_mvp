@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -30,13 +31,12 @@ public class KaspiPaymentService implements PaymentProviderService {
     }
 
     @Override
-    public PaymentInitiation initiatePayment(PaymentContext context) {
+    public String initiatePayment(Long orderId, BigDecimal amount) {
         // In a real implementation this would call the Kaspi Pay API.
         // For now we generate a stub transaction ID.
         String externalId = "KASPI-" + UUID.randomUUID();
-        log.info("Kaspi payment initiated for order {} amount {} -> externalId {}",
-                context.orderId(), context.amount(), externalId);
-        return new PaymentInitiation(externalId, null, null);
+        log.info("Kaspi payment initiated for order {} amount {} -> externalId {}", orderId, amount, externalId);
+        return externalId;
     }
 
     @Override

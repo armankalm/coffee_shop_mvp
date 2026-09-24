@@ -17,17 +17,8 @@ public class PaymentTransactionDto {
     private String externalId;
     private Instant createdAt;
     private Instant updatedAt;
-    /**
-     * Client secret used to confirm the payment on the client (Stripe). Present only in the
-     * response to initiating a payment — never persisted and null in other contexts.
-     */
-    private String clientSecret;
 
     public static PaymentTransactionDto from(PaymentTransaction tx) {
-        return from(tx, null);
-    }
-
-    public static PaymentTransactionDto from(PaymentTransaction tx, String clientSecret) {
         PaymentTransactionDto dto = new PaymentTransactionDto();
         dto.id = tx.getId();
         dto.orderId = tx.getOrder().getId();
@@ -37,7 +28,6 @@ public class PaymentTransactionDto {
         dto.externalId = tx.getExternalId();
         dto.createdAt = tx.getCreatedAt();
         dto.updatedAt = tx.getUpdatedAt();
-        dto.clientSecret = clientSecret;
         return dto;
     }
 
@@ -49,5 +39,4 @@ public class PaymentTransactionDto {
     public String getExternalId() { return externalId; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
-    public String getClientSecret() { return clientSecret; }
 }

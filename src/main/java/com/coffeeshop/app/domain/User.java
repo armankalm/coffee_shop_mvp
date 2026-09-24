@@ -33,13 +33,6 @@ public class User {
     @Column(name = "phone")
     private String phone;
 
-    /**
-     * Stripe Customer id. Created lazily on the user's first payment and reused so
-     * saved cards (payment methods) persist across orders. Null until first payment.
-     */
-    @Column(name = "stripe_customer_id")
-    private String stripeCustomerId;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "role_id", nullable = false)
     private RefUserRole role;

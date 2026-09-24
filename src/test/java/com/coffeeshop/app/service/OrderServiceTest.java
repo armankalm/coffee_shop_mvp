@@ -46,7 +46,6 @@ class OrderServiceTest {
     private RefShopStatus openStatus;
     private RefShopStatus closedStatus;
     private RefOrderStatus newStatus;
-    private RefOrderStatus pendingPaymentStatus;
     private RefOrderStatus cancelledStatus;
     private RefOrderStatus completedStatus;
     private RefOrderStatus inProgressStatus;
@@ -63,8 +62,6 @@ class OrderServiceTest {
         openStatus = RefShopStatus.builder().id(1L).code("OPEN").nameRu("Открыто").nameEn("Open").build();
         closedStatus = RefShopStatus.builder().id(2L).code("CLOSED").nameRu("Закрыто").nameEn("Closed").build();
         newStatus = RefOrderStatus.builder().id(1L).code("NEW").nameRu("Новый").nameEn("New").build();
-        pendingPaymentStatus = RefOrderStatus.builder().id(6L).code("PENDING_PAYMENT")
-                .nameRu("Ожидает оплаты").nameEn("Awaiting Payment").build();
         cancelledStatus = RefOrderStatus.builder().id(5L).code("CANCELLED").nameRu("Отменён").nameEn("Cancelled").build();
         completedStatus = RefOrderStatus.builder().id(4L).code("COMPLETED").nameRu("Завершён").nameEn("Completed").build();
         inProgressStatus = RefOrderStatus.builder().id(2L).code("IN_PROGRESS").nameRu("В работе").nameEn("In Progress").build();
@@ -93,15 +90,15 @@ class OrderServiceTest {
         request.setShopId(1L);
         request.setItems(List.of(itemRequest));
 
-        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
         when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
-        when(refOrderStatusRepository.findByCode("PENDING_PAYMENT")).thenReturn(Optional.of(pendingPaymentStatus));
+        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
         when(orderDailyCounterRepository.nextNumber(eq(1L), any())).thenReturn(7);
 
         Order savedOrder = Order.builder()
                 .id(1L).user(user).shop(shop)
-                .status(pendingPaymentStatus)
+                .status(newStatus)
                 .total(BigDecimal.valueOf(1000))
                 .build();
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
@@ -110,17 +107,21 @@ class OrderServiceTest {
         OrderDto result = orderService.createOrder("test@example.com", request);
 
         assertThat(result).isNotNull();
-        // Orders are created as an unpaid draft; a payment webhook later promotes them to NEW.
-        assertThat(result.getStatus()).isEqualTo("PENDING_PAYMENT");
+        assertThat(result.getStatus()).isEqualTo("NEW");
 
         // The order persisted must carry the per-shop daily number and its local date.
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         verify(orderRepository).save(orderCaptor.capture());
         assertThat(orderCaptor.getValue().getDailyNumber()).isEqualTo(7);
         assertThat(orderCaptor.getValue().getOrderDate()).isNotNull();
+        verify(eventPublisher).publishEvent(any(com.coffeeshop.app.service.print.NewOrderEvent.class));
 
-        // Draft creation must NOT notify kitchen/print/board — those fire only after payment.
-        verify(eventPublisher, org.mockito.Mockito.never()).publishEvent(any());
+        // Creating an order must notify the live board / order tracking with the shop and order ids.
+        ArgumentCaptor<com.coffeeshop.app.service.board.OrderStatusChangedEvent> boardEvent =
+                ArgumentCaptor.forClass(com.coffeeshop.app.service.board.OrderStatusChangedEvent.class);
+        verify(eventPublisher).publishEvent(boardEvent.capture());
+        assertThat(boardEvent.getValue().getShopId()).isEqualTo(1L);
+        assertThat(boardEvent.getValue().getOrderId()).isEqualTo(1L);
     }
 
     @Test
@@ -129,7 +130,7 @@ class OrderServiceTest {
         request.setShopId(99L);
         request.setItems(List.of(new OrderItemRequest()));
 
-        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> orderService.createOrder("test@example.com", request))
@@ -144,7 +145,7 @@ class OrderServiceTest {
         request.setShopId(1L);
         request.setItems(List.of(new OrderItemRequest()));
 
-        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
 
         assertThatThrownBy(() -> orderService.createOrder("test@example.com", request))
@@ -164,10 +165,10 @@ class OrderServiceTest {
         request.setShopId(1L);
         request.setItems(List.of(itemRequest));
 
-        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
         when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
-        when(refOrderStatusRepository.findByCode("PENDING_PAYMENT")).thenReturn(Optional.of(pendingPaymentStatus));
+        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
 
         assertThatThrownBy(() -> orderService.createOrder("test@example.com", request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -189,10 +190,10 @@ class OrderServiceTest {
         request.setShopId(1L);
         request.setItems(List.of(itemRequest));
 
-        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
         when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
-        when(refOrderStatusRepository.findByCode("PENDING_PAYMENT")).thenReturn(Optional.of(pendingPaymentStatus));
+        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
 
         assertThatThrownBy(() -> orderService.createOrder("test@example.com", request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -216,16 +217,16 @@ class OrderServiceTest {
         request.setShopId(1L);
         request.setItems(List.of(itemRequest));
 
-        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
         when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
         when(toppingRepository.findAllByIdWithIncompatibilities(Set.of(1L))).thenReturn(List.of(topping));
-        when(refOrderStatusRepository.findByCode("PENDING_PAYMENT")).thenReturn(Optional.of(pendingPaymentStatus));
+        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
 
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         Order savedOrder = Order.builder()
                 .id(1L).user(user).shop(shop)
-                .status(pendingPaymentStatus)
+                .status(newStatus)
                 .total(BigDecimal.valueOf(1200)) // (500 + 100) * 2
                 .build();
         when(orderRepository.save(orderCaptor.capture())).thenReturn(savedOrder);
@@ -235,8 +236,7 @@ class OrderServiceTest {
 
         assertThat(result.getTotal()).isEqualByComparingTo(BigDecimal.valueOf(1200));
         assertThat(orderCaptor.getValue().getTotal()).isEqualByComparingTo(BigDecimal.valueOf(1200));
-        // Draft creation fires no events; notifications happen after payment.
-        verify(eventPublisher, org.mockito.Mockito.never()).publishEvent(any());
+        verify(eventPublisher).publishEvent(any(com.coffeeshop.app.service.print.NewOrderEvent.class));
     }
 
     @Test
@@ -259,11 +259,11 @@ class OrderServiceTest {
         request.setShopId(1L);
         request.setItems(List.of(itemRequest));
 
-        when(userRepository.findByEmailWithRole("test@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
         when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
         when(toppingRepository.findAllByIdWithIncompatibilities(Set.of(2L))).thenReturn(List.of(disallowedTopping));
-        when(refOrderStatusRepository.findByCode("PENDING_PAYMENT")).thenReturn(Optional.of(pendingPaymentStatus));
+        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
 
         assertThatThrownBy(() -> orderService.createOrder("test@example.com", request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -364,41 +364,5 @@ class OrderServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
-    }
-
-    @Test
-    void createOrder_staffPos_createsNewImmediatelyAndFiresEvents() {
-        RefUserRole baristaRole = RefUserRole.builder().id(3L).code("BARISTA")
-                .nameRu("Бариста").nameEn("Barista").build();
-        User barista = User.builder().id(3L).email("barista@example.com").role(baristaRole).build();
-
-        OrderItemRequest itemRequest = new OrderItemRequest();
-        itemRequest.setProductId(1L);
-        itemRequest.setQuantity(1);
-
-        CreateOrderRequest request = new CreateOrderRequest();
-        request.setShopId(1L);
-        request.setItems(List.of(itemRequest));
-
-        when(userRepository.findByEmailWithRole("barista@example.com")).thenReturn(Optional.of(barista));
-        when(coffeeShopRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(shop));
-        when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
-        when(refOrderStatusRepository.findByCode("NEW")).thenReturn(Optional.of(newStatus));
-        when(orderDailyCounterRepository.nextNumber(eq(1L), any())).thenReturn(3);
-
-        Order savedOrder = Order.builder()
-                .id(1L).user(barista).shop(shop)
-                .status(newStatus)
-                .total(BigDecimal.valueOf(500))
-                .build();
-        when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
-        when(orderRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(savedOrder));
-
-        OrderDto result = orderService.createOrder("barista@example.com", request);
-
-        // Staff POS orders skip the payment draft and go straight to the kitchen queue.
-        assertThat(result.getStatus()).isEqualTo("NEW");
-        verify(eventPublisher).publishEvent(any(com.coffeeshop.app.service.print.NewOrderEvent.class));
-        verify(eventPublisher).publishEvent(any(com.coffeeshop.app.service.board.OrderStatusChangedEvent.class));
     }
 }
