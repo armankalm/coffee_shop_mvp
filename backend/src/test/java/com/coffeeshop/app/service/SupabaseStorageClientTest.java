@@ -7,7 +7,6 @@ import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.headerDoesNotExist;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -35,14 +34,14 @@ class SupabaseStorageClientTest {
     }
 
     @Test
-    void upload_newSecretKey_sendsOnlyApikey() {
+    void upload_newSecretKey_sendsApikeyAndBearer() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         SupabaseStorageClient client = new SupabaseStorageClient(builder, URL, "sb_secret_abc", "products");
 
         server.expect(requestTo(URL + "/storage/v1/object/products/a.png"))
                 .andExpect(header("apikey", "sb_secret_abc"))
-                .andExpect(headerDoesNotExist("Authorization"))
+                .andExpect(header("Authorization", "Bearer sb_secret_abc"))
                 .andRespond(withSuccess());
 
         client.upload("a.png", new byte[]{1}, "image/png");

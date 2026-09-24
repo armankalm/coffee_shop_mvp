@@ -578,18 +578,22 @@
 }
 
 .productScreen {
+  /* Exactly one viewport tall (minus the bottom nav): the hero image absorbs the
+     leftover space, so the header, toppings and add button never scroll away. */
   position: relative;
-  min-height: 100%;
+  height: calc(100svh - var(--safe-top) - var(--safe-bottom) - var(--nav-height));
+  min-height: 0;
   min-width: 0;
   gap: 0;
-  overflow-x: hidden;
-  padding: 0 0 92px;
+  overflow: hidden;
+  padding: 0;
 }
 
 .productHero {
   position: relative;
+  flex: 1 1 auto;
   min-width: 0;
-  min-height: clamp(410px, 70svh, 560px);
+  min-height: 0;
   display: grid;
   align-content: end;
   overflow: hidden;
@@ -711,6 +715,7 @@
 }
 
 .productContent {
+  flex: none;
   min-width: 0;
   display: grid;
   gap: 20px;
@@ -841,20 +846,13 @@
 }
 
 .productBottomBar {
-  position: fixed;
-  right: max(var(--safe-right), calc((100vw - 430px) / 2));
-  bottom: calc(var(--nav-height) + var(--safe-bottom));
-  left: max(var(--safe-left), calc((100vw - 430px) / 2));
-  z-index: 4;
+  flex: none;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   align-items: center;
-  margin-top: auto;
   padding: 14px 16px;
-  background:
-    linear-gradient(180deg, rgba(18, 22, 26, 0), rgba(18, 22, 26, 0.92) 18%),
-    var(--bg);
+  background: var(--bg);
 }
 
 .productSizeGroup {
