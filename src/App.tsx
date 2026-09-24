@@ -11,6 +11,7 @@ import {
   EditProfileScreen,
   LocationsScreen,
   LoginScreen,
+  OAuthCallbackScreen,
   OrderStatusScreen,
   ProductScreen,
   ProfileScreen,
@@ -25,6 +26,7 @@ function App() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="login" element={<LoginScreen />} />
+        <Route path="auth/callback" element={<OAuthCallbackScreen />} />
         <Route element={<RequireAuth />}>
           <Route index element={<LocationsScreen />} />
           <Route path="locations" element={<LocationsScreen />} />

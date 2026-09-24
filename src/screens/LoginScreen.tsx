@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { requestCode, verifyCode } from '../api/auth'
+import { GOOGLE_SIGN_IN_URL, requestCode, verifyCode } from '../api/auth'
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { defaultLandingPath } from '../auth/permissions'
 import { Button } from '../components'
+import { GoogleMark } from '../components/GoogleMark'
 import styles from './Screens.module.css'
 import loginStyles from './LoginScreen.module.css'
 
@@ -103,6 +104,18 @@ export function LoginScreen() {
 
           <Button disabled={isSubmitting} type="submit">
             {isSubmitting ? 'Отправляем...' : 'Получить код'}
+          </Button>
+
+          <p className={loginStyles.divider}>или</p>
+
+          <Button
+            className={loginStyles.googleButton}
+            disabled={isSubmitting}
+            onClick={() => window.location.assign(GOOGLE_SIGN_IN_URL)}
+            variant="light"
+          >
+            <GoogleMark />
+            Войти через Google
           </Button>
         </form>
       ) : (
