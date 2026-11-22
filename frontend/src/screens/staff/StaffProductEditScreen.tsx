@@ -136,7 +136,7 @@ export function StaffProductEditScreen() {
       return
     }
 
-    if (productId == null) {
+    if (productId == null || shopId == null) {
       // A new product has no id yet: upload right after it is created.
       setPendingImage(file)
       return
@@ -144,7 +144,7 @@ export function StaffProductEditScreen() {
 
     setUploading(true)
     try {
-      const updated = await uploadProductImage(productId, file)
+      const updated = await uploadProductImage(productId, shopId, file)
       setImagePath(updated.imagePath)
       setNotice('Фото обновлено')
     } catch (uploadError) {
@@ -193,7 +193,7 @@ export function StaffProductEditScreen() {
         const created = await createProduct(input)
         if (pendingImage) {
           try {
-            await uploadProductImage(created.id, pendingImage)
+            await uploadProductImage(created.id, shopId, pendingImage)
           } catch {
             // The product exists now; let the user retry the photo on its edit page.
             navigate(`/staff/products/${created.id}?photoFailed=1`, { replace: true })
@@ -202,6 +202,7 @@ export function StaffProductEditScreen() {
         }
       } else {
         await updateProduct(productId, input)
+        if (pendingImage) await uploadProductImage(productId, shopId, pendingImage)
       }
       navigate('/staff/products')
     } catch (saveError) {

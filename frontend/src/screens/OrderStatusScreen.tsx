@@ -1,48 +1,61 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { ApiError } from '../api/client'
 import type { OrderDto } from '../api/orders'
 import { cancelOrder, getOrderById } from '../api/orders'
-import type { BadgeTone } from '../components'
-import { Badge, Skeleton, SkeletonStatus } from '../components'
+import { Icon, Skeleton, SkeletonStatus } from '../components'
+import { formatMoney, formatTime } from '../format'
 import { ReadyNotificationCard } from '../push/ReadyNotificationCard'
-import styles from './Screens.module.css'
+import { useToast } from '../toast/ToastContext'
+import styles from './Cream.module.css'
 
-const POLL_INTERVAL_MS = 30_000
+/** Faster than before (audit S5) while the guest is actually waiting; pushes refresh instantly. */
+const POLL_INTERVAL_MS = 15_000
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'CANCELLED'])
+
+const STEPS = [
+  { code: 'NEW', title: 'Принят', note: 'Заказ получен кофейней' },
+  { code: 'IN_PROGRESS', title: 'Готовится', note: 'Бариста уже работает' },
+  { code: 'READY', title: 'Готов', note: 'Ждёт на стойке выдачи' },
+] as const
 
 type LoadState = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; order: OrderDto }
 
-function formatMoney(amount: number) {
-  return `${amount.toLocaleString('ru-RU')} ₸`
+function stepIndex(status: string) {
+  if (status === 'COMPLETED') return STEPS.length
+  return STEPS.findIndex((step) => step.code === status)
 }
 
-function formatTime(value: string) {
-  const date = new Date(value)
-  return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-}
-
-function statusTone(statusCode: string): BadgeTone {
-  switch (statusCode) {
-    case 'READY':
-    case 'COMPLETED':
-      return 'green'
-    case 'IN_PROGRESS':
-      return 'orange'
-    case 'CANCELLED':
-      return 'muted'
-    default:
-      return 'blue'
+function StatusPill({ order }: { order: OrderDto }) {
+  if (order.status === 'READY') {
+    return (
+      <span className={`${styles.pill} ${styles.pillSuccess}`}>
+        <Icon name="check" size={16} />
+        Готов — можно забирать
+      </span>
+    )
   }
+  if (order.status === 'IN_PROGRESS') {
+    return (
+      <span className={`${styles.pill} ${styles.pillWarning}`}>
+        <Icon name="clock" size={16} />
+        Готовится
+      </span>
+    )
+  }
+  return <span className={styles.pill}>{order.statusNameRu}</span>
 }
 
 export function OrderStatusScreen() {
   const { orderId } = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { showToast } = useToast()
 
   const [state, setState] = useState<LoadState>({ status: 'loading' })
   const [isCancelling, setIsCancelling] = useState(false)
-  const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null)
+  const [confirmCancel, setConfirmCancel] = useState(false)
 
   useEffect(() => {
     if (!orderId) return
@@ -54,17 +67,15 @@ export function OrderStatusScreen() {
         const order = await getOrderById(id)
         if (cancelled) return
         setState({ status: 'ready', order })
-        setLastCheckedAt(new Date())
-
-        if (TERMINAL_STATUSES.has(order.status)) {
-          window.clearInterval(intervalId)
-        }
+        if (TERMINAL_STATUSES.has(order.status)) window.clearInterval(intervalId)
       } catch (err) {
+        // Keep the last known order on screen; only an initial failure replaces it (audit S4).
         if (!cancelled) {
-          setState({
-            status: 'error',
-            message: err instanceof ApiError ? err.message : 'Не удалось загрузить заказ.',
-          })
+          setState((current) =>
+            current.status === 'ready'
+              ? current
+              : { status: 'error', message: err instanceof ApiError ? err.message : 'Не удалось загрузить заказ.' },
+          )
         }
       }
     }
@@ -88,87 +99,148 @@ export function OrderStatusScreen() {
 
   async function handleCancel() {
     if (state.status !== 'ready') return
-
     setIsCancelling(true)
     try {
       const updated = await cancelOrder(state.order.id)
       setState({ status: 'ready', order: updated })
+      setConfirmCancel(false)
+      showToast({ message: 'Заказ отменён' })
     } catch (err) {
-      setState({
-        status: 'error',
-        message: err instanceof ApiError ? err.message : 'Не удалось отменить заказ.',
-      })
+      showToast({ message: err instanceof ApiError ? err.message : 'Не удалось отменить заказ.' })
     } finally {
       setIsCancelling(false)
     }
   }
 
+  function goBack() {
+    if (location.key !== 'default') navigate(-1)
+    else navigate('/home')
+  }
+
+  const order = state.status === 'ready' ? state.order : null
+  const current = order ? stepIndex(order.status) : -1
+
   return (
     <section className={styles.screen} aria-labelledby="order-status-title">
-      <header className={styles.profileHeader}>
-        <Link className={styles.roundIconButton} to="/profile" aria-label="Назад">
-          <span aria-hidden="true">‹</span>
-        </Link>
-        <h1 className={styles.title} id="order-status-title">
-          Заказ
+      <div className={styles.topBar}>
+        <button className={styles.iconButton} type="button" aria-label="Назад" onClick={goBack}>
+          <Icon name="left" />
+        </button>
+        <h1 className={styles.topBarTitle} id="order-status-title">
+          {order ? `Заказ от ${formatTime(order.createdAt)}` : 'Заказ'}
         </h1>
-        <span className={styles.roundIconButton} aria-hidden="true" />
-      </header>
+        <span aria-hidden="true" />
+      </div>
 
       {state.status === 'loading' ? (
         <SkeletonStatus label="Загружаем заказ…">
-          <Skeleton height={140} radius={24} />
-          <Skeleton height={64} radius={16} />
-          <Skeleton height={64} radius={16} />
-          <Skeleton height={64} radius={16} />
+          <Skeleton height={220} radius={24} />
+          <Skeleton height={48} radius={16} />
+          <Skeleton height={48} radius={16} />
+          <Skeleton height={48} radius={16} />
         </SkeletonStatus>
       ) : null}
-      {state.status === 'error' ? <p className={styles.muted}>{state.message}</p> : null}
 
-      {state.status === 'ready' ? (
+      {state.status === 'error' ? (
+        <p className={styles.alert} role="alert">
+          <Icon name="alert" size={16} />
+          {state.message}
+        </p>
+      ) : null}
+
+      {order ? (
         <>
-          <article className={styles.orderSummaryCard}>
-            <div className={styles.sectionHeader}>
-              <p className={styles.eyebrow}>{state.order.shopName}</p>
-              <Badge tone={statusTone(state.order.status)}>{state.order.statusNameRu}</Badge>
+          <div className={styles.statusCard}>
+            <p className={styles.groupLabel}>{order.status === 'CANCELLED' ? 'Заказ' : 'Назовите на стойке'}</p>
+            <div className={styles.bigNumber} aria-label={`Номер заказа ${order.dailyNumber ?? order.id}`}>
+              {order.dailyNumber ?? order.id}
             </div>
-            <p className={styles.price}>{formatMoney(state.order.total)}</p>
-            <p className={styles.muted}>Заказ №{state.order.id}</p>
-            {lastCheckedAt ? (
-              <p className={styles.muted}>Статус обновлён в {formatTime(lastCheckedAt.toISOString())}</p>
-            ) : null}
-          </article>
-
-          {state.order.status === 'NEW' || state.order.status === 'IN_PROGRESS' ? <ReadyNotificationCard /> : null}
-
-          <div className={styles.list}>
-            {state.order.items.map((item) => (
-              <article className={styles.orderCard} key={item.id}>
-                <div className={styles.orderInfo}>
-                  <p className={styles.cardTitle}>{item.productName}</p>
-                  <p className={styles.orderMeta}>
-                    {item.quantity} × {formatMoney(item.price / item.quantity)}
-                    {item.toppings.length > 0 ? ` · ${item.toppings.map((t) => t.name).join(', ')}` : ''}
-                  </p>
-                </div>
-                <span className={styles.price}>{formatMoney(item.price)}</span>
-              </article>
-            ))}
+            <StatusPill order={order} />
           </div>
 
-          {!TERMINAL_STATUSES.has(state.order.status) ? (
-            <button
-              className={styles.ghostButton}
-              disabled={isCancelling || state.order.status !== 'NEW'}
-              onClick={handleCancel}
-              type="button"
-            >
-              {isCancelling ? 'Отменяем…' : 'Отменить заказ'}
-            </button>
+          {order.status !== 'CANCELLED' ? (
+            <ol className={styles.timeline} aria-label="Ход заказа">
+              {STEPS.map((step, index) => {
+                // «Готовится» stays an open ring while the barista works; other reached steps are ticked.
+                const done =
+                  index < current || (index === current && step.code !== 'IN_PROGRESS') || order.status === 'COMPLETED'
+                const isCurrent = index === current && !done
+                return (
+                  <li
+                    key={step.code}
+                    data-done={done}
+                    data-current={isCurrent}
+                    aria-current={index === current ? 'step' : undefined}
+                  >
+                    <span className={styles.dot}>{done ? <Icon name="check" size={16} /> : null}</span>
+                    <span>
+                      {step.title}
+                      <small>{step.note}</small>
+                    </span>
+                    <time>{index === 0 ? formatTime(order.createdAt) : ''}</time>
+                  </li>
+                )
+              })}
+            </ol>
           ) : null}
 
-          <Link className={styles.linkButton} to="/profile">
-            К истории заказов
+          {order.status === 'NEW' || order.status === 'IN_PROGRESS' ? <ReadyNotificationCard /> : null}
+
+          <div className={styles.where}>
+            <Icon name="pin" />
+            <span>
+              <b>{order.shopName}</b>
+              <br />
+              <span className={styles.muted}>Самовывоз · стойка выдачи</span>
+            </span>
+          </div>
+
+          <div className={styles.orderItems}>
+            {order.items.map((item) => (
+              <div className={styles.orderItem} key={item.id}>
+                <span>
+                  {item.quantity > 1 ? `${item.quantity} × ` : ''}
+                  {item.productName}
+                  {item.toppings.length > 0 ? <small>{item.toppings.map((t) => t.name).join(', ')}</small> : null}
+                </span>
+                <b>{formatMoney(item.price)}</b>
+              </div>
+            ))}
+            <div className={styles.orderItem}>
+              <span>Итого</span>
+              <b>{formatMoney(order.total)}</b>
+            </div>
+          </div>
+
+          {order.status === 'NEW' ? (
+            confirmCancel ? (
+              <div className={styles.confirm} role="alertdialog" aria-labelledby="cancel-question">
+                <p id="cancel-question">Отменить заказ №{order.dailyNumber ?? order.id}?</p>
+                <div className={styles.confirmActions}>
+                  <button
+                    className={`${styles.btn} ${styles.btnDanger}`}
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={isCancelling}
+                  >
+                    {isCancelling ? 'Отменяем…' : 'Да, отменить'}
+                  </button>
+                  <button className={`${styles.btn} ${styles.btnGhost}`} type="button" onClick={() => setConfirmCancel(false)}>
+                    Нет
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button className={`${styles.btn} ${styles.btnGhost}`} type="button" onClick={() => setConfirmCancel(true)}>
+                Отменить заказ
+              </button>
+            )
+          ) : order.status === 'IN_PROGRESS' ? (
+            <p className={styles.muted}>Заказ уже готовится — отмена недоступна.</p>
+          ) : null}
+
+          <Link className={styles.textLink} to="/profile">
+            Все заказы
           </Link>
         </>
       ) : null}

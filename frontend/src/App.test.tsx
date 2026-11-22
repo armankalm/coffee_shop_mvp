@@ -63,11 +63,23 @@ describe('App', () => {
     const markup = renderRoute('/locations')
 
     expect(markup).toContain('safe-area')
-    expect(markup).toContain('Выбор места заказа')
-    expect(markup).toContain('placeholder="Поиск"')
-    expect(markup).toContain('aria-label="Открыть карту"')
-    expect(markup).toContain('aria-label="Закрыть выбор адреса"')
-    expect(markup).toContain('aria-label="Найти ближайшую точку"')
+    expect(markup).toContain('Где заберёте заказ?')
+    expect(markup).toContain('aria-label="Поиск кофейни"')
+    // Dead controls from the old screen are gone (audit L1/L2).
+    expect(markup).not.toContain('aria-label="Открыть карту"')
+    expect(markup).not.toContain('aria-label="Найти ближайшую точку"')
+  })
+
+  it('uses the Home · Menu · Cart · Profile tab bar instead of an «Адреса» tab', () => {
+    localStorage.setItem('drinkit.shop', JSON.stringify(testShop))
+
+    const markup = renderRoute('/home')
+
+    expect(markup).toContain('href="/home"')
+    expect(markup).toContain('href="/catalog"')
+    expect(markup).toContain('href="/cart"')
+    expect(markup).toContain('href="/profile"')
+    expect(markup).not.toContain('>Адреса<')
   })
 
   it('does not render the catalog when no shop is selected yet', () => {
@@ -79,7 +91,8 @@ describe('App', () => {
 
     const markup = renderRoute('/catalog')
 
-    expect(markup).toContain('Каталог')
+    expect(markup).toContain('id="catalog-title"')
+    expect(markup).toContain('aria-label="Поиск по меню"')
     expect(markup).toContain(testShop.name)
     expect(markup).toContain('Загружаем меню')
   })
@@ -93,8 +106,9 @@ describe('App', () => {
   it('shows a loading state for the profile screen', () => {
     const markup = renderRoute('/profile')
 
-    expect(markup).toContain('aria-label="Назад"')
-    expect(markup).toContain('aria-label="Открыть чат"')
+    // A tab screen: no «Назад» and no empty chat button (audit N3/L2).
+    expect(markup).not.toContain('aria-label="Назад"')
+    expect(markup).not.toContain('aria-label="Открыть чат"')
     expect(markup).toContain('Загружаем профиль')
   })
 
@@ -121,7 +135,7 @@ describe('App', () => {
     expect(markup).toContain('data-status-filter="NEW"')
 
     expect(markup).toContain('aria-label="Статусы заказов"')
-    expect(markup).toContain('Новые · 0')
+    expect(markup).toMatch(/Новые<span[^>]*>0<\/span>/)
     expect(markup).not.toContain('aria-label="РћСЃРЅРѕРІРЅР°СЏ РЅР°РІРёРіР°С†РёСЏ"')
   })
 

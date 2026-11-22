@@ -1,0 +1,59 @@
+.region {
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* Screens with their own bottom dock raise it via [data-toast-lift] (see global.css). */
+  bottom: calc(var(--nav-height) + var(--safe-bottom) + var(--toast-lift, 84px));
+  z-index: 30;
+  width: min(100%, 430px);
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  padding: 6px 6px 6px 18px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 12px 30px rgba(42, 31, 24, 0.28);
+  pointer-events: auto;
+  animation: rise 200ms ease-out;
+}
+
+.message {
+  flex: 1;
+  min-width: 0;
+}
+
+.action {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: transparent;
+  color: #f0b18e;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.action:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

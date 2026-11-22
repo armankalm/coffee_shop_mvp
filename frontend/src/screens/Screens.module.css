@@ -148,7 +148,16 @@
 }
 
 .roundIconButton:hover {
-  background: #222930;
+  background: var(--surface-2);
+}
+
+.roundIconButton {
+  border: 1px solid var(--border);
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-weight: 600;
 }
 
 .eyebrow,

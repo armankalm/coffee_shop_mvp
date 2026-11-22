@@ -18,6 +18,12 @@ COPY frontend/ ./
 # Vite inlines VITE_* at build time. An empty origin makes the app call /api on
 # its own host, which is exactly where the backend serves it.
 ENV VITE_API_ORIGIN=""
+# Product photos are uploaded from the browser straight to Cloudinary with an unsigned
+# preset; both values are public by design (they end up in the JS bundle anyway).
+ARG VITE_CLOUDINARY_CLOUD_NAME=zkdcguxg
+ARG VITE_CLOUDINARY_UPLOAD_PRESET=course_project
+ENV VITE_CLOUDINARY_CLOUD_NAME=$VITE_CLOUDINARY_CLOUD_NAME \
+    VITE_CLOUDINARY_UPLOAD_PRESET=$VITE_CLOUDINARY_UPLOAD_PRESET
 RUN npm run build
 
 # ---------------------------------------------------------------------

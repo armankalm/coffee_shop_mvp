@@ -1,57 +1,101 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, Navigate } from 'react-router-dom'
 
-import { ApiError, resolveAssetUrl } from '../api/client'
+import { ApiError } from '../api/client'
 import type { ProductDto } from '../api/products'
 import { getProducts } from '../api/products'
-import { HScroll, ProductCard, SkeletonCards } from '../components'
+import { Icon, SkeletonRows } from '../components'
+import { ProductPhoto } from '../components/ProductPhoto'
 import { useFavorites } from '../favorites/FavoritesContext'
+import { formatMoney } from '../format'
+import { useQuickAdd } from '../menu/useQuickAdd'
 import { useShop } from '../shop/ShopContext'
-import heroFallback from '../assets/hero.png'
-import styles from './Screens.module.css'
-
-const FAVORITES_CATEGORY_CODE = '__favorites__'
-
-type CategoryOption = {
-  code: string
-  title: string
-}
+import { ShopLine } from './ShopLine'
+import styles from './Cream.module.css'
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'ready'; products: ProductDto[] }
 
-function formatMoney(amount: number) {
-  return `${amount.toLocaleString('ru-RU')} ₸`
+type MenuSection = { code: string; title: string; products: ProductDto[] }
+
+/** Height of the sticky shop line + search + category tabs. */
+const SPY_OFFSET_PX = 170
+
+function lockSpy(lockedUntil: { current: number }, ms: number) {
+  lockedUntil.current = Date.now() + ms
+}
+
+function sectionId(code: string) {
+  return `menu-section-${code}`
+}
+
+export function MenuRow({ product }: { product: ProductDto }) {
+  const { add, decrease, quantityOf } = useQuickAdd()
+  const quantity = quantityOf(product.id)
+  const hasOptions = product.availableToppings.length > 0
+  const priceLabel = hasOptions ? `от ${formatMoney(product.basePrice)}` : formatMoney(product.basePrice)
+
+  return (
+    <article className={`${styles.item} ${product.available ? '' : styles.unavailable}`}>
+      <Link className={styles.itemLink} to={`/product/${product.id}`} aria-label={`${product.name}, ${priceLabel}`}>
+        <ProductPhoto className={styles.photo} imagePath={product.imagePath} width={80} />
+        <span className={styles.itemBody}>
+          <span className={styles.itemTitle}>{product.name}</span>
+          <span className={styles.itemDesc}>
+            {product.available ? (product.description ?? '') : 'Нет в наличии'}
+          </span>
+          <span className={styles.itemPrice}>{priceLabel}</span>
+        </span>
+      </Link>
+      {!product.available ? (
+        <span />
+      ) : quantity > 0 ? (
+        <div className={styles.qty} role="group" aria-label={`${product.name}: ${quantity} в корзине`}>
+          <button type="button" aria-label={`Убрать один ${product.name}`} onClick={() => decrease(product)}>
+            <Icon name={quantity === 1 ? 'trash' : 'minus'} size={16} />
+          </button>
+          <span>{quantity}</span>
+          <button type="button" aria-label={`Добавить ещё ${product.name}`} onClick={() => add(product)}>
+            <Icon name="plus" size={16} />
+          </button>
+        </div>
+      ) : (
+        <button
+          className={`${styles.add} ${styles.addGhost}`}
+          type="button"
+          aria-label={hasOptions ? `Выбрать опции: ${product.name}` : `Добавить ${product.name}`}
+          onClick={() => add(product)}
+        >
+          <Icon name="plus" />
+        </button>
+      )}
+    </article>
+  )
 }
 
 export function CatalogScreen() {
-  const navigate = useNavigate()
   const { shop } = useShop()
-  const { favoriteProducts } = useFavorites()
+  const { favoriteProductIds } = useFavorites()
 
   const [state, setState] = useState<LoadState>({ status: 'loading' })
-  const [activeCategoryCode, setActiveCategoryCode] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const [onlyFavorites, setOnlyFavorites] = useState(false)
+  const [activeCode, setActiveCode] = useState<string | null>(null)
+  const spyLockedUntil = useRef(0)
 
   useEffect(() => {
     if (!shop) return
-
     let cancelled = false
 
     getProducts(shop.id)
       .then((data) => {
-        if (cancelled) return
-        const availableProducts = data.filter((product) => product.available)
-        setState({ status: 'ready', products: data })
-        setActiveCategoryCode((current) => current ?? availableProducts[0]?.category ?? null)
+        if (!cancelled) setState({ status: 'ready', products: data })
       })
       .catch((err) => {
         if (!cancelled) {
-          setState({
-            status: 'error',
-            message: err instanceof ApiError ? err.message : 'Не удалось загрузить меню.',
-          })
+          setState({ status: 'error', message: err instanceof ApiError ? err.message : 'Не удалось загрузить меню.' })
         }
       })
 
@@ -60,97 +104,172 @@ export function CatalogScreen() {
     }
   }, [shop])
 
-  const products = useMemo(
-    () => (state.status === 'ready' ? state.products.filter((product) => product.available) : []),
-    [state],
-  )
-  const availableFavoriteProducts = useMemo(
-    () => favoriteProducts.filter((product) => product.available),
-    [favoriteProducts],
-  )
+  const sections = useMemo<MenuSection[]>(() => {
+    if (state.status !== 'ready') return []
+    const needle = query.trim().toLowerCase()
+    const favorites = new Set(favoriteProductIds)
 
-  const categories = useMemo<CategoryOption[]>(() => {
-    const seen = new Map<string, string>()
-    for (const product of products) {
-      if (!seen.has(product.category)) seen.set(product.category, product.categoryNameRu)
+    const byCategory = new Map<string, MenuSection>()
+    for (const product of state.products) {
+      if (!product.available) continue
+      if (onlyFavorites && !favorites.has(product.id)) continue
+      if (
+        needle &&
+        !product.name.toLowerCase().includes(needle) &&
+        !(product.description ?? '').toLowerCase().includes(needle)
+      ) {
+        continue
+      }
+      const section = byCategory.get(product.category) ?? {
+        code: product.category,
+        title: product.categoryNameRu,
+        products: [],
+      }
+      section.products.push(product)
+      byCategory.set(product.category, section)
     }
-    const productCategories = Array.from(seen, ([code, title]) => ({ code, title }))
-    if (availableFavoriteProducts.length === 0) return productCategories
-    return [{ code: FAVORITES_CATEGORY_CODE, title: 'Избранное' }, ...productCategories]
-  }, [products, availableFavoriteProducts.length])
+    return Array.from(byCategory.values())
+  }, [state, query, onlyFavorites, favoriteProductIds])
 
-  const activeCategory = categories.find((category) => category.code === activeCategoryCode) ?? categories[0]
+  const currentCode = sections.some((section) => section.code === activeCode) ? activeCode : (sections[0]?.code ?? null)
 
-  const visibleProducts = useMemo(() => {
-    if (activeCategory?.code === FAVORITES_CATEGORY_CODE) return availableFavoriteProducts
-    return products.filter((product) => product.category === activeCategory?.code)
-  }, [products, availableFavoriteProducts, activeCategory?.code])
+  // Scroll-spy: highlight the last section whose top passed under the sticky header;
+  // at the very bottom the last section wins (it may be too short to reach the top).
+  useEffect(() => {
+    if (sections.length === 0) return
+
+    function onScroll() {
+      if (Date.now() < spyLockedUntil.current) return
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4
+      let code = sections[0]!.code
+      if (atBottom && window.scrollY > 0) {
+        code = sections[sections.length - 1]!.code
+      } else {
+        for (const section of sections) {
+          const top = document.getElementById(sectionId(section.code))?.getBoundingClientRect().top
+          if (top !== undefined && top <= SPY_OFFSET_PX) code = section.code
+        }
+      }
+      setActiveCode(code)
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [sections])
 
   if (!shop) {
     return <Navigate to="/locations" replace />
   }
 
+  function jumpTo(code: string) {
+    setActiveCode(code)
+    // Don't let the smooth scroll animation re-highlight the sections it passes.
+    lockSpy(spyLockedUntil, 900)
+    document.getElementById(sectionId(code))?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <section className={styles.screen} aria-labelledby="catalog-title">
-      <header className={styles.header}>
-        <p className={styles.eyebrow}>{shop.name}</p>
-        <h1 className={styles.title} id="catalog-title">
-          Каталог
-        </h1>
-      </header>
+      <h1 className={styles.visuallyHidden} id="catalog-title">
+        Меню
+      </h1>
 
-      {state.status === 'loading' ? <SkeletonCards label="Загружаем меню…" gridClassName={styles.grid} /> : null}
-      {state.status === 'error' ? <p className={styles.muted}>{state.message}</p> : null}
+      <div className={styles.menuTop}>
+        <ShopLine shop={shop} />
+        <div className={styles.searchRow}>
+          <label className={styles.search}>
+            <Icon name="search" />
+            <input
+              type="search"
+              placeholder="Найти напиток"
+              aria-label="Поиск по меню"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            {query ? (
+              <button className={styles.searchClear} type="button" aria-label="Очистить поиск" onClick={() => setQuery('')}>
+                <Icon name="close" size={16} />
+              </button>
+            ) : null}
+          </label>
+          {favoriteProductIds.length > 0 ? (
+            <button
+              className={styles.iconButton}
+              type="button"
+              aria-label="Только избранное"
+              aria-pressed={onlyFavorites}
+              onClick={() => setOnlyFavorites((value) => !value)}
+            >
+              <Icon name="heart" />
+            </button>
+          ) : null}
+        </div>
 
-      {state.status === 'ready' ? (
-        <>
-          <HScroll aria-label="Категории">
-            <div className={styles.categoryRail} role="tablist" aria-label="Product categories">
-              {categories.map((category) => {
-                const isActive = category.code === activeCategory?.code
-
-                return (
-                  <button
-                    aria-controls="catalog-products"
-                    aria-selected={isActive}
-                    className={`${styles.categoryTab} ${isActive ? styles.activeCategoryTab : ''}`}
-                    id={`catalog-tab-${category.code}`}
-                    key={category.code}
-                    onClick={() => setActiveCategoryCode(category.code)}
-                    role="tab"
-                    type="button"
-                  >
-                    {category.title}
-                  </button>
-                )
-              })}
-            </div>
-          </HScroll>
-
-          <p className={styles.categorySubtitle}>{activeCategory?.title}</p>
-
-          <div
-            aria-labelledby={activeCategory ? `catalog-tab-${activeCategory.code}` : undefined}
-            className={styles.grid}
-            id="catalog-products"
-            role="tabpanel"
-          >
-            {visibleProducts.map((product) => (
-              <ProductCard
-                aria-label={`Open ${product.name}`}
-                className={styles.productCard}
-                imageAlt={product.name}
-                imageSrc={resolveAssetUrl(product.imagePath) ?? heroFallback}
-                key={product.id}
-                onClick={() => navigate(`/product/${product.id}`)}
-                price={formatMoney(product.basePrice)}
-                title={product.name}
-              />
+        {sections.length > 1 ? (
+          <div className={styles.cats} role="tablist" aria-label="Категории">
+            {sections.map((section) => (
+              <button
+                aria-controls={sectionId(section.code)}
+                aria-selected={section.code === currentCode}
+                className={styles.cat}
+                key={section.code}
+                onClick={() => jumpTo(section.code)}
+                role="tab"
+                type="button"
+              >
+                {section.title}
+              </button>
             ))}
           </div>
+        ) : null}
+      </div>
 
-          {visibleProducts.length === 0 ? <p className={styles.muted}>В этой категории пока пусто.</p> : null}
-        </>
+      {state.status === 'loading' ? <SkeletonRows label="Загружаем меню…" count={5} trailing={false} /> : null}
+      {state.status === 'error' ? (
+        <p className={styles.alert} role="alert">
+          <Icon name="alert" size={16} />
+          {state.message}
+        </p>
+      ) : null}
+
+      {state.status === 'ready'
+        ? sections.map((section) => (
+            <section
+              className={styles.menuSection}
+              id={sectionId(section.code)}
+              data-code={section.code}
+              key={section.code}
+              aria-labelledby={`${sectionId(section.code)}-title`}
+            >
+              <h2 className={styles.menuSectionTitle} id={`${sectionId(section.code)}-title`}>
+                {section.title}
+              </h2>
+              {section.products.map((product) => (
+                <MenuRow key={product.id} product={product} />
+              ))}
+            </section>
+          ))
+        : null}
+
+      {state.status === 'ready' && sections.length === 0 ? (
+        <div className={styles.empty}>
+          <span className={styles.emptyIcon}>
+            <Icon name="search" size={28} />
+          </span>
+          <p className={styles.emptyTitle}>{query || onlyFavorites ? 'Ничего не нашлось' : 'Меню пока пустое'}</p>
+          {query || onlyFavorites ? (
+            <button
+              className={`${styles.btn} ${styles.btnSecondary}`}
+              type="button"
+              onClick={() => {
+                setQuery('')
+                setOnlyFavorites(false)
+              }}
+            >
+              Сбросить фильтры
+            </button>
+          ) : null}
+        </div>
       ) : null}
     </section>
   )

@@ -38,6 +38,18 @@ describe('PositionCard', () => {
     expect(markup).toContain('data-position-id="position-104-1"')
     expect(markup).toContain('data-status="NEW"')
     expect(markup).toContain('type="button"')
+    // Stopwatch and SLA band: 15 minutes is past the 6-minute «late» threshold.
+    expect(markup).toContain('15:00')
+    expect(markup).toContain('data-sla="late"')
+    expect(markup).toContain('Начать')
+  })
+
+  it('marks the SLA band by elapsed time', async () => {
+    const { slaLevel } = await import('./elapsedTime')
+
+    expect(slaLevel(2 * 60_000)).toBe('fresh')
+    expect(slaLevel(4 * 60_000)).toBe('warn')
+    expect(slaLevel(7 * 60_000)).toBe('late')
   })
 
   it('formats elapsed time across minute, hour, and day ranges', () => {
@@ -49,7 +61,7 @@ describe('PositionCard', () => {
     expect(formatElapsedTime('2026-07-17T08:20:00.000Z', nowMs)).toBe('2 д 1 ч')
   })
 
-  it('calls onPositionClick with the card id', async () => {
+  it('calls onPositionClick with the card id from the action button only', async () => {
     const onPositionClick = vi.fn()
     const { container } = await renderIntoDocument(
       <PositionCard position={position} onPositionClick={onPositionClick} />,
@@ -57,7 +69,11 @@ describe('PositionCard', () => {
     const card = container.querySelector('[data-position-id="position-104-1"]')
 
     expect(card).not.toBeNull()
+    // A stray tap on the card body no longer changes the status (audit B1).
     await clickElement(card!)
+    expect(onPositionClick).not.toHaveBeenCalled()
+
+    await clickElement(card!.querySelector('button')!)
 
     expect(onPositionClick).toHaveBeenCalledWith('position-104-1')
   })

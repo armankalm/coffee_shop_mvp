@@ -68,7 +68,7 @@ See `.env.example` for the full list. Key groups:
 | JWT | `JWT_SECRET` (min 256-bit), `JWT_ACCESS_EXPIRATION`, `JWT_REFRESH_EXPIRATION` |
 | Mail (OTP) | `BREVO_API_KEY`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` (Brevo HTTP API; empty key = dev-mode, code returned in response) |
 | Google sign-in | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BACKEND_URL`, `FRONTEND_URL` |
-| Image storage | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_STORAGE_BUCKET` (empty URL = local disk) |
+| Image storage | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_STORAGE_BUCKET` (empty URL = local disk) — legacy multipart `POST /api/products/{id}/image`. Primary path: the SPA uploads to Cloudinary itself and calls `PUT /api/products/{id}/image-url` (only `https://res.cloudinary.com/` URLs accepted) |
 | Web Push | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` ("order is ready" notifications; empty keys = disabled, never rotate in prod) |
 | Printer | `PRINTER_HOST`, `PRINTER_PORT`, `PRINTER_ENABLED`, `PRINTER_TIMEOUT_MS`, `AUTO_PRINT_ENABLED` |
 | Kaspi | `KASPI_API_KEY`, `KASPI_MERCHANT_ID` |

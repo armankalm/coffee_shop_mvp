@@ -50,6 +50,7 @@ describe('positions api', () => {
     expect(positions).toEqual([
       {
         id: '7',
+        orderId: 104,
         orderNumber: '№104',
         title: 'Латте ×2',
         status: 'NEW',

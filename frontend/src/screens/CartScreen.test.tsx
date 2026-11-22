@@ -89,6 +89,14 @@ describe('CartScreen', () => {
     expect(payButton).not.toBeUndefined()
     await clickElement(payButton!)
 
+    // Checkout opens a bottom sheet; the order is created only after confirming there.
+    expect(mockOrdersApi.createOrder).not.toHaveBeenCalled()
+    const confirmButton = Array.from(container.querySelectorAll('[role="dialog"] button')).find((button) =>
+      button.textContent?.includes('Подтвердить заказ'),
+    )
+    expect(confirmButton).not.toBeUndefined()
+    await clickElement(confirmButton!)
+
     await waitFor(() => {
       expect(mockOrdersApi.createOrder).toHaveBeenCalledWith({
         shopId: 1,

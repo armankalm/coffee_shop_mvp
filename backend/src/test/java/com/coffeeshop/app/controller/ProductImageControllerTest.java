@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -20,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ProductImageController.class)
@@ -92,5 +94,37 @@ class ProductImageControllerTest {
 
         mockMvc.perform(multipart("/api/products/99/image").file(file))
                 .andExpect(status().isNotFound());
+    }
+
+    private static final String CLOUDINARY_BODY =
+            "{\"imageUrl\":\"https://res.cloudinary.com/demo/image/upload/v1/coffee-mvp/shop-1/products/a.jpg\"}";
+
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void setImageUrl_asManager_returnsUpdatedProduct() throws Exception {
+        when(productService.updateImageUrl(eq(1L), any())).thenReturn(buildDtoWithImage());
+
+        mockMvc.perform(put("/api/products/1/image-url")
+                        .contentType(MediaType.APPLICATION_JSON).content(CLOUDINARY_BODY))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void setImageUrl_asUser_returns403() throws Exception {
+        mockMvc.perform(put("/api/products/1/image-url")
+                        .contentType(MediaType.APPLICATION_JSON).content(CLOUDINARY_BODY))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void setImageUrl_invalidUrl_returns400() throws Exception {
+        when(productService.updateImageUrl(eq(1L), any())).thenThrow(new IllegalArgumentException("bad url"));
+
+        mockMvc.perform(put("/api/products/1/image-url")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"imageUrl\":\"https://x.com/a.jpg\"}"))
+                .andExpect(status().isBadRequest());
     }
 }

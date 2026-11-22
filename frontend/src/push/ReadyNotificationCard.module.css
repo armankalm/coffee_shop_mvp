@@ -3,6 +3,7 @@
   align-items: flex-start;
   gap: 12px;
   padding: 16px;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   background: var(--surface);
 }
@@ -38,7 +39,7 @@
   padding: 0 16px;
   border-radius: var(--r-sm);
   background: var(--accent);
-  color: var(--text);
+  color: var(--on-accent);
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;

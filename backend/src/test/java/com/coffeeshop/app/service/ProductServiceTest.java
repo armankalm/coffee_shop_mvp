@@ -131,4 +131,36 @@ class ProductServiceTest {
                 .isInstanceOf(NoSuchElementException.class)
                 .hasMessageContaining("99");
     }
+
+    @Test
+    void updateImageUrl_cloudinaryUrl_savesAndDeletesOldLocalFile() {
+        Product product = buildProduct(1L, "Latte", coffeeCategory);
+        product.setImagePath("/uploads/products/old.jpg");
+        when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
+        String url = "https://res.cloudinary.com/demo/image/upload/v1/coffee-mvp/shop-1/products/latte.jpg";
+
+        ProductDto result = productService.updateImageUrl(1L, url);
+
+        assertThat(result.getImagePath()).isEqualTo(url);
+        verify(productRepository).save(product);
+        verify(fileStorageService).deleteIfExists("/uploads/products/old.jpg");
+    }
+
+    @Test
+    void updateImageUrl_oldImageOnCloudinary_isNotDeletedLocally() {
+        Product product = buildProduct(1L, "Latte", coffeeCategory);
+        product.setImagePath("https://res.cloudinary.com/demo/image/upload/v1/old.jpg");
+        when(productRepository.findByIdWithToppings(1L)).thenReturn(Optional.of(product));
+
+        productService.updateImageUrl(1L, "https://res.cloudinary.com/demo/image/upload/v2/new.jpg");
+
+        verify(fileStorageService, never()).deleteIfExists(any());
+    }
+
+    @Test
+    void updateImageUrl_foreignUrl_throwsIllegalArgument() {
+        assertThatThrownBy(() -> productService.updateImageUrl(1L, "https://evil.example.com/x.jpg"))
+                .isInstanceOf(IllegalArgumentException.class);
+        verify(productRepository, never()).save(any());
+    }
 }

@@ -9,6 +9,7 @@ import {
   CartScreen,
   CatalogScreen,
   EditProfileScreen,
+  HomeScreen,
   LocationsScreen,
   LoginScreen,
   OAuthCallbackScreen,
@@ -30,7 +31,8 @@ function App() {
         <Route path="login" element={<LoginScreen />} />
         <Route path="auth/callback" element={<OAuthCallbackScreen />} />
         <Route element={<RequireAuth />}>
-          <Route index element={<LocationsScreen />} />
+          <Route index element={<HomeScreen />} />
+          <Route path="home" element={<HomeScreen />} />
           <Route path="locations" element={<LocationsScreen />} />
           <Route path="profile" element={<ProfileScreen />} />
           <Route path="profile/edit" element={<EditProfileScreen />} />
@@ -38,7 +40,7 @@ function App() {
           <Route path="product/:productId" element={<ProductScreen />} />
           <Route path="cart" element={<CartScreen />} />
           <Route path="order/:orderId" element={<OrderStatusScreen />} />
-          <Route path="*" element={<LocationsScreen />} />
+          <Route path="*" element={<HomeScreen />} />
         </Route>
       </Route>
       <Route element={<RequireAuth />}>

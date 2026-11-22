@@ -30,9 +30,10 @@ describe('KitchenLayout', () => {
   it('renders tab counts and nested route content', () => {
     const markup = renderKitchenLayout('/orders/in-progress')
 
-    expect(markup).toContain('Новые · 3')
-    expect(markup).toContain('В работе · 2')
-    expect(markup).toContain('Готовы · 1')
+    expect(markup).toMatch(/Новые<span[^>]*>3<\/span>/)
+    expect(markup).toMatch(/В работе<span[^>]*>2<\/span>/)
+    expect(markup).toMatch(/Готовы<span[^>]*>1<\/span>/)
+    expect(markup).toContain('Легенда таймеров')
     expect(markup).toContain('In-progress orders outlet')
   })
 

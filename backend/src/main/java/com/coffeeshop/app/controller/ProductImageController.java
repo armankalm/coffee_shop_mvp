@@ -27,4 +27,13 @@ public class ProductImageController {
             @RequestParam("file") MultipartFile file) throws IOException {
         return ResponseEntity.ok(productService.updateImage(id, file));
     }
+
+    public record ImageUrlRequest(String imageUrl) {}
+
+    /** Saves the Cloudinary URL of an image uploaded directly from the browser. */
+    @PutMapping(value = "/{id}/image-url", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<ProductDto> setImageUrl(@PathVariable Long id, @RequestBody ImageUrlRequest request) {
+        return ResponseEntity.ok(productService.updateImageUrl(id, request.imageUrl()));
+    }
 }

@@ -43,7 +43,8 @@ const initialPositions: OrderPosition[] = [
 ]
 
 function KitchenBoardProbe() {
-  const { actionError, advancePosition, counts, error, loading, pendingPositionIds, positions } = useKitchenBoard()
+  const { actionError, advancePosition, counts, error, lastAction, loading, pendingPositionIds, positions, undoLastAction } =
+    useKitchenBoard()
   const firstPosition = positions[0]
   const snapshot = [
     positions.length,
@@ -67,6 +68,10 @@ function KitchenBoardProbe() {
       >
         advance
       </button>
+      <button type="button" data-testid="undo" onClick={undoLastAction}>
+        undo
+      </button>
+      <output data-testid="last-action">{lastAction?.message ?? 'no-action'}</output>
     </div>
   )
 }
@@ -114,7 +119,7 @@ describe('KitchenBoardProvider async behavior', () => {
     mockPositionsApi.advancePositionStatus.mockRejectedValue(new Error('advance failed'))
 
     const { container } = await renderIntoDocument(
-      <KitchenBoardProvider>
+      <KitchenBoardProvider undoDelayMs={0}>
         <KitchenBoardProbe />
       </KitchenBoardProvider>,
     )
@@ -150,7 +155,7 @@ describe('KitchenBoardProvider async behavior', () => {
     )
 
     const { container } = await renderIntoDocument(
-      <KitchenBoardProvider>
+      <KitchenBoardProvider undoDelayMs={0}>
         <KitchenBoardProbe />
       </KitchenBoardProvider>,
     )
@@ -183,5 +188,48 @@ describe('KitchenBoardProvider async behavior', () => {
     await clickElement(advanceButton!)
 
     expect(mockPositionsApi.advancePositionStatus).toHaveBeenCalledTimes(1)
+  })
+
+  it('moves the card at once but sends the change only after the undo window', async () => {
+    mockPositionsApi.getPositions.mockResolvedValue(initialPositions)
+    mockPositionsApi.advancePositionStatus.mockResolvedValue({ ...initialPositions[0]!, status: 'IN_PROGRESS' })
+
+    const { container } = await renderIntoDocument(
+      <KitchenBoardProvider undoDelayMs={60}>
+        <KitchenBoardProbe />
+      </KitchenBoardProvider>,
+    )
+    await waitFor(() => expect(container.textContent).toContain('1:false:null:null:none:1:0:NEW'))
+
+    await clickElement(container.querySelector('button')!)
+
+    expect(container.textContent).toContain('1:false:null:null:pos-new:0:1:IN_PROGRESS')
+    expect(container.textContent).toContain('#101 Cortado → В работе')
+    expect(mockPositionsApi.advancePositionStatus).not.toHaveBeenCalled()
+
+    await waitFor(() => expect(mockPositionsApi.advancePositionStatus).toHaveBeenCalledWith('pos-new', 'NEW'))
+    await waitFor(() => expect(container.textContent).toContain('1:false:null:null:none:0:1:IN_PROGRESS'))
+    expect(container.textContent).toContain('no-action')
+  })
+
+  it('undo restores the card and never calls the API', async () => {
+    mockPositionsApi.getPositions.mockResolvedValue(initialPositions)
+
+    const { container } = await renderIntoDocument(
+      <KitchenBoardProvider undoDelayMs={60}>
+        <KitchenBoardProbe />
+      </KitchenBoardProvider>,
+    )
+    await waitFor(() => expect(container.textContent).toContain('1:false:null:null:none:1:0:NEW'))
+
+    await clickElement(container.querySelector('button')!)
+    await clickElement(container.querySelector('[data-testid="undo"]')!)
+
+    expect(container.textContent).toContain('1:false:null:null:none:1:0:NEW')
+    expect(container.textContent).toContain('no-action')
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 120))
+    })
+    expect(mockPositionsApi.advancePositionStatus).not.toHaveBeenCalled()
   })
 })

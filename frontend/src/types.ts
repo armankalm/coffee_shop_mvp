@@ -127,6 +127,8 @@ export type OrderPositionStatus = 'NEW' | 'IN_PROGRESS' | 'READY' | 'COMPLETED'
 
 export type OrderPosition = {
   id: string
+  /** Groups the positions of one order (siblings on the board, «Выдать заказ»). Falls back to orderNumber. */
+  orderId?: number
   orderNumber: string
   title: string
   status: OrderPositionStatus

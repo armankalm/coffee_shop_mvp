@@ -14,6 +14,10 @@
 - Use `apiGet`, `apiPost`, `apiPatch`, and `apiDelete` from `src/api/client.ts`.
 - `apiGet`, `apiPatch`, and `apiDelete` are authenticated by default; `apiPost` takes an explicit auth flag.
 - Relative asset paths should be passed through `resolveAssetUrl`.
+- Product photos: `uploadProductImage(productId, shopId, file)` uploads from the browser to Cloudinary (unsigned preset,
+  `VITE_CLOUDINARY_CLOUD_NAME` / `VITE_CLOUDINARY_UPLOAD_PRESET`) into the per-shop folder `coffee-mvp/shop-<shopId>/products`,
+  then saves the URL via `PUT /products/{id}/image-url`. Without those env vars it falls back to the backend multipart upload.
+  Render images with `ProductPhoto` (adds Cloudinary resize transforms).
 - The client retries one `401` with `/auth/refresh`, then clears `drinkit.auth` on refresh failure.
 
 ## State And Storage
@@ -35,7 +39,10 @@
 
 ## Styling
 
-- Global tokens are in `src/styles/tokens.css`.
+- Global tokens are in `src/styles/tokens.css`. Customer screens use the light «Cream» theme
+  (`docs/design-audit/mockup-b-cream.html`): `AppLayout` sets `html[data-theme="cream"]`; staff/kitchen keep the dark default.
+  Customer screen styles live in `src/screens/Cream.module.css`; icons via `<Icon name=…>`; undo toasts via `useToast()`.
+- Customer tabs: Главная (`/home`) · Меню (`/catalog`) · Корзина · Профиль. The shop is picked from the header chip (`/locations`).
 - Component styles use CSS Modules.
 - Global mobile-safe-area helpers are in `src/styles/global.css`.
 - Customer screens are constrained to the mobile shell; kitchen screens use a wider tablet-style shell.

@@ -11,23 +11,27 @@
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  height: var(--nav-height);
+  height: calc(var(--nav-height) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
   background: var(--surface);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--border);
 }
 
 .item {
+  position: relative;
   display: grid;
   place-items: center;
-  gap: 2px;
+  align-content: center;
+  gap: 4px;
   color: var(--text-muted);
   text-decoration: none;
   transition: color 160ms ease;
 }
 
-.item:active {
-  transform: scale(0.96);
+.item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+  border-radius: var(--r-sm);
 }
 
 .icon {
@@ -36,10 +40,26 @@
 }
 
 .label {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .active {
-  color: var(--text);
+  color: var(--accent);
+}
+
+.badge {
+  position: absolute;
+  top: 8px;
+  left: calc(50% + 6px);
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 11px;
+  font-weight: 700;
 }

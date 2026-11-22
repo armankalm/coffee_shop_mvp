@@ -19,7 +19,7 @@
   height: 72px;
   place-items: center;
   border-radius: 50%;
-  background: rgba(47, 84, 235, 0.12);
+  background: var(--accent-soft);
 }
 
 .ticket {

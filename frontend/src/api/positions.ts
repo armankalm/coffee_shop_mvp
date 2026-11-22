@@ -33,6 +33,7 @@ export function nextStatus(status: OrderPositionStatus) {
 export function toOrderPosition(dto: OrderItemBoardDto): OrderPosition {
   return {
     id: String(dto.id),
+    orderId: dto.orderId,
     orderNumber: dto.orderNumber,
     title: dto.quantity > 1 ? `${dto.title} ×${dto.quantity}` : dto.title,
     status: dto.status,

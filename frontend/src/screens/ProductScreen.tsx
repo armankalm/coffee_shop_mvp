@@ -1,51 +1,55 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
-import { ApiError, resolveAssetUrl } from '../api/client'
+import { ApiError } from '../api/client'
 import type { ProductDto } from '../api/products'
 import { getProductById } from '../api/products'
 import { useCart } from '../cart/CartContext'
-import { HScroll, Skeleton, SkeletonStatus } from '../components'
-import { showFallbackImage } from '../components/imageFallback'
+import { Icon, Skeleton, SkeletonStatus } from '../components'
+import { ProductPhoto } from '../components/ProductPhoto'
 import { useFavorites } from '../favorites/FavoritesContext'
+import { formatMoney } from '../format'
+import { groupToppings, toggleTopping } from '../menu/toppingGroups'
 import { useShop } from '../shop/ShopContext'
-import heroFallback from '../assets/hero.png'
-import styles from './Screens.module.css'
+import { useToast } from '../toast/ToastContext'
+import styles from './Cream.module.css'
 
 type LoadState =
   | { status: 'loading'; productId: string | undefined }
   | { status: 'error'; productId: string | undefined; message: string }
   | { status: 'ready'; productId: string; product: ProductDto }
 
-function formatMoney(amount: number) {
-  return `${amount.toLocaleString('ru-RU')} ₸`
-}
+type Selection = { productId: string | undefined; ids: number[]; hint: string | null }
 
 export function ProductScreen() {
   const { productId } = useParams()
   const navigate = useNavigate()
-  const { addItem, replaceItem, lines } = useCart()
+  const location = useLocation()
+  const { addItem, replaceItem, updateQuantity, lines } = useCart()
   const [searchParams] = useSearchParams()
   // Opened from the cart (?line=<cart line id>): edit that line instead of adding a new one.
-  const editingLine = lines.find(
-    (line) => line.id === searchParams.get('line') && String(line.productId) === productId,
-  )
+  const editingLine = lines.find((line) => line.id === searchParams.get('line') && String(line.productId) === productId)
   const { isFavorite, toggleFavorite } = useFavorites()
   const { shop } = useShop()
+  const { showToast } = useToast()
 
   const [state, setState] = useState<LoadState>(() => ({ status: 'loading', productId }))
-  const [selectedToppings, setSelectedToppings] = useState<{ productId: string | undefined; ids: number[] }>(() => ({
+  const [selection, setSelection] = useState<Selection>(() => ({
     productId,
     ids: editingLine?.toppingIds ?? [],
+    hint: null,
   }))
-  const selectedToppingIds = useMemo(
-    () => (selectedToppings.productId === productId ? selectedToppings.ids : []),
-    [productId, selectedToppings.ids, selectedToppings.productId],
+  const [quantity, setQuantity] = useState({ productId, value: 1 })
+
+  const selectedIds = useMemo(
+    () => (selection.productId === productId ? selection.ids : []),
+    [productId, selection.ids, selection.productId],
   )
+  const hint = selection.productId === productId ? selection.hint : null
+  const count = quantity.productId === productId ? quantity.value : 1
 
   useEffect(() => {
     if (!productId) return
-
     let cancelled = false
     const requestedProductId = productId
 
@@ -70,30 +74,39 @@ export function ProductScreen() {
 
   const product = state.status === 'ready' && state.productId === productId ? state.product : null
 
-  const validSelectedToppingIds = useMemo(() => {
+  const validSelectedIds = useMemo(() => {
     if (!product) return []
-
-    const availableToppingIds = new Set(product.availableToppings.map((topping) => topping.id))
-    return selectedToppingIds.filter((toppingId) => availableToppingIds.has(toppingId))
-  }, [product, selectedToppingIds])
+    const available = new Set(product.availableToppings.map((topping) => topping.id))
+    return selectedIds.filter((id) => available.has(id))
+  }, [product, selectedIds])
 
   const toppingsPrice = useMemo(() => {
     if (!product) return 0
-    const selectedIds = new Set(validSelectedToppingIds)
-    return product.availableToppings
-      .filter((topping) => selectedIds.has(topping.id))
-      .reduce((sum, topping) => sum + topping.price, 0)
-  }, [product, validSelectedToppingIds])
+    const ids = new Set(validSelectedIds)
+    return product.availableToppings.filter((topping) => ids.has(topping.id)).reduce((sum, t) => sum + t.price, 0)
+  }, [product, validSelectedIds])
+
+  const groups = useMemo(() => (product ? groupToppings(product.availableToppings) : []), [product])
+
+  function goBack() {
+    if (editingLine) {
+      navigate('/cart')
+    } else if (location.key !== 'default') {
+      navigate(-1)
+    } else {
+      navigate('/catalog')
+    }
+  }
 
   if (state.status === 'loading' || state.productId !== productId) {
     return (
-      <section className={`${styles.screen} ${styles.productScreen}`}>
+      <section className={styles.screen}>
         <SkeletonStatus label="Загружаем товар…">
-          <Skeleton height={280} radius={24} />
-          <Skeleton width="60%" height={26} />
+          <Skeleton height={300} radius={28} />
+          <Skeleton width="60%" height={30} />
           <Skeleton width="90%" height={14} />
           <Skeleton width="70%" height={14} />
-          <Skeleton width={120} height={20} />
+          <Skeleton width={160} height={40} radius={999} />
         </SkeletonStatus>
       </section>
     )
@@ -101,35 +114,37 @@ export function ProductScreen() {
 
   if (state.status === 'error' || !product) {
     return (
-      <section className={`${styles.screen} ${styles.productScreen}`}>
-        <p className={styles.productDescription}>{state.status === 'error' ? state.message : 'Товар не найден.'}</p>
-        <Link to="/catalog">Вернуться в каталог</Link>
+      <section className={styles.screen}>
+        <p className={styles.alert} role="alert">
+          <Icon name="alert" size={16} />
+          {state.status === 'error' ? state.message : 'Товар не найден.'}
+        </p>
+        <Link className={styles.textLink} to="/catalog">
+          Вернуться в меню
+        </Link>
       </section>
     )
   }
 
-  const totalPrice = product.basePrice + toppingsPrice
+  const unitPrice = product.basePrice + toppingsPrice
+  const totalPrice = unitPrice * (editingLine ? editingLine.quantity : count)
+  const favorite = isFavorite(product.id)
 
-  function toggleTopping(toppingId: number) {
+  function handleToggle(toppingId: number) {
     if (!product) return
-    const topping = product.availableToppings.find((entry) => entry.id === toppingId)
-    if (!topping) return
-
-    setSelectedToppings((current) => {
-      const currentIds = current.productId === productId ? current.ids : []
-
-      if (currentIds.includes(toppingId)) {
-        return { productId, ids: currentIds.filter((id) => id !== toppingId) }
-      }
-      const withoutIncompatible = currentIds.filter((id) => !topping.incompatibleWithIds.includes(id))
-      return { productId, ids: [...withoutIncompatible, toppingId] }
+    const result = toggleTopping(product.availableToppings, validSelectedIds, toppingId)
+    const added = product.availableToppings.find((topping) => topping.id === toppingId)
+    setSelection({
+      productId,
+      ids: result.ids,
+      hint: result.replaced.length > 0 && added ? `${added.name} заменило: ${result.replaced.join(', ')}` : null,
     })
   }
 
   function handleAddToCart() {
     if (!product || !product.available) return
     if (editingLine) {
-      replaceItem(editingLine.id, product, validSelectedToppingIds)
+      replaceItem(editingLine.id, product, validSelectedIds)
       navigate('/cart')
       return
     }
@@ -137,98 +152,124 @@ export function ProductScreen() {
       navigate('/locations')
       return
     }
-    addItem(product, validSelectedToppingIds, 1, shop.id)
-    navigate('/cart')
-  }
-
-  const toppingsByType = new Map<string, typeof product.availableToppings>()
-  for (const topping of product.availableToppings) {
-    const group = toppingsByType.get(topping.typeNameRu) ?? []
-    group.push(topping)
-    toppingsByType.set(topping.typeNameRu, group)
+    const lineId = `${shop.id}:${product.id}:${[...validSelectedIds].sort((a, b) => a - b).join(',')}`
+    const before = lines.find((line) => line.id === lineId)?.quantity ?? 0
+    addItem(product, validSelectedIds, count, shop.id)
+    // Stay in the menu (audit P1): back to where the guest came from, with an undo toast.
+    showToast({
+      message: count > 1 ? `${product.name} × ${count} — в корзине` : `${product.name} — в корзине`,
+      action: { label: 'Отменить', onClick: () => updateQuantity(lineId, before) },
+    })
+    goBack()
   }
 
   return (
-    <section className={`${styles.screen} ${styles.productScreen}`} aria-labelledby="product-title">
-      <div className={styles.productHero}>
-        <img
-          className={styles.productHeroImage}
-          src={resolveAssetUrl(product.imagePath) ?? heroFallback}
-          alt={product.name}
-          draggable={false}
-          onError={showFallbackImage}
-        />
-        <div className={styles.productHeroShade} aria-hidden="true" />
-
-        <div className={styles.productTopControls}>
+    <section className={styles.productScreen} aria-labelledby="product-title">
+      <div className={styles.hero}>
+        <ProductPhoto imagePath={product.imagePath} alt={product.name} className={styles.heroPhoto} />
+        <div className={styles.heroControls}>
+          <button className={styles.iconButton} type="button" aria-label="Назад" onClick={goBack}>
+            <Icon name="left" />
+          </button>
           <button
-            aria-label={isFavorite(product.id) ? 'Убрать из избранного' : 'Добавить в избранное'}
-            aria-pressed={isFavorite(product.id)}
-            className={styles.productIconButton}
+            aria-label={favorite ? 'Убрать из избранного' : 'Добавить в избранное'}
+            aria-pressed={favorite}
+            className={styles.iconButton}
             onClick={() => toggleFavorite(product)}
             type="button"
           >
-            {isFavorite(product.id) ? '♥' : '♡'}
+            <Icon name="heart" />
           </button>
-          <h1 className={styles.productTopTitle} id="product-title">
-            {product.name}
-          </h1>
-          <Link
-            className={styles.productIconButton}
-            to={editingLine ? '/cart' : '/catalog'}
-            aria-label="Закрыть карточку товара"
-          >
-            ×
-          </Link>
         </div>
       </div>
 
-      <div className={styles.productContent}>
-        {toppingsByType.size > 0 ? (
-          <HScroll className={styles.productModifierScroll} aria-label="Топинги">
-            <div className={styles.productModifierRail}>
-              {Array.from(toppingsByType.entries()).map(([typeTitle, toppings]) =>
-                toppings.map((topping) => {
-                  const isSelected = selectedToppingIds.includes(topping.id)
+      <div className={styles.productBody}>
+        <h1 className={styles.productTitle} id="product-title">
+          {product.name}
+        </h1>
+        <p className={styles.productMeta}>
+          <span>{product.categoryNameRu}</span>
+          {!product.available ? (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>Нет в наличии</span>
+            </>
+          ) : null}
+        </p>
+        {product.description ? <p className={styles.productDesc}>{product.description}</p> : null}
 
-                  return (
-                    <button
-                      aria-pressed={isSelected}
-                      className={styles.productModifierCard}
-                      key={topping.id}
-                      onClick={() => toggleTopping(topping.id)}
-                      type="button"
-                    >
-                      <span className={styles.productModifierTitle}>{topping.name}</span>
-                      <span className={styles.productModifierFooter}>
-                        <span className={styles.productModifierHint}>{typeTitle}</span>
-                        <span className={styles.productModifierPrice}>
-                          {isSelected ? '✓ ' : '+ '}
-                          {formatMoney(topping.price)}
-                        </span>
-                      </span>
-                    </button>
-                  )
-                }),
-              )}
+        {groups.map((group, groupIndex) => (
+          <div key={group.title}>
+            <p className={styles.groupLabel} id={`topping-group-${groupIndex}`}>
+              {group.title} · {group.exclusive ? 'одно' : 'любые'}
+            </p>
+            <div
+              className={styles.chips}
+              role={group.exclusive ? 'radiogroup' : 'group'}
+              aria-labelledby={`topping-group-${groupIndex}`}
+            >
+              {group.toppings.map((topping) => {
+                const selected = validSelectedIds.includes(topping.id)
+                const stateProps = group.exclusive
+                  ? { role: 'radio' as const, 'aria-checked': selected }
+                  : { 'aria-pressed': selected }
+                return (
+                  <button
+                    className={styles.chip}
+                    key={topping.id}
+                    onClick={() => handleToggle(topping.id)}
+                    type="button"
+                    {...stateProps}
+                  >
+                    {selected ? <Icon name="check" size={16} /> : null}
+                    {topping.name}
+                    <small>{topping.price > 0 ? `+${topping.price.toLocaleString('ru-RU')}` : '0'}</small>
+                  </button>
+                )
+              })}
             </div>
-          </HScroll>
+          </div>
+        ))}
+
+        {hint ? (
+          <p className={styles.hint} role="status">
+            {hint}
+          </p>
+        ) : null}
+
+        {!editingLine && product.available ? (
+          <div className={styles.qtyRow}>
+            <span>Количество</span>
+            <div className={`${styles.qty} ${styles.qtySoft}`} role="group" aria-label="Количество">
+              <button
+                type="button"
+                aria-label="Меньше"
+                disabled={count <= 1}
+                onClick={() => setQuantity({ productId, value: Math.max(1, count - 1) })}
+              >
+                <Icon name="minus" size={16} />
+              </button>
+              <span aria-live="polite">{count}</span>
+              <button type="button" aria-label="Больше" onClick={() => setQuantity({ productId, value: count + 1 })}>
+                <Icon name="plus" size={16} />
+              </button>
+            </div>
+          </div>
         ) : null}
       </div>
 
-      <div className={styles.productBottomBar}>
+      <div className={styles.buyBar}>
+        <div className={styles.total}>
+          <small>Итого</small>
+          <b>{formatMoney(totalPrice)}</b>
+        </div>
         <button
-          className={styles.productAddButton}
+          className={`${styles.btn} ${styles.btnPrimary}`}
           onClick={handleAddToCart}
           type="button"
           disabled={!product.available}
-          aria-label={editingLine ? `Сохранить ${product.name} в корзине` : `Добавить ${product.name} в корзину`}
         >
-          {!product.available
-            ? 'Unavailable'
-            : editingLine
-              ? `Сохранить · ${formatMoney(totalPrice)}`
-              : `+ ${formatMoney(totalPrice)}`}
+          {!product.available ? 'Нет в наличии' : editingLine ? 'Сохранить' : 'Добавить в корзину'}
         </button>
       </div>
     </section>

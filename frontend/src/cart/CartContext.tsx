@@ -25,6 +25,8 @@ type CartContextValue = {
   updateQuantity: (lineId: string, quantity: number) => void
   removeItem: (lineId: string) => void
   clearShop: (shopId: number) => void
+  /** Puts previously removed lines back (undo); lines already in the cart keep their current state. */
+  restoreLines: (lines: CartLine[]) => void
   clear: () => void
 }
 
@@ -160,6 +162,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       },
       clearShop: (shopId) => {
         setLines((currentLines) => currentLines.filter((line) => line.shopId !== shopId))
+      },
+      restoreLines: (restored) => {
+        setLines((currentLines) => {
+          const ids = new Set(currentLines.map((line) => line.id))
+          return [...currentLines, ...restored.filter((line) => isCartLine(line) && !ids.has(line.id))]
+        })
       },
       clear: () => {
         setLines([])

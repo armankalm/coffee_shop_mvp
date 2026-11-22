@@ -1,4 +1,5 @@
 import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from './client'
+import { isCloudinaryConfigured, uploadToCloudinary } from './cloudinary'
 import type { ProductDto, ToppingDto } from './products'
 
 export type ProductCategoryDto = {
@@ -36,10 +37,18 @@ export function deleteProduct(productId: number) {
   return apiDelete<void>(`/admin/products/${productId}`)
 }
 
-export function uploadProductImage(productId: number, file: File) {
-  const data = new FormData()
-  data.append('file', file)
-  return apiUpload<ProductDto>(`/products/${productId}/image`, data)
+/**
+ * Uploads the photo to Cloudinary into the shop's own folder and saves its URL on the product.
+ * Falls back to the backend upload (local disk / Supabase) when Cloudinary isn't configured.
+ */
+export async function uploadProductImage(productId: number, shopId: number, file: File) {
+  if (!isCloudinaryConfigured()) {
+    const data = new FormData()
+    data.append('file', file)
+    return apiUpload<ProductDto>(`/products/${productId}/image`, data)
+  }
+  const uploaded = await uploadToCloudinary(file, { shopId, productId })
+  return apiPut<ProductDto>(`/products/${productId}/image-url`, { imageUrl: uploaded.secure_url })
 }
 
 export function getProductCategories() {

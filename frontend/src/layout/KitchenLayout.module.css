@@ -1,89 +1,170 @@
+/* Kitchen board — docs/design-audit/mockup-kitchen.html (warm espresso palette, dim-friendly). */
 .layout {
+  --k-bg: #17110d;
+  --k-surface: #211915;
+  --k-surface-2: #2b211b;
+  --k-border: rgba(245, 239, 232, 0.08);
+  --k-accent: #d9a066;
+  --k-accent-ink: #17110d;
+  --k-text: #f5efe8;
+  --k-muted: #a8988a;
+  --k-ok: #6fcf97;
+  --k-warn: #f2b54a;
+  --k-late: #f07167;
+
+  /* Shared components (EmptyState, …) read the global tokens. */
+  --bg: var(--k-bg);
+  --surface: var(--k-surface);
+  --text: var(--k-text);
+  --text-muted: var(--k-muted);
+  --accent: var(--k-accent);
+  --accent-soft: rgba(217, 160, 102, 0.14);
+
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   width: 100%;
-  background:
-    linear-gradient(180deg, rgba(47, 84, 235, 0.08), rgba(47, 84, 235, 0) 220px),
-    var(--bg);
+  background: var(--k-bg);
+  color: var(--k-text);
 }
 
 .shell {
   flex: 1 0 auto;
-  width: min(100%, 1180px);
+  width: min(100%, 1440px);
   margin: 0 auto;
-  padding: 24px;
+  padding: 0 24px 112px;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: 20px;
 }
 
 .header {
-  display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(360px, 560px);
-  align-items: end;
-  gap: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 -24px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--k-border);
 }
 
-.eyebrow {
-  display: inline-block;
-  margin: 0 0 6px;
-  color: #f2c572;
-  font-size: 13px;
-  font-weight: 800;
-  line-height: 1.2;
-  text-transform: uppercase;
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: var(--k-surface);
+  color: var(--k-text);
+  font-size: 14px;
+  font-weight: 600;
   text-decoration: none;
+}
+
+.back:hover {
+  background: var(--k-surface-2);
 }
 
 .title {
   margin: 0;
-  color: var(--text);
-  font-size: 34px;
-  font-weight: 800;
-  line-height: 1;
+  font-size: 22px;
+  font-weight: 700;
 }
 
+.legend {
+  display: flex;
+  gap: 14px;
+  margin-left: auto;
+  color: var(--k-muted);
+  font-size: 13px;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend i {
+  width: 10px;
+  height: 10px;
+  display: block;
+  border-radius: 50%;
+}
+
+.dotOk {
+  background: var(--k-ok);
+}
+
+.dotWarn {
+  background: var(--k-warn);
+}
+
+.dotLate {
+  background: var(--k-late);
+}
+
+.clock {
+  margin-left: 12px;
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tabs are only for phones/small tablets; from 1024px the board shows all columns. */
 .tabs {
   min-width: 0;
-  display: grid;
+  display: none;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  padding: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--r-xs);
-  background: rgba(255, 255, 255, 0.04);
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--k-border);
+  border-radius: 14px;
+  background: var(--k-surface);
 }
 
 .tab {
   min-width: 0;
   min-height: 48px;
-  padding: 0 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--r-xs);
-  color: var(--text-muted);
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 1.15;
-  text-align: center;
+  gap: 8px;
+  padding: 0 8px;
+  border-radius: 10px;
+  color: var(--k-muted);
+  font-size: 15px;
+  font-weight: 700;
   text-decoration: none;
-  transition:
-    background 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease;
 }
 
-.tab:hover {
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.07);
+.tabCount {
+  min-width: 24px;
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 7px;
+  border-radius: 12px;
+  background: var(--k-surface-2);
+  color: var(--k-text);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
 .activeTab {
-  color: #15100a;
-  background: #f2c572;
-  box-shadow: 0 10px 26px rgba(242, 197, 114, 0.22);
+  background: var(--k-accent);
+  color: var(--k-accent-ink);
+}
+
+.activeTab .tabCount {
+  background: rgba(23, 17, 13, 0.18);
+  color: var(--k-accent-ink);
+}
+
+.tab:focus-visible,
+.back:focus-visible {
+  outline: 3px solid var(--k-accent);
+  outline-offset: 2px;
 }
 
 .content {
@@ -91,35 +172,122 @@
   min-height: 0;
 }
 
-@media (max-width: 760px) {
-  .shell {
-    padding: 18px;
-  }
+/* ---------- Undo toast (audit B1) ---------- */
 
-  .header {
-    grid-template-columns: 1fr;
-    align-items: stretch;
+.toastRegion {
+  position: fixed;
+  right: 0;
+  bottom: calc(24px + var(--safe-bottom));
+  left: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  pointer-events: none;
+}
+
+.toast {
+  position: relative;
+  max-width: 100%;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 10px 0 20px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--k-text);
+  color: var(--k-bg);
+  font-size: 16px;
+  font-weight: 500;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.toastText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toastUndo {
+  min-height: 44px;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 18px;
+  border-radius: 10px;
+  background: var(--k-bg);
+  color: var(--k-accent);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.toastBar {
+  position: absolute;
+  right: 12px;
+  bottom: 6px;
+  left: 12px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(23, 17, 13, 0.15);
+}
+
+.toastBar i {
+  display: block;
+  height: 100%;
+  background: #8a5a2b;
+  transform-origin: left;
+  animation: countdown linear forwards;
+}
+
+@keyframes countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
   }
 }
 
-@media (max-width: 420px) {
-  .shell {
-    padding: 14px;
-    gap: 16px;
-  }
-
-  .title {
-    font-size: 28px;
-  }
-
+@media (max-width: 1023px) {
   .tabs {
-    gap: 6px;
-    padding: 5px;
+    display: grid;
+  }
+
+  .legend {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .shell {
+    padding: 0 14px 104px;
+    gap: 14px;
+  }
+
+  .header {
+    margin: 0 -14px;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .clock {
+    margin-left: auto;
+    font-size: 18px;
   }
 
   .tab {
-    min-height: 46px;
-    padding: 0 6px;
-    font-size: 12px;
+    font-size: 13px;
+    gap: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toastBar i {
+    animation: none;
   }
 }

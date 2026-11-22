@@ -19,6 +19,7 @@ import {
 } from '../api/positions'
 import { getCurrentUser } from '../api/user'
 import type { OrderPosition, OrderPositionStatus } from '../types'
+import { displayOrderNumber } from './orderKey'
 
 const SELECTED_SHOP_KEY = 'drinkit.staff.shopId'
 
@@ -48,6 +49,17 @@ async function resolveKitchenShopId(): Promise<number | null> {
 
 export type PositionCounts = Record<OrderPositionStatus, number>
 
+/** The last status change, kept for UNDO_DELAY_MS so the barista can undo a mis-tap (audit B1). */
+export type KitchenLastAction = {
+  key: number
+  positionIds: string[]
+  message: string
+  toStatus: OrderPositionStatus
+}
+
+/** The backend has no backward transitions, so a change is sent only after the undo window closes. */
+export const UNDO_DELAY_MS = 5000
+
 type KitchenBoardContextValue = {
   positions: OrderPosition[]
   loading: boolean
@@ -55,8 +67,20 @@ type KitchenBoardContextValue = {
   actionError: string | null
   pendingPositionIds: readonly string[]
   advancePosition: (id: string, expectedStatus?: OrderPositionStatus) => Promise<void>
+  /** Advances several positions at once, e.g. «Выдать заказ» for every ready item of one order. */
+  advancePositions: (ids: string[], expectedStatus: OrderPositionStatus) => Promise<void>
+  lastAction: KitchenLastAction | null
+  undoLastAction: () => void
+  undoDelayMs: number
   positionsByStatus: (status: OrderPositionStatus) => OrderPosition[]
   counts: PositionCounts
+}
+
+const STATUS_LABELS: Record<OrderPositionStatus, string> = {
+  NEW: 'Новые',
+  IN_PROGRESS: 'В работе',
+  READY: 'Готов',
+  COMPLETED: 'Выдан',
 }
 
 const KitchenBoardContext = createContext<KitchenBoardContextValue | null>(null)
@@ -92,8 +116,20 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Failed to update order position'
 }
 
-export function KitchenBoardProvider({ children }: { children: ReactNode }) {
+type ScheduledChange = { timer: number | null; previous: OrderPosition[] }
+
+export function KitchenBoardProvider({
+  children,
+  undoDelayMs = UNDO_DELAY_MS,
+}: {
+  children: ReactNode
+  /** 0 sends status changes immediately (no undo window). */
+  undoDelayMs?: number
+}) {
   const [positions, setPositions] = useState<OrderPosition[]>([])
+  const [lastAction, setLastAction] = useState<KitchenLastAction | null>(null)
+  const scheduledRef = useRef<Map<number, ScheduledChange>>(new Map())
+  const nextActionKey = useRef(1)
   const positionsRef = useRef<OrderPosition[]>([])
   const pendingPositionIdsRef = useRef<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
@@ -170,42 +206,98 @@ export function KitchenBoardProvider({ children }: { children: ReactNode }) {
     }
   }, [updatePositions])
 
-  const advancePosition = useCallback(
-    async (id: string, expectedStatus?: OrderPositionStatus) => {
-      if (pendingPositionIdsRef.current.has(id)) {
-        return
-      }
-
-      const previousPosition = positionsRef.current.find((position) => position.id === id)
-
-      if (!previousPosition) {
-        return
-      }
-
-      if (expectedStatus && previousPosition.status !== expectedStatus) {
-        return
-      }
-
-      setPositionPending(id, true)
-      setActionError(null)
-      updatePositions(advancePositionOptimistically(positionsRef.current, id))
-
-      try {
-        const updatedPosition = await advancePositionStatus(id, previousPosition.status)
-        updatePositions(
-          positionsRef.current.map((position) => (position.id === id ? updatedPosition : position)),
-        )
-      } catch (advanceError) {
-        updatePositions(
-          positionsRef.current.map((position) => (position.id === id ? previousPosition : position)),
-        )
-        setActionError(getErrorMessage(advanceError))
-      } finally {
-        setPositionPending(id, false)
-      }
+  /** Sends the scheduled change of one action to the server, rolling back on failure. */
+  const commit = useCallback(
+    async (previous: OrderPosition[]) => {
+      await Promise.all(
+        previous.map(async (previousPosition) => {
+          const id = previousPosition.id
+          try {
+            const updatedPosition = await advancePositionStatus(id, previousPosition.status)
+            updatePositions(positionsRef.current.map((position) => (position.id === id ? updatedPosition : position)))
+          } catch (advanceError) {
+            updatePositions(positionsRef.current.map((position) => (position.id === id ? previousPosition : position)))
+            setActionError(getErrorMessage(advanceError))
+          } finally {
+            setPositionPending(id, false)
+          }
+        }),
+      )
     },
     [setPositionPending, updatePositions],
   )
+
+  const advancePositions = useCallback(
+    async (ids: string[], expectedStatus: OrderPositionStatus) => {
+      const previous = ids
+        .filter((id) => !pendingPositionIdsRef.current.has(id))
+        .map((id) => positionsRef.current.find((position) => position.id === id))
+        .filter((position): position is OrderPosition => position != null && position.status === expectedStatus)
+
+      if (previous.length === 0) return
+
+      setActionError(null)
+      let next = positionsRef.current
+      for (const position of previous) {
+        setPositionPending(position.id, true)
+        next = advancePositionOptimistically(next, position.id)
+      }
+      updatePositions(next)
+
+      if (undoDelayMs <= 0) {
+        await commit(previous)
+        return
+      }
+
+      const key = nextActionKey.current++
+      const toStatus = nextStatus(expectedStatus)
+      const first = previous[0]!
+      const number = displayOrderNumber(first.orderNumber)
+      const what = previous.length === 1 ? `${number} ${first.title}` : `${number} · ${previous.length} поз.`
+      const change: ScheduledChange = { timer: null, previous }
+      change.timer = window.setTimeout(() => {
+        scheduledRef.current.delete(key)
+        setLastAction((current) => (current?.key === key ? null : current))
+        void commit(previous)
+      }, undoDelayMs)
+      scheduledRef.current.set(key, change)
+      setLastAction({ key, positionIds: previous.map((p) => p.id), message: `${what} → ${STATUS_LABELS[toStatus]}`, toStatus })
+    },
+    [commit, setPositionPending, undoDelayMs, updatePositions],
+  )
+
+  const advancePosition = useCallback(
+    async (id: string, expectedStatus?: OrderPositionStatus) => {
+      const status = expectedStatus ?? positionsRef.current.find((position) => position.id === id)?.status
+      if (!status) return
+      await advancePositions([id], status)
+    },
+    [advancePositions],
+  )
+
+  const undoLastAction = useCallback(() => {
+    if (!lastAction) return
+    const change = scheduledRef.current.get(lastAction.key)
+    setLastAction(null)
+    if (!change) return
+    if (change.timer != null) window.clearTimeout(change.timer)
+    scheduledRef.current.delete(lastAction.key)
+    const restore = new Map(change.previous.map((position) => [position.id, position]))
+    updatePositions(positionsRef.current.map((position) => restore.get(position.id) ?? position))
+    for (const position of change.previous) setPositionPending(position.id, false)
+  }, [lastAction, setPositionPending, updatePositions])
+
+  // Leaving the board must not lose taps still inside their undo window: send them right away.
+  useEffect(() => {
+    const scheduled = scheduledRef.current
+    return () => {
+      for (const change of scheduled.values()) {
+        if (change.timer != null) window.clearTimeout(change.timer)
+        void commit(change.previous)
+      }
+      scheduled.clear()
+    }
+  }, [commit])
 
   const counts = useMemo(() => countPositionsByStatus(positions), [positions])
 
@@ -222,10 +314,27 @@ export function KitchenBoardProvider({ children }: { children: ReactNode }) {
       actionError,
       pendingPositionIds,
       advancePosition,
+      advancePositions,
+      lastAction,
+      undoLastAction,
+      undoDelayMs,
       positionsByStatus,
       counts,
     }),
-    [positions, loading, error, actionError, pendingPositionIds, advancePosition, positionsByStatus, counts],
+    [
+      positions,
+      loading,
+      error,
+      actionError,
+      pendingPositionIds,
+      advancePosition,
+      advancePositions,
+      lastAction,
+      undoLastAction,
+      undoDelayMs,
+      positionsByStatus,
+      counts,
+    ],
   )
 
   return <KitchenBoardContext.Provider value={value}>{children}</KitchenBoardContext.Provider>

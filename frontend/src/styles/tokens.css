@@ -1,17 +1,65 @@
 :root {
   --bg: #12161A;
   --surface: #1A1F24;
+  --surface-2: #222930;
+  --border: rgba(255, 255, 255, 0.08);
   --accent: #2F54EB;
   --accent-alt: #3B59E9;
+  --accent-soft: rgba(47, 84, 235, 0.16);
+  --on-accent: #FFFFFF;
   --text: #FFFFFF;
   --text-muted: #8A8F98;
+  --success: #3DBE78;
+  --success-soft: rgba(61, 190, 120, 0.16);
+  --warning: #E0A240;
+  --danger: #FF6B6B;
+  --danger-soft: rgba(255, 107, 107, 0.14);
+  --skeleton: rgba(255, 255, 255, 0.06);
+  --skeleton-shine: rgba(255, 255, 255, 0.13);
+  --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: Fraunces, Georgia, 'Times New Roman', serif;
   --r-lg: 24px;
   --r-md: 16px;
   --r-sm: 12px;
   --r-xs: 8px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
   --nav-height: 64px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
+}
+
+/* Variant B «Cream» (docs/design-audit/mockup-b-cream.html): light warm theme of the customer app.
+   Set on <html> by AppLayout; staff and kitchen screens keep the dark default. */
+:root[data-theme='cream'] {
+  color-scheme: light;
+  --bg: #FBF7F1;
+  --surface: #FFFFFF;
+  --surface-2: #F3ECE2;
+  --border: #E8DFD3;
+  --accent: #B5562B;
+  --accent-alt: #9A4521;
+  --accent-soft: #F6E6DC;
+  --on-accent: #FFFFFF;
+  --text: #2A1F18;
+  --text-muted: #6B5E53;
+  --ink-soft: #CDBFB1;
+  --success: #2F7D4F;
+  --success-soft: #E3F1E8;
+  --warning: #9A6200;
+  --danger: #9B2C1C;
+  --danger-soft: #FCE8E4;
+  --skeleton: #EFE6DA;
+  --skeleton-shine: #F8F2EA;
+  --r-lg: 24px;
+  --r-md: 18px;
+  --r-sm: 12px;
+  --nav-height: 72px;
 }

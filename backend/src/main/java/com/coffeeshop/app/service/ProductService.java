@@ -62,4 +62,28 @@ public class ProductService {
         }
         return ProductDto.from(product);
     }
+
+    /** Images are uploaded by the browser straight to Cloudinary; only its delivery URLs are accepted. */
+    static final String CLOUDINARY_URL_PREFIX = "https://res.cloudinary.com/";
+
+    /**
+     * Stores the URL of an image the client already uploaded to Cloudinary
+     * (folder {@code coffee-mvp/shop-<shopId>/products}). The old image is removed only when it is
+     * kept by this server (local disk / Supabase); Cloudinary deletion needs the API secret.
+     */
+    @Transactional
+    public ProductDto updateImageUrl(Long productId, String imageUrl) {
+        if (imageUrl == null || !imageUrl.startsWith(CLOUDINARY_URL_PREFIX) || imageUrl.length() > 500) {
+            throw new IllegalArgumentException("Image URL must be a Cloudinary delivery URL");
+        }
+        Product product = productRepository.findByIdWithToppings(productId)
+                .orElseThrow(() -> new NoSuchElementException("Product not found: " + productId));
+        String oldImagePath = product.getImagePath();
+        product.setImagePath(imageUrl);
+        productRepository.save(product);
+        if (oldImagePath != null && !oldImagePath.startsWith(CLOUDINARY_URL_PREFIX)) {
+            fileStorageService.deleteIfExists(oldImagePath);
+        }
+        return ProductDto.from(product);
+    }
 }

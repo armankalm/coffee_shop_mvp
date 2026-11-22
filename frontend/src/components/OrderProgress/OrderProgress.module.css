@@ -9,7 +9,7 @@
 }
 
 .ready {
-  --progress-color: rgb(47, 151, 99);
+  --progress-color: var(--success);
 }
 
 .step {
@@ -21,7 +21,7 @@
 .bar {
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border);
   transition: background 240ms ease;
 }
 
